@@ -25,7 +25,7 @@ module.exports = {
     path: path.resolve(__dirname, "out"),
   },
   resolve: {
-    extensions: [".ts"],
+    extensions: [".ts", ".js", ".json"],
   },
   target: "node",
 }
