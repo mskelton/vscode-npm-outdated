@@ -1,0 +1,10 @@
+.github/
+.vscode/
+out/**/*.map
+src/
+.all-contributorsrc
+.eslintignore
+.gitignore
+.prettierignore
+.releaserc.json
+tsconfig.json

@@ -1,0 +1,14 @@
+{
+  "verifyConditions": ["semantic-release-vsce", "@semantic-release/github"],
+  "prepare": {
+    "path": "semantic-release-vsce",
+    "packageVsix": "mskelton.npm-outdated.vsix"
+  },
+  "publish": [
+    "semantic-release-vsce",
+    {
+      "path": "@semantic-release/github",
+      "assets": "mskelton.npm-outdated.vsix"
+    }
+  ]
+}
