@@ -28,7 +28,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "webpack",
-    "watch": "webpack --watch",
+    "start": "webpack --watch",
     "vscode:prepublish": "npm run build"
   },
   "engines": {
@@ -43,20 +43,22 @@
   ],
   "main": "./out/extension.js",
   "devDependencies": {
-    "@mskelton/eslint-config": "^5.10.2",
-    "@types/node": "^14.0.11",
-    "@types/vscode": "^1.42.0",
-    "@typescript-eslint/eslint-plugin": "^3.1.0",
-    "copy-webpack-plugin": "^6.0.2",
-    "eslint": "^7.1.0",
-    "eslint-plugin-sort": "^1.4.0",
-    "prettier": "^2.0.5",
-    "semantic-release": "^17.0.8",
+    "@mskelton/eslint-config": "^5.11.2",
+    "@types/node": "^14.10.1",
+    "@types/vscode": "^1.49.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "eslint": "^7.9.0",
+    "eslint-plugin-sort": "^1.5.0",
+    "prettier": "^2.1.1",
+    "semantic-release": "^17.1.1",
     "semantic-release-vsce": "^3.0.1",
     "ts-loader": "^7.0.5",
-    "typescript": "^3.9.5",
-    "vsce": "^1.74.0",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "typescript": "^3.9.7",
+    "vsce": "^1.79.5",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "package-json": "^6.5.0"
   }
 }
