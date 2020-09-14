@@ -44,7 +44,7 @@
   "main": "./out/extension.js",
   "devDependencies": {
     "@babel/core": "^7.11.6",
-    "@mskelton/eslint-config": "^5.11.2",
+    "@mskelton/eslint-config": "^5.11.3",
     "@types/node": "^14.10.1",
     "@types/semver": "^7.3.3",
     "@types/vscode": "^1.49.0",
