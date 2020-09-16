@@ -1,12 +1,9 @@
 import vscode from "vscode"
+import { parseDependency } from "../utils/parseDependency"
 
 const isDependencyBlock = (line: vscode.TextLine) =>
   line.text.includes('"dependencies"') ||
   line.text.includes('"devDependencies"')
-
-const getPackageName = (text: string) => {
-  return text.match(/"(.+)":/)?.[1]
-}
 
 export function getPackageRanges(doc: vscode.TextDocument) {
   let inDependencyBlock = false
@@ -20,16 +17,16 @@ export function getPackageRanges(doc: vscode.TextDocument) {
     }
 
     if (inDependencyBlock) {
-      const packageName = getPackageName(line.text)
+      const { name, version } = parseDependency(line.text)
 
-      if (packageName) {
-        const startIndex = line.text.indexOf(packageName)
+      if (name && version) {
+        const startIndex = line.text.indexOf(version)
 
-        ranges[packageName] = new vscode.Range(
+        ranges[name] = new vscode.Range(
           line.lineNumber,
           startIndex,
           line.lineNumber,
-          startIndex + packageName.length
+          startIndex + version.length
         )
       }
     }

@@ -3,6 +3,8 @@ import { PackageJsonCodeActionProvider } from "./PackageJsonCodeActionProvider"
 import { findOutdatedPackages } from "./diagnostics/findOutdatedPackages"
 import { getPackageRanges } from "./diagnostics/getPackageRanges"
 import { subscribeToDocument } from "./diagnostics/subscribeToDocument"
+import { updatePackage } from "./packages/updatePackage"
+import { DIAGNOSTIC_CODE } from "./utils/vars"
 
 let diagnosticCollection: vscode.DiagnosticCollection
 
@@ -15,11 +17,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
     const ranges = getPackageRanges(doc)
 
     const diagnostics = results.map((result) => {
-      return new vscode.Diagnostic(
+      const diagnostic = new vscode.Diagnostic(
         ranges[result.name],
         `Newer version of ${result.name} is available (${result.latestVersion}).`,
         vscode.DiagnosticSeverity.Information
       )
+      diagnostic.code = DIAGNOSTIC_CODE
+      return diagnostic
     })
 
     // Clear any old diagnostics before creating the new diagnostics
@@ -34,7 +38,16 @@ export function activate(ctx: vscode.ExtensionContext): void {
         pattern: "**/package.json",
         scheme: "file",
       },
-      new PackageJsonCodeActionProvider()
+      new PackageJsonCodeActionProvider(),
+      {
+        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
+      }
     )
+  )
+
+  ctx.subscriptions.push(
+    vscode.commands.registerCommand(COMMANDS.update, (name: string) => {
+      updatePackage(name)
+    })
   )
 }

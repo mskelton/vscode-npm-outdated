@@ -1,51 +1,64 @@
-import semverGt from "semver/functions/gt"
 import vscode from "vscode"
-import { fetchPackage, parsePackage } from "./utils/packages"
+import { fetchPackage } from "./utils/packages"
+import { parseDependency } from "./utils/parseDependency"
+import { DIAGNOSTIC_CODE } from "./utils/vars"
 
 export class PackageJsonCodeActionProvider
   implements vscode.CodeActionProvider {
-  public async provideCodeActions(
-    document: vscode.TextDocument,
-    range: vscode.Range | vscode.Selection,
-    context: vscode.CodeActionContext
-  ): Promise<(vscode.Command | vscode.CodeAction)[]> {
-    const line = document.lineAt(range.start.line)
-    const localInfo = parsePackage(line.text)
-    const registryInfo = localInfo.name
-      ? await fetchPackage(localInfo.name)
-      : undefined
-
-    if (localInfo?.version && registryInfo?.version) {
-      const outdated = semverGt(registryInfo.version, localInfo.version)
-      console.log(localInfo.name, outdated)
-      // return vscode.commands.executeCommand("workbench.action")
+  provideCodeActions(
+    doc: vscode.TextDocument,
+    range: vscode.Range,
+    ctx: vscode.CodeActionContext
+  ): Promise<vscode.CodeAction[]> {
+    // TODO: Add a single command to update all the packages
+    if (!range.isSingleLine) {
+      return Promise.resolve([])
     }
 
-    // const actions = context.diagnostics.map((error) => {
-    //   return {
-    //     diagnostics: [error],
-    //     edit: {
-    //       edits: [
-    //         {
-    //           edits: [
-    //             {
-    //               range: error,
-    //               text: "This text replaces the text with the error",
-    //             },
-    //           ],
-    //           resource: document.uri,
-    //         },
-    //       ],
-    //     },
-    //     isPreferred: true,
-    //     kind: "quickfix",
-    //     title: `Example quick fix`,
-    //   }
-    // })
+    // For each diagnostic entry that has the matching `code`,
+    // create a code action command.
+    const promises = ctx.diagnostics
+      .filter((diagnostic) => diagnostic.code === DIAGNOSTIC_CODE)
+      .map((diagnostic) => this.createCommandCodeAction(doc, diagnostic))
 
-    // return {
-    //   actions,
-    //   dispose() {},
-    // }
+    return Promise.all(promises)
+  }
+
+  private async createCommandCodeAction(
+    doc: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic
+  ) {
+    const action = new vscode.CodeAction(
+      "Update package to latest version",
+      vscode.CodeActionKind.QuickFix
+    )
+
+    action.edit = await this.createEdit(doc, diagnostic.range)
+    action.diagnostics = [diagnostic]
+    action.isPreferred = true
+
+    return action
+  }
+
+  private async createEdit(doc: vscode.TextDocument, range: vscode.Range) {
+    const edit = new vscode.WorkspaceEdit()
+
+    // Get the latest version from the registry
+    const line = doc.lineAt(range.start.line)
+    const { name, version } = parseDependency(line.text)
+
+    // This check shouldn't be necessary, but the types are overly strong
+    // so this is an extra safety check
+    if (name && version) {
+      // Keep the existing version prefix if it exists.
+      const prefix = ["~", "^"].includes(version[0]) ? version[0] : ""
+      const info = await fetchPackage(name)
+
+      if (info) {
+        edit.replace(doc.uri, range, prefix + info.version)
+      }
+    }
+
+    return edit
   }
 }

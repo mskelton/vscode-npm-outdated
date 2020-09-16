@@ -1,25 +1,8 @@
 import cp from "child_process"
-import semverCoerce from "semver/functions/coerce"
 import { PackageCache } from "../PackageCache"
 import { PackageInfo } from "../models"
 
-const regex = /"(.+)":\s*"(.+)"/
 const cache = new PackageCache()
-
-export function parsePackage(text: string) {
-  const matches = text.match(regex)
-
-  if (matches) {
-    const [_, name, version] = matches
-
-    return {
-      name,
-      version: semverCoerce(version)?.version,
-    }
-  }
-
-  return {}
-}
 
 function npmView(name: string): Promise<PackageInfo | undefined> {
   const command = `npm view --json ${name} dist-tags.latest version`
