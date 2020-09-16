@@ -32,8 +32,9 @@
     "start": "webpack --watch",
     "vscode:prepublish": "npm run build"
   },
+  "icon": "icon.png",
   "engines": {
-    "vscode": "^1.42.0"
+    "vscode": "^1.49.0"
   },
   "categories": [
     "Linters",

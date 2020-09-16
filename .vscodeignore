@@ -8,3 +8,4 @@ src/
 .prettierignore
 .releaserc.json
 tsconfig.json
+webpack.config.js
