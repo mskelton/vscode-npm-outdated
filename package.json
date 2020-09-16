@@ -1,7 +1,7 @@
 {
   "name": "npm-outdated",
   "displayName": "npm Outdated",
-  "description": "Displays a warning in package.json files for packages which have newer versions available.",
+  "description": "Displays a diagnostic message in package.json files for packages which have newer versions available.",
   "version": "0.0.0-semantically-released",
   "publisher": "mskelton",
   "author": "Mark Skelton",
@@ -32,7 +32,7 @@
     "start": "webpack --watch",
     "vscode:prepublish": "npm run build"
   },
-  "icon": "icon.png",
+  "icon": "./assets/icon.png",
   "engines": {
     "vscode": "^1.49.0"
   },

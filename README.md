@@ -4,7 +4,9 @@
 [![All Contributors](https://img.shields.io/github/all-contributors/mskelton/vscode-npm-outdated?color=orange)](#contributors-)
 [![Semantic release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-> Displays a warning in package.json files for packages which have newer versions available.
+Displays a diagnostic message in package.json files for packages which have newer versions available as well as a code action to quickly update packages to their latest version.
+
+![Screenshot](./assets/screenshot.jpg)
 
 ## Contributors ✨
 
