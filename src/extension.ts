@@ -3,7 +3,6 @@ import { PackageJsonCodeActionProvider } from "./PackageJsonCodeActionProvider"
 import { findOutdatedPackages } from "./diagnostics/findOutdatedPackages"
 import { getPackageRanges } from "./diagnostics/getPackageRanges"
 import { subscribeToDocument } from "./diagnostics/subscribeToDocument"
-import { updatePackage } from "./packages/updatePackage"
 import { DIAGNOSTIC_CODE } from "./utils/vars"
 
 let diagnosticCollection: vscode.DiagnosticCollection
@@ -43,11 +42,5 @@ export function activate(ctx: vscode.ExtensionContext): void {
         providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
       }
     )
-  )
-
-  ctx.subscriptions.push(
-    vscode.commands.registerCommand(COMMANDS.update, (name: string) => {
-      updatePackage(name)
-    })
   )
 }
