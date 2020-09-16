@@ -27,6 +27,7 @@
   },
   "scripts": {
     "lint": "eslint .",
+    "ts": "tsc",
     "build": "webpack",
     "start": "webpack --watch",
     "vscode:prepublish": "npm run build"
