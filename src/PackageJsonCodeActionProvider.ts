@@ -10,7 +10,7 @@ export class PackageJsonCodeActionProvider
     range: vscode.Range,
     ctx: vscode.CodeActionContext
   ): Promise<vscode.CodeAction[]> {
-    // TODO: Add a single command to update all the packages
+    // TODO: Update command to allow multiline selection
     if (!range.isSingleLine) {
       return Promise.resolve([])
     }
@@ -21,28 +21,64 @@ export class PackageJsonCodeActionProvider
       .filter((diagnostic) => diagnostic.code === DIAGNOSTIC_CODE)
       .map((diagnostic) => this.createCommandCodeAction(doc, diagnostic))
 
+    const allDiagnostics = vscode.languages
+      .getDiagnostics(doc.uri)
+      .filter((diagnostic) => diagnostic.code === DIAGNOSTIC_CODE)
+
+    // Only show the update all code action if there are outdated packages
+    if (allDiagnostics.length) {
+      promises.push(this.createUpdateAllCodeAction(doc, allDiagnostics))
+    }
+
     return Promise.all(promises)
+  }
+
+  private async createUpdateAllCodeAction(
+    doc: vscode.TextDocument,
+    diagnostics: vscode.Diagnostic[]
+  ) {
+    const edit = new vscode.WorkspaceEdit()
+    const action = new vscode.CodeAction(
+      "Update all packages",
+      vscode.CodeActionKind.QuickFix
+    )
+
+    action.edit = edit
+    action.isPreferred = true
+    action.diagnostics = diagnostics
+
+    const promises = action.diagnostics.map((diagnostic) =>
+      this.createEdit(edit, doc, diagnostic.range)
+    )
+    await Promise.all(promises)
+
+    return action
   }
 
   private async createCommandCodeAction(
     doc: vscode.TextDocument,
     diagnostic: vscode.Diagnostic
   ) {
+    const edit = new vscode.WorkspaceEdit()
     const action = new vscode.CodeAction(
-      "Update package to latest version",
+      "Update package",
       vscode.CodeActionKind.QuickFix
     )
 
-    action.edit = await this.createEdit(doc, diagnostic.range)
+    await this.createEdit(edit, doc, diagnostic.range)
+
+    action.edit = edit
     action.diagnostics = [diagnostic]
     action.isPreferred = true
 
     return action
   }
 
-  private async createEdit(doc: vscode.TextDocument, range: vscode.Range) {
-    const edit = new vscode.WorkspaceEdit()
-
+  private async createEdit(
+    edit: vscode.WorkspaceEdit,
+    doc: vscode.TextDocument,
+    range: vscode.Range
+  ) {
     // Get the latest version from the registry
     const line = doc.lineAt(range.start.line)
     const { name, version } = parseDependency(line.text)
@@ -58,7 +94,5 @@ export class PackageJsonCodeActionProvider
         edit.replace(doc.uri, range, prefix + info.version)
       }
     }
-
-    return edit
   }
 }

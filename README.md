@@ -8,6 +8,14 @@ Displays a diagnostic message in package.json files for packages which have newe
 
 ![Screenshot](./assets/screenshot.jpg)
 
+## Usage
+
+This extension provides three primary means of updating outdated packages. The following code actions are available in `package.json` files.
+
+1. `Update all packages` - This command will update all `dependencies` and `devDependencies` in the package.json file.
+1. `Update package` - This command will update a single package to the latest version. This will show when a single package is selected.
+1. `Update x packages` - This command will update all the selected packages to the latest version. This will show when multiple packages are selected.
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
