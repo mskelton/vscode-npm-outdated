@@ -10,16 +10,21 @@ export class PackageJsonCodeActionProvider
     range: vscode.Range,
     ctx: vscode.CodeActionContext
   ): Promise<vscode.CodeAction[]> {
-    // TODO: Update command to allow multiline selection
-    if (!range.isSingleLine) {
-      return Promise.resolve([])
-    }
+    // Get all diagnostics from this extension
+    const diagnostics = ctx.diagnostics.filter(
+      (diagnostic) => diagnostic.code === DIAGNOSTIC_CODE
+    )
 
-    // For each diagnostic entry that has the matching `code`,
-    // create a code action command.
-    const promises = ctx.diagnostics
-      .filter((diagnostic) => diagnostic.code === DIAGNOSTIC_CODE)
-      .map((diagnostic) => this.createCommandCodeAction(doc, diagnostic))
+    // For each diagnostic from this extension, create a code action
+    const promises = range.isSingleLine
+      ? diagnostics.map((diag) => this.createCommandCodeAction(doc, diag))
+      : [
+          this.createUpdateManyCodeAction(
+            doc,
+            diagnostics,
+            `Update ${diagnostics.length} packages`
+          ),
+        ]
 
     const allDiagnostics = vscode.languages
       .getDiagnostics(doc.uri)
@@ -27,30 +32,44 @@ export class PackageJsonCodeActionProvider
 
     // Only show the update all code action if there are outdated packages
     if (allDiagnostics.length) {
-      promises.push(this.createUpdateAllCodeAction(doc, allDiagnostics))
+      promises.push(
+        this.createUpdateManyCodeAction(
+          doc,
+          allDiagnostics,
+          "Update all packages"
+        )
+      )
     }
 
     return Promise.all(promises)
   }
 
-  private async createUpdateAllCodeAction(
-    doc: vscode.TextDocument,
-    diagnostics: vscode.Diagnostic[]
-  ) {
+  private createAction(message: string) {
     const edit = new vscode.WorkspaceEdit()
     const action = new vscode.CodeAction(
-      "Update all packages",
+      message,
       vscode.CodeActionKind.QuickFix
     )
 
     action.edit = edit
     action.isPreferred = true
+
+    return [action, edit] as const
+  }
+
+  private async createUpdateManyCodeAction(
+    doc: vscode.TextDocument,
+    diagnostics: vscode.Diagnostic[],
+    message: string
+  ) {
+    const [action, edit] = this.createAction(message)
     action.diagnostics = diagnostics
 
-    const promises = action.diagnostics.map((diagnostic) =>
-      this.createEdit(edit, doc, diagnostic.range)
+    await Promise.all(
+      action.diagnostics.map((diagnostic) =>
+        this.createEdit(edit, doc, diagnostic.range)
+      )
     )
-    await Promise.all(promises)
 
     return action
   }
@@ -59,17 +78,10 @@ export class PackageJsonCodeActionProvider
     doc: vscode.TextDocument,
     diagnostic: vscode.Diagnostic
   ) {
-    const edit = new vscode.WorkspaceEdit()
-    const action = new vscode.CodeAction(
-      "Update package",
-      vscode.CodeActionKind.QuickFix
-    )
+    const [action, edit] = this.createAction("Update package")
+    action.diagnostics = [diagnostic]
 
     await this.createEdit(edit, doc, diagnostic.range)
-
-    action.edit = edit
-    action.diagnostics = [diagnostic]
-    action.isPreferred = true
 
     return action
   }
