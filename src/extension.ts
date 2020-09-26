@@ -1,5 +1,8 @@
 import vscode from "vscode"
 import { PackageJsonCodeActionProvider } from "./PackageJsonCodeActionProvider"
+import { commands } from "./commands"
+import { install } from "./commands/install"
+import { notify } from "./commands/notify"
 import { findOutdatedPackages } from "./diagnostics/findOutdatedPackages"
 import { getPackageRanges } from "./diagnostics/getPackageRanges"
 import { subscribeToDocument } from "./diagnostics/subscribeToDocument"
@@ -30,7 +33,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
     diagnosticCollection.set(doc.uri, diagnostics)
   })
 
+  const outputChannel = vscode.window.createOutputChannel("npm Outdated")
+
   ctx.subscriptions.push(
+    outputChannel,
+    vscode.commands.registerCommand(commands.notify, notify),
+    vscode.commands.registerCommand(commands.install, install(outputChannel)),
     vscode.languages.registerCodeActionsProvider(
       {
         language: "json",

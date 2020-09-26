@@ -1,4 +1,5 @@
 import vscode from "vscode"
+import { commands } from "./commands"
 import { fetchPackage } from "./utils/packages"
 import { parseDependency } from "./utils/parseDependency"
 import { DIAGNOSTIC_CODE } from "./utils/vars"
@@ -44,7 +45,11 @@ export class PackageJsonCodeActionProvider
     return Promise.all(promises)
   }
 
-  private createAction(message: string) {
+  private createAction(
+    doc: vscode.TextDocument,
+    message: string,
+    commandMessage: string
+  ) {
     const edit = new vscode.WorkspaceEdit()
     const action = new vscode.CodeAction(
       message,
@@ -52,7 +57,11 @@ export class PackageJsonCodeActionProvider
     )
 
     action.edit = edit
-    action.isPreferred = true
+    action.command = {
+      arguments: [commandMessage, doc.uri],
+      command: commands.notify,
+      title: "update",
+    }
 
     return [action, edit] as const
   }
@@ -62,7 +71,11 @@ export class PackageJsonCodeActionProvider
     diagnostics: vscode.Diagnostic[],
     message: string
   ) {
-    const [action, edit] = this.createAction(message)
+    const [action, edit] = this.createAction(
+      doc,
+      message,
+      `Package${diagnostics.length > 1 ? "s" : ""} updated successfully.`
+    )
     action.diagnostics = diagnostics
 
     await Promise.all(
@@ -78,7 +91,13 @@ export class PackageJsonCodeActionProvider
     doc: vscode.TextDocument,
     diagnostic: vscode.Diagnostic
   ) {
-    const [action, edit] = this.createAction("Update package")
+    const [action, edit] = this.createAction(
+      doc,
+      "Update package",
+      "Package update successfully."
+    )
+
+    action.isPreferred = true
     action.diagnostics = [diagnostic]
 
     await this.createEdit(edit, doc, diagnostic.range)
