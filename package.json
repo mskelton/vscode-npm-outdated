@@ -64,5 +64,23 @@
   },
   "dependencies": {
     "semver": "^7.3.2"
+  },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "npm Outdated",
+      "properties": {
+        "npm-outdated.version": {
+          "type": "string",
+          "default": "patch",
+          "enum": [
+            "major",
+            "minor",
+            "patch"
+          ],
+          "markdownDescription": "Specify which minimum version of npm packages to compare. See the [Semver web](https://semver.org/) for more information."
+        }
+      }
+    }
   }
 }
