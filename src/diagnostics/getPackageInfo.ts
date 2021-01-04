@@ -9,7 +9,7 @@ export async function getPackageInfo([name, version]: string[]) {
   const versionToCompare = workspace.getConfiguration().get<string>('npm-outdated.version')
   const versionDiff = info && localVersion && semverDiff(info.version, localVersion)
 
-  const versionMap: any = {
+  const versionMap: Record<string, number> = {
     major: 2,
     minor: 1,
     patch: 0
