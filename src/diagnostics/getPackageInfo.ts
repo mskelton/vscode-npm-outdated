@@ -1,6 +1,6 @@
 import semverCoerce from "semver/functions/coerce"
 import semverDiff from "semver/functions/diff"
-import { workspace } from 'vscode';
+import { workspace } from 'vscode'
 import { fetchPackage } from "../utils/packages"
 
 export async function getPackageInfo([name, version]: string[]) {
