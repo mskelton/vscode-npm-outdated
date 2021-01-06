@@ -64,5 +64,23 @@
   },
   "dependencies": {
     "semver": "^7.3.2"
+  },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "npm Outdated",
+      "properties": {
+        "npm-outdated.level": {
+          "type": "string",
+          "default": "patch",
+          "enum": [
+            "major",
+            "minor",
+            "patch"
+          ],
+          "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
+        }
+      }
+    }
   }
 }
