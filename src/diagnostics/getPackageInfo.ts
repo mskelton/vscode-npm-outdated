@@ -8,7 +8,7 @@ export async function getPackageInfo([name, version]: string[]) {
   const localVersion = semverCoerce(version)
   const versionToCompare = workspace
     .getConfiguration()
-    .get<string>("npm-outdated.version")
+    .get<string>("npm-outdated.level")
   const versionDiff =
     info && localVersion && semverDiff(info.version, localVersion)
 
