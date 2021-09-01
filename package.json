@@ -13,7 +13,7 @@
     "url": "https://github.com/mskelton/vscode-npm-outdated/issues"
   },
   "homepage": "https://github.com/mskelton/vscode-npm-outdated#readme",
-  "license": "MIT",
+  "license": "ISC",
   "keywords": [
     "npm",
     "vscode-extension",
