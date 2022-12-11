@@ -1,54 +1,62 @@
-import vscode from "vscode"
-import { PackageJsonCodeActionProvider } from "./PackageJsonCodeActionProvider"
-import { commands } from "./commands"
-import { install } from "./commands/install"
-import { notify } from "./commands/notify"
-import { findOutdatedPackages } from "./diagnostics/findOutdatedPackages"
-import { getPackageRanges } from "./diagnostics/getPackageRanges"
-import { subscribeToDocument } from "./diagnostics/subscribeToDocument"
-import { DIAGNOSTIC_CODE } from "./utils/vars"
+import {
+  CodeActionKind,
+  commands,
+  ExtensionContext,
+  languages,
+  TextDocument,
+  window,
+} from "vscode"
 
-let diagnosticCollection: vscode.DiagnosticCollection
+import { PackageJsonCodeActionProvider } from "./CodeAction"
+import {
+  COMMAND_INSTALL,
+  COMMAND_NOTIFY,
+  packageInstall,
+  packageNotify,
+} from "./Command"
+import { diagnosticSubscribe, reportDiagnostics } from "./Diagnostic"
+import { getDocumentPackages } from "./Document"
+import { getPackagesLatestVersions } from "./NPM"
 
-export function activate(ctx: vscode.ExtensionContext): void {
-  diagnosticCollection = vscode.languages.createDiagnosticCollection("json")
-  ctx.subscriptions.push(diagnosticCollection)
+export function activate(context: ExtensionContext) {
+  const diagnostics = languages.createDiagnosticCollection("json")
 
-  subscribeToDocument(ctx, diagnosticCollection, async (doc) => {
-    const results = await findOutdatedPackages(doc)
-    const ranges = getPackageRanges(doc)
+  context.subscriptions.push(diagnostics)
 
-    const diagnostics = results.map((result) => {
-      const diagnostic = new vscode.Diagnostic(
-        ranges[result.name],
-        `Newer version of ${result.name} is available (${result.latestVersion}).`,
-        vscode.DiagnosticSeverity.Information
-      )
-      diagnostic.code = DIAGNOSTIC_CODE
-      return diagnostic
-    })
+  const outputChannel = window.createOutputChannel("npm Outdated")
 
-    // Clear any old diagnostics before creating the new diagnostics
-    diagnosticCollection.clear()
-    diagnosticCollection.set(doc.uri, diagnostics)
+  diagnosticSubscribe(context, diagnostics, async (document: TextDocument) => {
+    const packagesLatestVersions = await getPackagesLatestVersions(
+      document,
+      outputChannel
+    )
+
+    if (!packagesLatestVersions) {
+      return
+    }
+
+    const documentPackages = await getDocumentPackages(document)
+
+    diagnostics.clear()
+    diagnostics.set(
+      document.uri,
+      reportDiagnostics(packagesLatestVersions, documentPackages)
+    )
   })
 
-  const outputChannel = vscode.window.createOutputChannel("npm Outdated")
-
-  ctx.subscriptions.push(
+  context.subscriptions.push(
     outputChannel,
-    vscode.commands.registerCommand(commands.notify, notify),
-    vscode.commands.registerCommand(commands.install, install(outputChannel)),
-    vscode.languages.registerCodeActionsProvider(
-      {
-        language: "json",
-        pattern: "**/package.json",
-        scheme: "file",
-      },
+
+    commands.registerCommand(COMMAND_NOTIFY, packageNotify),
+    commands.registerCommand(
+      COMMAND_INSTALL,
+      packageInstall.bind(null, outputChannel)
+    ),
+
+    languages.registerCodeActionsProvider(
+      { language: "json", pattern: "**/package.json", scheme: "file" },
       new PackageJsonCodeActionProvider(),
-      {
-        providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
-      }
+      { providedCodeActionKinds: [CodeActionKind.QuickFix] }
     )
   )
 }

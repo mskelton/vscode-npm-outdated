@@ -1,7 +1,7 @@
 {
   "name": "npm-outdated",
   "displayName": "npm Outdated",
-  "description": "Displays a diagnostic message in package.json files for packages which have newer versions available.",
+  "description": "Displays a diagnostic message in package.json files for packages with newer versions available.",
   "version": "0.0.0-semantically-released",
   "publisher": "mskelton",
   "author": "Mark Skelton",
@@ -26,15 +26,16 @@
     ]
   },
   "scripts": {
-    "lint": "eslint .",
-    "ts": "tsc",
-    "build": "webpack",
-    "start": "webpack --watch",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
   },
   "icon": "assets/icon.png",
   "engines": {
-    "vscode": "^1.49.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Linters",
@@ -45,25 +46,17 @@
   ],
   "main": "./out/extension.js",
   "devDependencies": {
-    "@babel/core": "^7.11.6",
-    "@mskelton/eslint-config": "^5.11.3",
-    "@types/node": "^14.10.1",
-    "@types/semver": "^7.3.3",
-    "@types/vscode": "^1.49.0",
-    "@typescript-eslint/eslint-plugin": "^3.10.1",
-    "eslint": "^7.9.0",
-    "eslint-plugin-sort": "^1.5.0",
-    "prettier": "^2.1.1",
-    "semantic-release": "^17.1.1",
-    "semantic-release-vsce": "^3.0.1",
-    "ts-loader": "^8.0.3",
-    "typescript": "^4.0.2",
-    "vsce": "^1.79.5",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "@mskelton/eslint-config": "^7.1.0",
+    "@types/node": "^18.11.13",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.0",
+    "@typescript-eslint/parser": "^5.46.0",
+    "semantic-release-vsce": "^5.5.1",
+    "eslint": "^8.29.0",
+    "typescript": "^4.9.4"
   },
   "dependencies": {
-    "semver": "^7.3.2"
+    "semver": "^7.3.8"
   },
   "contributes": {
     "configuration": {
