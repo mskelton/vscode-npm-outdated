@@ -25,6 +25,7 @@ import {
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
 import { DocumentsPackagesInterface } from "./Document"
 import { PackageInterface } from "./NPM"
+import { getLevel } from "./Settings"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
@@ -85,9 +86,7 @@ export const reportDiagnostics = (
   packagesLocals: DocumentsPackagesInterface
 ): Diagnostic[] => {
   const diagnostics = [],
-    versionDiff = workspace
-      .getConfiguration()
-      .get<ReleaseType>("npm-outdated.level")
+    versionDiff = getLevel()
 
   for (const [documentPackageName, documentPackage] of Object.entries(
     packagesLocals

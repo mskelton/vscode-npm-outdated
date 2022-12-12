@@ -67,6 +67,7 @@
       "title": "npm Outdated",
       "properties": {
         "npm-outdated.level": {
+          "order": 0,
           "type": "string",
           "default": "patch",
           "enum": [
@@ -75,6 +76,13 @@
             "patch"
           ],
           "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
+        },
+        "npm-outdated.cacheLifetime": {
+          "order": 1000,
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "markdownDescription": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
         }
       }
     }

@@ -1,10 +1,10 @@
 import { exec } from "child_process"
 import { OutputChannel, TextDocument } from "vscode"
 
+import { getCacheLifetime } from "./Settings"
 import { isPromiseResolved } from "./Utils"
 
-const CACHE_PACKAGES: NPMViewResultCacheInterface = {},
-  CACHE_LIFETIME = 60 * 60 * 1000 // 1 hour.
+const CACHE_PACKAGES: NPMViewResultCacheInterface = {}
 
 interface NPMViewResultCacheInterface {
   [packageName: string]: {
@@ -28,7 +28,7 @@ interface NPMViewResultInterface {
 
 // Get the latest version of a package through NPM.
 export const getPackageLatestVersion = async (name: string) => {
-  if (CACHE_PACKAGES[name]?.checkedAt >= Date.now() - CACHE_LIFETIME) {
+  if (CACHE_PACKAGES[name]?.checkedAt >= Date.now() - getCacheLifetime()) {
     return CACHE_PACKAGES[name].execPromise
   }
 
