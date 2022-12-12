@@ -58,6 +58,9 @@
   "dependencies": {
     "semver": "^7.3.8"
   },
+  "extensionDependencies": [
+    "vscode.npm"
+  ],
   "contributes": {
     "configuration": {
       "type": "object",

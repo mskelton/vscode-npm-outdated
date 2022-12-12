@@ -1,27 +1,18 @@
 import { exec } from "child_process"
 import { dirname } from "path"
 
-import { commands, OutputChannel, Uri, window, workspace } from "vscode"
+import { commands, OutputChannel, Uri, window } from "vscode"
 
 export const COMMAND_INSTALL = "npm-outdated.install"
 export const COMMAND_NOTIFY = "npm-outdated.notify"
 
-type PackageManager = "npm" | "yarn"
-
-const getPackageManager = async (uri: Uri): Promise<PackageManager> => {
-  try {
-    await workspace.fs.stat(
-      Uri.file(uri.fsPath.replace("package.json", "yarn.lock"))
-    )
-
-    return "yarn"
-  } catch (e) {
-    return "npm"
-  }
-}
-
 export const packageNotify = async (uri: Uri) => {
-  const action = `Run "${await getPackageManager(uri)} install"`
+  const packageManager: string = await commands.executeCommand(
+    "npm.packageManager",
+    uri
+  )
+
+  const action = `Run "${packageManager} install"`
   const result = await window.showInformationMessage(
     `Run your package manager install command to finish updating packages.`,
     action
@@ -30,7 +21,7 @@ export const packageNotify = async (uri: Uri) => {
   if (result === action) {
     commands.executeCommand(
       COMMAND_INSTALL,
-      `${await getPackageManager(uri)} install`,
+      `${packageManager} install`,
       dirname(uri.fsPath)
     )
   }
