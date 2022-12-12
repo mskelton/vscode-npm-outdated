@@ -28,25 +28,34 @@ interface NPMViewResultInterface {
 
 // Get the latest version of a package through NPM.
 export const getPackageLatestVersion = async (name: string) => {
+  // If the package is in cache (even in the process of being executed), return it if possible.
+  // This ensures that we will not have duplicate execution process while it is within lifetime.
   if (CACHE_PACKAGES[name]?.checkedAt >= Date.now() - getCacheLifetime()) {
     return CACHE_PACKAGES[name].execPromise
   }
 
+  // Starts the `npm view` execution process.
+  // The process is cached if it is triggered quickly, within lifetime.
+  // @todo Make compatible with other package managers.
   const execPromise = new Promise<string>((resolve, reject) =>
     exec(
       `npm view --json ${name} dist-tags.latest version`,
       (error, stdout) => {
-        if (error) {
-          return reject()
+        if (!error) {
+          try {
+            const viewResult: NPMViewResultInterface = JSON.parse(stdout)
+
+            return resolve(viewResult["dist-tags.latest"] ?? viewResult.version)
+          } catch (e) {
+            /* empty */
+          }
         }
 
-        try {
-          const viewResult: NPMViewResultInterface = JSON.parse(stdout)
+        // In case of error or failure in processing the returned JSON,
+        // we remove it from the cache and reject the Promise.
+        delete CACHE_PACKAGES[name]
 
-          resolve(viewResult["dist-tags.latest"] ?? viewResult.version)
-        } catch (e) {
-          return reject()
-        }
+        return reject()
       }
     )
   )
