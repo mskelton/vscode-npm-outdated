@@ -1,6 +1,6 @@
 # VS Code npm Outdated
 
-[![Build status](https://img.shields.io/github/workflow/status/mskelton/vscode-npm-outdated/Release/main.svg?logo=github)](https://github.com/mskelton/vscode-npm-outdated/actions?query=workflow%3ARelease)
+[![build](https://github.com/mskelton/vscode-npm-outdated/actions/workflows/build.yml/badge.svg)](https://github.com/mskelton/vscode-npm-outdated/actions/workflows/build.yml)
 [![Semantic release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Displays a diagnostic message in package.json files for packages which have newer versions available as well as a code action to quickly update packages to their latest version.

@@ -27,11 +27,11 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "compile": "tsc",
+    "watch": "tsc -watch",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
   },
   "icon": "assets/icon.png",
   "engines": {
