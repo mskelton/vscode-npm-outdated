@@ -8,6 +8,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - run: npm ci
       - run: npm run format:check
       - run: npm run lint
       - run: npm run compile -- --noEmit
