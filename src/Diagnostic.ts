@@ -15,11 +15,8 @@ import {
 } from "vscode"
 
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
-import {
-  getDocumentPackages,
-  PackageInfo,
-  PackageInfoChecked,
-} from "./Document"
+import { getDocumentPackages, PackageInfoChecked } from "./Document"
+import { DocumentDecoration } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { getPackageLatestVersion } from "./NPM"
 import { getLevel } from "./Settings"
@@ -79,7 +76,13 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
 }
 
 export class PackageRelatedDiagnostic extends Diagnostic {
-  public declare packageRelated: PackageInfo
+  public declare packageRelated: PackageInfoChecked
+
+  public static is(
+    diagnostic: PackageRelatedDiagnostic | Diagnostic
+  ): diagnostic is PackageRelatedDiagnostic {
+    return "packageRelated" in diagnostic
+  }
 }
 
 export const getPackageDiagnostic = (
@@ -132,7 +135,7 @@ export const getPackageDiagnostic = (
   if (gt(packageVersion, packageInfoChecked.versionLatest)) {
     return new Diagnostic(
       packageInfoChecked.versionRange,
-      `Version of "${packageInfoChecked.name}" is greater than latest version: ${packageInfoChecked.versionLatest}.`,
+      `Version of "${packageInfoChecked.name}" is greater than latest release: ${packageInfoChecked.versionLatest}.`,
       DiagnosticSeverity.Information
     )
   }
@@ -148,6 +151,7 @@ export const generatePackagesDiagnostics = async (
   // Read dependencies from package.json to get the name of packages used.
   const packagesInfos = Object.values(await getDocumentPackages(document))
 
+  const documentDecorations = new DocumentDecoration(document)
   const documentDiagnostics = new DocumentDiagnostics(
     document,
     diagnosticsCollection
@@ -156,17 +160,33 @@ export const generatePackagesDiagnostics = async (
   // Obtains, through NPM, the latest available version of each installed package.
   // As a result of each promise, we will have the package name and its latest version.
   await Promise.all(
-    packagesInfos.map((packageInfo) =>
-      getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
+    packagesInfos.map((packageInfo) => {
+      documentDecorations.setCheckingMessage(packageInfo.versionRange.end.line)
+
+      return getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
         const packageDiagnostic = getPackageDiagnostic(document, {
           ...packageInfo,
           versionLatest,
         })
 
-        if (packageDiagnostic) {
+        if (packageDiagnostic !== undefined) {
           documentDiagnostics.push(packageDiagnostic)
+
+          if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
+            documentDecorations.setUpdateMessage(
+              packageInfo.versionRange.end.line,
+              packageDiagnostic
+            )
+          }
+        }
+
+        if (
+          !packageDiagnostic ||
+          packageDiagnostic.severity === DiagnosticSeverity.Information
+        ) {
+          documentDecorations.clearLine(packageInfo.versionRange.end.line)
         }
       })
-    )
+    })
   )
 }
