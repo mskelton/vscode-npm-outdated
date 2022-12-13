@@ -1,10 +1,6 @@
 import { Diagnostic } from "vscode"
 
-// TypeGuard: validates a settled promise, accepting only when it has been successfully resolved.
-export const isPromiseResolved = <T>(
-  promiseResult: PromiseSettledResult<T>
-): promiseResult is PromiseFulfilledResult<NonNullable<T>> =>
-  promiseResult.status === "fulfilled"
-
+// TypeGuard: check if the Diagnostic.code is a string.
+// This function is only useful as Diagnostic.code can have other types of allowed values, but we just use them as a string.
 export const isCodeAction = (code: Diagnostic["code"]): code is string =>
   typeof code === "string"

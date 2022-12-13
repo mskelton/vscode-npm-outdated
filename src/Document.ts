@@ -1,7 +1,14 @@
-import { commands, DocumentSymbol, Position, Range, TextDocument } from "vscode"
+import {
+  commands,
+  Diagnostic,
+  DocumentSymbol,
+  Position,
+  Range,
+  TextDocument,
+} from "vscode"
 
-// Identifies a document package.
-interface DocumentPackage {
+// The package info, based on user-document.
+export interface PackageInfo {
   // Package name.
   name: string
 
@@ -15,17 +22,32 @@ interface DocumentPackage {
   versionRange: Range
 }
 
+// The package info after it being checked for update.
+export interface PackageInfoChecked extends PackageInfo {
+  // The package latest version.
+  versionLatest: string
+}
+
+// The package diagnostic.
+export interface PackageDiagnostic {
+  // Package diagnostic.
+  diagnostic: Diagnostic | null
+
+  // Package info.
+  documentPackage: PackageInfo
+}
+
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.
 const mapDependencyRange = (
   documentSymbol: DocumentSymbol | undefined
-): DocumentPackage[] => {
+): PackageInfo[] => {
   if (!documentSymbol || documentSymbol.children.length === 0) {
     return []
   }
 
   return documentSymbol.children.map(
-    (child): DocumentPackage => ({
+    (child): PackageInfo => ({
       name: child.name,
       range: child.range,
       version: child.detail,
@@ -41,7 +63,7 @@ const mapDependencyRange = (
 }
 
 export interface DocumentsPackagesInterface {
-  [packageName: string]: DocumentPackage
+  [packageName: string]: PackageInfo
 }
 
 // Gets an array of packages used in the document, regardless of dependency type.

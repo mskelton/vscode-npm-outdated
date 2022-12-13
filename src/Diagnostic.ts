@@ -1,9 +1,9 @@
 import { sep } from "path"
+
 import {
   coerce,
   diff,
   gt,
-  lt,
   ReleaseType,
   SemVer,
   valid,
@@ -23,8 +23,9 @@ import {
 } from "vscode"
 
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
-import { DocumentsPackagesInterface } from "./Document"
-import { PackageInterface } from "./NPM"
+import { getDocumentPackages, PackageInfoChecked } from "./Document"
+import { DocumentDiagnostics } from "./DocumentDiagnostics"
+import { getPackageLatestVersion } from "./NPM"
 import { getLevel } from "./Settings"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
@@ -81,74 +82,94 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   prerelease: -1,
 }
 
-export const reportDiagnostics = (
-  packagesUpdateds: Record<string, PackageInterface>,
-  packagesLocals: DocumentsPackagesInterface
-): Diagnostic[] => {
-  const diagnostics = [],
-    versionDiff = getLevel()
-
-  for (const [documentPackageName, documentPackage] of Object.entries(
-    packagesLocals
-  )) {
-    if (!validRange(documentPackage.version)) {
-      diagnostics.push(
-        new Diagnostic(
-          documentPackage.versionRange,
-          "Invalid package version.",
-          DiagnosticSeverity.Error
-        )
-      )
-
-      continue
-    }
-
-    if (!packagesUpdateds[documentPackageName]) {
-      continue
-    }
-
-    const packageVersion = coerce(documentPackage.version) as SemVer
-
-    if (!valid(packageVersion)) {
-      continue
-    }
-
-    const packageDiff = diff(
-      packagesUpdateds[documentPackageName].latestVersion,
-      packageVersion
+export const getPackageDiagnostic = (
+  packageInfoChecked: PackageInfoChecked
+) => {
+  // If the version specified by the user is not a valid range, it issues an error diagnostic.
+  // Eg. { "package": "blah blah blah" }
+  if (!validRange(packageInfoChecked.version)) {
+    return new Diagnostic(
+      packageInfoChecked.versionRange,
+      "Invalid package version.",
+      DiagnosticSeverity.Error
     )
-
-    if (
-      packageDiff &&
-      versionDiff &&
-      PACKAGE_DIFF_LEVELS[packageDiff] < PACKAGE_DIFF_LEVELS[versionDiff]
-    ) {
-      continue
-    }
-
-    if (
-      gt(packagesUpdateds[documentPackageName].latestVersion, packageVersion)
-    ) {
-      const diagnostic = new Diagnostic(
-        documentPackage.versionRange,
-        `Newer version of ${documentPackageName} is available: ${packagesUpdateds[documentPackageName].latestVersion}.`,
-        DiagnosticSeverity.Warning
-      )
-
-      diagnostic.code = DIAGNOSTIC_ACTION + ":" + documentPackageName
-      diagnostics.push(diagnostic)
-    } else if (
-      lt(packagesUpdateds[documentPackageName].latestVersion, packageVersion)
-    ) {
-      diagnostics.push(
-        new Diagnostic(
-          documentPackage.versionRange,
-          `Version of ${documentPackageName} is greater than latest version: ${packagesUpdateds[documentPackageName].latestVersion}.`,
-          DiagnosticSeverity.Information
-        )
-      )
-    }
   }
 
-  return diagnostics
+  // If it is not possible to coerce to a valid version, it means that the versioning is a bit more complex and it would be difficult to evaluate it.
+  // In this case, we'll just ignore it.
+  // Eg. { "package": "^1.5 || ^2.0" }
+  const packageVersion = coerce(packageInfoChecked.version) as SemVer
+
+  if (!valid(packageVersion)) {
+    return
+  }
+
+  // Check if the version difference is compatible with what was configured by the user.
+  // If the difference is less than the minimum configured then there is no need for a diagnostic.
+  // Eg. "1.0 => 1.1" is a "minor" diff(). By default, we allow any non-prerelease diff() starting from "patch".
+  const versionDiff = getLevel()
+  const packageDiff = diff(packageInfoChecked.versionLatest, packageVersion)
+
+  if (
+    packageDiff &&
+    versionDiff &&
+    PACKAGE_DIFF_LEVELS[packageDiff] < PACKAGE_DIFF_LEVELS[versionDiff]
+  ) {
+    return
+  }
+
+  // If the latest available version is greater than the user-defined version,
+  // we generate a diagnostic suggesting a modification.
+  if (gt(packageInfoChecked.versionLatest, packageVersion)) {
+    const diagnostic = new Diagnostic(
+      packageInfoChecked.versionRange,
+      `Newer version of "${packageInfoChecked.name}" is available: ${packageInfoChecked.versionLatest}.`,
+      DiagnosticSeverity.Warning
+    )
+
+    diagnostic.code = DIAGNOSTIC_ACTION + ":" + packageInfoChecked.name
+
+    return diagnostic
+  }
+
+  // If the user-defined version is higher than the last available version,
+  // then the user is probably using a pre-release version. In this case, we will only generate a informational diagnostic.
+  if (gt(packageVersion, packageInfoChecked.versionLatest)) {
+    return new Diagnostic(
+      packageInfoChecked.versionRange,
+      `Version of "${packageInfoChecked.name}" is greater than latest version: ${packageInfoChecked.versionLatest}.`,
+      DiagnosticSeverity.Information
+    )
+  }
+
+  return
+}
+
+// Analyzes the document dependencies and returns the diagnostics.
+export const generatePackagesDiagnostics = async (
+  document: TextDocument,
+  diagnosticsCollection: DiagnosticCollection
+) => {
+  // Read dependencies from package.json to get the name of packages used.
+  const packagesInfos = Object.values(await getDocumentPackages(document))
+
+  const documentDiagnostics = new DocumentDiagnostics(
+    document,
+    diagnosticsCollection
+  )
+
+  // Obtains, through NPM, the latest available version of each installed package.
+  // As a result of each promise, we will have the package name and its latest version.
+  for (const packageInfo of packagesInfos) {
+    getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
+      const packageDiagnostic = getPackageDiagnostic({
+        ...packageInfo,
+        versionLatest,
+      })
+
+      if (packageDiagnostic) {
+        documentDiagnostics.push(packageDiagnostic)
+      }
+    })
+  }
 }
