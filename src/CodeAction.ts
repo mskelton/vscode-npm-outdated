@@ -10,20 +10,12 @@ import {
 } from "vscode"
 
 import { COMMAND_NOTIFY } from "./Command"
+import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { getPackageLatestVersion } from "./NPM"
-import { isCodeAction } from "./Utils"
 
 export const DIAGNOSTIC_ACTION = "npm-outdated"
 
 const VERSION_PREFIX_REGEXP = /^\s*(\^|~|>=|<=)/
-
-const getDiagnosticPackageName = (diagnostic: Diagnostic): string => {
-  if (isCodeAction(diagnostic.code)) {
-    return diagnostic.code.split(":", 3)[1]
-  }
-
-  return ""
-}
 
 export class PackageJsonCodeActionProvider implements CodeActionProvider {
   provideCodeActions(
@@ -35,9 +27,9 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       .getDiagnostics(document.uri)
       .filter(
         (diagnostic) =>
-          isCodeAction(diagnostic.code) &&
-          diagnostic.code.startsWith(`${DIAGNOSTIC_ACTION}:`)
-      )
+          typeof diagnostic.code === "object" &&
+          diagnostic.code.value === DIAGNOSTIC_ACTION
+      ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.
     const diagnosticsSelected = diagnostics.filter((diagnostic) =>
@@ -108,7 +100,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
   private async createUpdateManyAction(
     doc: TextDocument,
-    diagnostics: Diagnostic[],
+    diagnostics: PackageRelatedDiagnostic[],
     message: string
   ) {
     const action = this.createAction(doc, message, diagnostics)
@@ -124,11 +116,11 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
   private async createUpdateSingleAction(
     document: TextDocument,
-    diagnostic: Diagnostic
+    diagnostic: PackageRelatedDiagnostic
   ) {
     const action = this.createAction(
       document,
-      `Update ${getDiagnosticPackageName(diagnostic)} package`,
+      `Update ${diagnostic.packageRelated.name} package`,
       [diagnostic],
       true
     )
@@ -141,7 +133,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   private async updatePackageVersion(
     action: CodeAction,
     document: TextDocument,
-    diagnostic: Diagnostic
+    diagnostic: PackageRelatedDiagnostic
   ) {
     const line = document.lineAt(diagnostic.range.start.line),
       version = line.text.slice(
@@ -150,7 +142,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       ),
       versionPrefix = version.match(VERSION_PREFIX_REGEXP)?.[1] ?? "",
       versionUpdated = await getPackageLatestVersion(
-        getDiagnosticPackageName(diagnostic)
+        diagnostic.packageRelated.name ?? ""
       )
 
     action.edit?.replace(

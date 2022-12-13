@@ -1,10 +1,3 @@
-import { Diagnostic } from "vscode"
-
-// TypeGuard: check if the Diagnostic.code is a string.
-// This function is only useful as Diagnostic.code can have other types of allowed values, but we just use them as a string.
-export const isCodeAction = (code: Diagnostic["code"]): code is string =>
-  typeof code === "string"
-
 // This function allows to make a function "lazy". Although its first execution happens immediately, the next execution only occurs when this one ends.
 // Furthermore, if several executions happen at the same time, only the last one will be actually be executed.
 export const lazyCallback = <T, A>(callback: (...args: A[]) => T) => {

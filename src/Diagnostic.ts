@@ -23,7 +23,11 @@ import {
 } from "vscode"
 
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
-import { getDocumentPackages, PackageInfoChecked } from "./Document"
+import {
+  getDocumentPackages,
+  PackageInfo,
+  PackageInfoChecked,
+} from "./Document"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { getPackageLatestVersion } from "./NPM"
 import { getLevel } from "./Settings"
@@ -82,9 +86,14 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   prerelease: -1,
 }
 
+export class PackageRelatedDiagnostic extends Diagnostic {
+  public declare packageRelated: PackageInfo
+}
+
 export const getPackageDiagnostic = (
+  document: TextDocument,
   packageInfoChecked: PackageInfoChecked
-) => {
+): PackageRelatedDiagnostic | Diagnostic | undefined => {
   // If the version specified by the user is not a valid range, it issues an error diagnostic.
   // Eg. { "package": "blah blah blah" }
   if (!validRange(packageInfoChecked.version)) {
@@ -121,13 +130,14 @@ export const getPackageDiagnostic = (
   // If the latest available version is greater than the user-defined version,
   // we generate a diagnostic suggesting a modification.
   if (gt(packageInfoChecked.versionLatest, packageVersion)) {
-    const diagnostic = new Diagnostic(
+    const diagnostic = new PackageRelatedDiagnostic(
       packageInfoChecked.versionRange,
       `Newer version of "${packageInfoChecked.name}" is available: ${packageInfoChecked.versionLatest}.`,
       DiagnosticSeverity.Warning
     )
 
-    diagnostic.code = DIAGNOSTIC_ACTION + ":" + packageInfoChecked.name
+    diagnostic.code = { target: document.uri, value: DIAGNOSTIC_ACTION }
+    diagnostic.packageRelated = packageInfoChecked
 
     return diagnostic
   }
@@ -163,7 +173,7 @@ export const generatePackagesDiagnostics = async (
   await Promise.all(
     packagesInfos.map((packageInfo) =>
       getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
-        const packageDiagnostic = getPackageDiagnostic({
+        const packageDiagnostic = getPackageDiagnostic(document, {
           ...packageInfo,
           versionLatest,
         })
