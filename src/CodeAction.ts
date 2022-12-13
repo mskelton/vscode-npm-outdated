@@ -15,7 +15,7 @@ import { getPackageLatestVersion } from "./NPM"
 
 export const DIAGNOSTIC_ACTION = "npm-outdated"
 
-const VERSION_PREFIX_REGEXP = /^\s*(\^|~|>=|<=)/
+const VERSION_PREFIX_REGEXP = /^\s*(\^|~|=|>=|<=)/
 
 export class PackageJsonCodeActionProvider implements CodeActionProvider {
   provideCodeActions(
