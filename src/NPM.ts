@@ -1,5 +1,7 @@
 import { exec } from "child_process"
+import { dirname } from "path"
 import { coerce, maxSatisfying } from "semver"
+import { TextDocument } from "vscode"
 
 import { Cache } from "./Cache"
 import { PackageInfo } from "./Document"
@@ -71,4 +73,60 @@ export const getPackageLatestVersion = async (
 
   // Otherwise, we will suggest the latest version within the user's range first.
   return versionSatisfying
+}
+
+interface NPMListResponse {
+  dependencies?: {
+    [packageName: string]: {
+      version: string
+    }
+  }
+}
+
+let CACHE_PACKAGES_INSTALLED: Cache<Promise<PackagesInstalled>> | undefined
+
+export type PackagesInstalled = Record<string, string>
+
+// Returns packages installed by the user and their respective versions.
+export const getPackagesInstalled = (
+  document: TextDocument
+): Promise<PackagesInstalled> => {
+  if (CACHE_PACKAGES_INSTALLED?.isValid(60 * 1000)) {
+    return CACHE_PACKAGES_INSTALLED.value
+  }
+
+  const execPromise = new Promise<PackagesInstalled>((resolve, reject) =>
+    exec(
+      `npm ls --json --depth=0`,
+      { cwd: dirname(document.uri.fsPath) },
+      (error, stdout) => {
+        if (!error) {
+          try {
+            const execResult = JSON.parse(stdout) as NPMListResponse
+
+            if (execResult.dependencies) {
+              // The `npm ls` command returns a lot of information.
+              // We only need the name of the installed package and its version.
+              const packageEntries = Object.entries(
+                execResult.dependencies
+              ).map(([packageName, packageInfo]) => [
+                packageName,
+                packageInfo.version,
+              ])
+
+              return resolve(Object.fromEntries(packageEntries))
+            }
+          } catch (e) {
+            /* empty */
+          }
+        }
+
+        return reject()
+      }
+    )
+  )
+
+  CACHE_PACKAGES_INSTALLED = new Cache(execPromise)
+
+  return execPromise
 }

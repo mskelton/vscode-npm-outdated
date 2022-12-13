@@ -7,7 +7,9 @@ import {
   ThemableDecorationAttachmentRenderOptions,
   window,
 } from "vscode"
+
 import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { PackagesInstalled } from "./NPM"
 
 const decorationDefault = window.createTextEditorDecorationType({})
 
@@ -52,7 +54,24 @@ export class DocumentDecoration {
     this.setLine(line, "• Checking for update...")
   }
 
-  public setUpdateMessage(line: number, packageInfo: PackageRelatedDiagnostic) {
+  public async setUpdateMessage(
+    line: number,
+    packageInfo: PackageRelatedDiagnostic,
+    packagesInstalled?: PackagesInstalled
+  ) {
+    const packageVersionInstalled =
+      packagesInstalled?.[packageInfo.packageRelated.name]
+
+    if (packageInfo.packageRelated.versionLatest === packageVersionInstalled) {
+      this.setLine(
+        line,
+        `🗘 Update available: ${packageInfo.packageRelated.versionLatest} (already installed)`,
+        { color: "blue" }
+      )
+
+      return
+    }
+
     this.setLine(
       line,
       `🗘 Update available: ${packageInfo.packageRelated.versionLatest}`,
