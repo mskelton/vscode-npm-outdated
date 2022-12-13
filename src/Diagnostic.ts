@@ -160,16 +160,18 @@ export const generatePackagesDiagnostics = async (
 
   // Obtains, through NPM, the latest available version of each installed package.
   // As a result of each promise, we will have the package name and its latest version.
-  for (const packageInfo of packagesInfos) {
-    getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
-      const packageDiagnostic = getPackageDiagnostic({
-        ...packageInfo,
-        versionLatest,
-      })
+  await Promise.all(
+    packagesInfos.map((packageInfo) =>
+      getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
+        const packageDiagnostic = getPackageDiagnostic({
+          ...packageInfo,
+          versionLatest,
+        })
 
-      if (packageDiagnostic) {
-        documentDiagnostics.push(packageDiagnostic)
-      }
-    })
-  }
+        if (packageDiagnostic) {
+          documentDiagnostics.push(packageDiagnostic)
+        }
+      })
+    )
+  )
 }

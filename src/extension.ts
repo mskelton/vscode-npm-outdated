@@ -15,12 +15,17 @@ import {
   packageNotify,
 } from "./Command"
 import { diagnosticSubscribe, generatePackagesDiagnostics } from "./Diagnostic"
+import { lazyCallback } from "./Utils"
 
 export function activate(context: ExtensionContext) {
   const diagnostics = languages.createDiagnosticCollection("json")
 
-  diagnosticSubscribe(context, diagnostics, (document: TextDocument) =>
-    generatePackagesDiagnostics(document, diagnostics)
+  diagnosticSubscribe(
+    context,
+    diagnostics,
+    lazyCallback(async (document: TextDocument) => {
+      await generatePackagesDiagnostics(document, diagnostics)
+    })
   )
 
   const outputChannel = window.createOutputChannel("npm Outdated")
