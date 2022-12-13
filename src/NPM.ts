@@ -1,28 +1,21 @@
 import { exec } from "child_process"
 import { coerce, maxSatisfying } from "semver"
 
+import { Cache } from "./Cache"
 import { PackageInfo } from "./Document"
 import { getCacheLifetime, hasMajorUpdateProtection } from "./Settings"
 
-const CACHE_PACKAGES: NPMViewResultCacheInterface = {}
+const CACHE_PACKAGES: NPMViewResults = {}
 
 // The `npm view` cache.
-interface NPMViewResultCacheInterface {
-  [packageName: string]: {
-    // Date.now() of last successful `npm view` run.
-    checkedAt: number
-
-    // The cached `npm view` execution result.
-    execPromise: Promise<string[]>
-  }
-}
+type NPMViewResults = Record<string, Cache<Promise<string[]>>>
 
 // Get all package versions through `npm view` command.
 const getPackageVersions = async (name: string) => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
-  if (CACHE_PACKAGES[name]?.checkedAt >= Date.now() - getCacheLifetime()) {
-    return CACHE_PACKAGES[name].execPromise
+  if (CACHE_PACKAGES[name]?.isValid(getCacheLifetime())) {
+    return CACHE_PACKAGES[name].value
   }
 
   // Starts the `npm view` execution process.
@@ -46,10 +39,7 @@ const getPackageVersions = async (name: string) => {
     })
   )
 
-  CACHE_PACKAGES[name] = {
-    checkedAt: Date.now(),
-    execPromise,
-  }
+  CACHE_PACKAGES[name] = new Cache(execPromise)
 
   return execPromise
 }
