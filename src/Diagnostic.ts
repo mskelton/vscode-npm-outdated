@@ -23,6 +23,9 @@ import { getLevel } from "./Settings"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
+const PACKAGE_NAME_REGEXP =
+  /^(?:@[a-z0-9-][a-z0-9-._]*\/)?[a-z0-9-][a-z0-9-._]*$/
+
 export const diagnosticSubscribe = (
   context: ExtensionContext,
   diagnostics: DiagnosticCollection,
@@ -161,6 +164,12 @@ export const generatePackagesDiagnostics = async (
   // As a result of each promise, we will have the package name and its latest version.
   await Promise.all(
     packagesInfos.map((packageInfo) => {
+      // Avoid packages with invalid names (usually typos).
+      // Eg. "type script" insteadof "typescript".
+      if (!PACKAGE_NAME_REGEXP.test(packageInfo.name)) {
+        return
+      }
+
       documentDecorations.setCheckingMessage(packageInfo.versionRange.end.line)
 
       return getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
