@@ -1,14 +1,6 @@
 import { sep } from "path"
 
-import {
-  coerce,
-  diff,
-  gt,
-  ReleaseType,
-  SemVer,
-  valid,
-  validRange,
-} from "semver"
+import { coerce, diff, gt, ReleaseType, SemVer, validRange } from "semver"
 
 import {
   Diagnostic,
@@ -104,14 +96,7 @@ export const getPackageDiagnostic = (
     )
   }
 
-  // If it is not possible to coerce to a valid version, it means that the versioning is a bit more complex and it would be difficult to evaluate it.
-  // In this case, we'll just ignore it.
-  // Eg. { "package": "^1.5 || ^2.0" }
   const packageVersion = coerce(packageInfoChecked.version) as SemVer
-
-  if (!valid(packageVersion)) {
-    return
-  }
 
   // Check if the version difference is compatible with what was configured by the user.
   // If the difference is less than the minimum configured then there is no need for a diagnostic.
