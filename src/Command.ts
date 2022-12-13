@@ -52,8 +52,6 @@ export const packageInstall = async (
     outputChannel.append("\n---\n\nDone.\n\n")
 
     if (!hasError) {
-      outputChannel.hide()
-
       window.showInformationMessage("Packages updated successfully!")
     } else {
       window.showErrorMessage(
