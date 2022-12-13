@@ -81,14 +81,14 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument,
     message: string,
     diagnostics: Diagnostic[],
-    isPrefered?: boolean
+    isPreferred?: boolean
   ) {
     const edit = new WorkspaceEdit()
     const action = new CodeAction(message, CodeActionKind.QuickFix)
 
     action.edit = edit
     action.diagnostics = diagnostics
-    action.isPreferred = isPrefered
+    action.isPreferred = isPreferred
     action.command = {
       arguments: [document.uri],
       command: COMMAND_NOTIFY,
@@ -120,7 +120,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   ) {
     const action = this.createAction(
       document,
-      `Update ${diagnostic.packageRelated.name} package`,
+      `Update "${diagnostic.packageRelated.name}" to ${diagnostic.packageRelated.versionLatest}`,
       [diagnostic],
       true
     )
@@ -141,9 +141,9 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         diagnostic.range.end.character
       ),
       versionPrefix = version.match(VERSION_PREFIX_REGEXP)?.[1] ?? "",
-      versionUpdated = await getPackageLatestVersion(
-        diagnostic.packageRelated.name ?? ""
-      )
+      versionUpdated = (await getPackageLatestVersion(
+        diagnostic.packageRelated
+      )) as string
 
     action.edit?.replace(
       document.uri,

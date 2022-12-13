@@ -92,6 +92,12 @@ export const getPackageDiagnostic = (
   document: TextDocument,
   packageInfoChecked: PackageInfoChecked
 ): PackageRelatedDiagnostic | Diagnostic | undefined => {
+  // When no latest version is found, we just ignore it.
+  // In practice, this is an exception-of-the-exception, and is expected to never happen.
+  if (!packageInfoChecked.versionLatest) {
+    return
+  }
+
   // If the version specified by the user is not a valid range, it issues an error diagnostic.
   // Eg. { "package": "blah blah blah" }
   if (!validRange(packageInfoChecked.version)) {
@@ -165,17 +171,17 @@ export const generatePackagesDiagnostics = async (
   await Promise.all(
     packagesInfos.map((packageInfo) => {
       // Avoid packages with invalid names (usually typos).
-      // Eg. "type script" insteadof "typescript".
+      // Eg. "type script" instead of "typescript".
       if (!PACKAGE_NAME_REGEXP.test(packageInfo.name)) {
         return
       }
 
       documentDecorations.setCheckingMessage(packageInfo.versionRange.end.line)
 
-      return getPackageLatestVersion(packageInfo.name).then((versionLatest) => {
+      return getPackageLatestVersion(packageInfo).then((versionLatest) => {
         const packageDiagnostic = getPackageDiagnostic(document, {
           ...packageInfo,
-          versionLatest,
+          versionLatest: versionLatest ?? "",
         })
 
         if (packageDiagnostic !== undefined) {

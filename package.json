@@ -78,12 +78,18 @@
           ],
           "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
         },
+        "npm-outdated.majorUpdateProtection": {
+          "order": 1,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Avoid suggesting that a package be upgraded to a `major` version directly. The suggestion will only happen if the user-defined version is the latest `minor` version available."
+        },
         "npm-outdated.cacheLifetime": {
           "order": 1000,
           "type": "number",
           "default": 60,
           "minimum": 1,
-          "markdownDescription": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
+          "description": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
         }
       }
     }
