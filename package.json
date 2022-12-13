@@ -47,7 +47,7 @@
   "main": "./out/extension.js",
   "devDependencies": {
     "@mskelton/eslint-config": "^7.1.0",
-    "@types/node": "^18.11.14",
+    "@types/node": "^18.11.15",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
@@ -68,7 +68,7 @@
       "title": "npm Outdated",
       "properties": {
         "npm-outdated.level": {
-          "order": 0,
+          "order": 1000,
           "type": "string",
           "default": "patch",
           "enum": [
@@ -79,17 +79,24 @@
           "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
         },
         "npm-outdated.majorUpdateProtection": {
-          "order": 1,
+          "order": 2000,
           "type": "boolean",
           "default": true,
           "markdownDescription": "Avoid suggesting that a package be upgraded to a `major` version directly. The suggestion will only happen if the user-defined version is the latest `minor` version available."
         },
         "npm-outdated.cacheLifetime": {
-          "order": 1000,
+          "order": 9000,
           "type": "number",
           "default": 60,
           "minimum": 1,
           "description": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
+        },
+        "npm-outdated.parallelProcessesLimit": {
+          "order": 9100,
+          "type": "number",
+          "default": 10,
+          "minimum": 0,
+          "description": "Defines how much packages can be analyzed together. A high value processes faster but consumes much more CPU. Set 0 to be unlimited (use with moderation)."
         }
       }
     }
