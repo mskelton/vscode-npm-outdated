@@ -2,7 +2,6 @@ import {
   commands,
   Diagnostic,
   DocumentSymbol,
-  Position,
   Range,
   TextDocument,
 } from "vscode"
@@ -52,11 +51,10 @@ const mapDependencyRange = (
       range: child.range,
       version: child.detail,
       versionRange: new Range(
-        new Position(
-          child.range.end.line,
-          child.range.end.character - 1 - child.detail.length
-        ),
-        new Position(child.range.end.line, child.range.end.character - 1)
+        child.range.end.line,
+        child.range.end.character - 1 - child.detail.length,
+        child.range.end.line,
+        child.range.end.character - 1
       ),
     })
   )

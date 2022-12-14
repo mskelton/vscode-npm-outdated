@@ -1,6 +1,9 @@
-// This function allows to make a function "lazy". Although its first execution happens immediately, the next execution only occurs when this one ends.
+// This function allows to make a function "lazy". Although its first execution happens immediately, the next execution only occurs when this one ends (+delay ms).
 // Furthermore, if several executions happen at the same time, only the last one will be actually be executed.
-export const lazyCallback = <T, A>(callback: (...args: A[]) => T) => {
+export const lazyCallback = <T, A>(
+  callback: (...args: A[]) => T,
+  delay = 0
+) => {
   // Defines whether there is a process currently running.
   let isRunning = false
 
@@ -14,17 +17,20 @@ export const lazyCallback = <T, A>(callback: (...args: A[]) => T) => {
   const activate = async (...args: A[]) => {
     if (!isRunning) {
       // If no callback is running right now, then run the current one immediately.
-      // After the execution ends, it releases for another process to run.
       isRunning = true
       await callback(...args)
-      isRunning = false
 
-      // If afterwards there is already some callback waiting to be executed, it starts it immediately.
+      // If afterwards there is already some callback waiting to be executed, it starts it after the delay.
       // Note that this will only happen after the full completion of the previous process.
-      if (argsNext !== undefined) {
-        activate(...argsNext)
-        argsNext = undefined
-      }
+      setTimeout(() => {
+        // After the execution ends, it releases for another process to run.
+        isRunning = false
+
+        if (argsNext !== undefined) {
+          activate(...argsNext)
+          argsNext = undefined
+        }
+      }, delay)
     } else {
       // If there is already a process running, we only store the arguments for the next run.
       argsNext = args
