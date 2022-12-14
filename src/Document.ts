@@ -70,11 +70,16 @@ export interface DocumentsPackagesInterface {
 export const getDocumentPackages = async (
   document: TextDocument
 ): Promise<DocumentsPackagesInterface> => {
-  const symbols: DocumentSymbol[] = await commands.executeCommand(
-      "vscode.executeDocumentSymbolProvider",
-      document.uri
-    ),
-    symbolDependencies = symbols.find(
+  const symbols: DocumentSymbol[] | undefined = await commands.executeCommand(
+    "vscode.executeDocumentSymbolProvider",
+    document.uri
+  )
+
+  if (!symbols) {
+    return {}
+  }
+
+  const symbolDependencies = symbols.find(
       (symbol) => symbol.name === "dependencies"
     ),
     symbolDevDependencies = symbols.find(
