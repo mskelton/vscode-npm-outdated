@@ -145,7 +145,8 @@ export class DocumentDecoration {
       packagesInstalled?.[packageInfo.packageRelated.name]
 
     const updateDetails = [
-      new Message(`⚠ Update available:`, { color: "gray" }),
+      new Message(`⚠`, { color: "gold" }),
+      new Message(`Update available:`, { color: "gray" }),
       new Message(packageInfo.packageRelated.versionLatest, { color: "blue" }),
     ]
 

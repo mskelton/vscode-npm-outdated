@@ -110,12 +110,6 @@ export const getPackageDiagnostic = (
   document: TextDocument,
   packageInfoChecked: PackageInfoChecked
 ): PackageRelatedDiagnostic | Diagnostic | undefined => {
-  // When no latest version is found, we just ignore it.
-  // In practice, this is an exception-of-the-exception, and is expected to never happen.
-  if (!packageInfoChecked.versionLatest) {
-    return
-  }
-
   // If the version specified by the user is not a valid range, it issues an error diagnostic.
   // Eg. { "package": "blah blah blah" }
   if (!validRange(packageInfoChecked.version)) {
@@ -124,6 +118,12 @@ export const getPackageDiagnostic = (
       "Invalid package version.",
       DiagnosticSeverity.Error
     )
+  }
+
+  // When no latest version is found, we just ignore it.
+  // In practice, this is an exception-of-the-exception, and is expected to never happen.
+  if (!packageInfoChecked.versionLatest) {
+    return
   }
 
   let packageVersion = versionClear(packageInfoChecked.version)
@@ -228,7 +228,7 @@ export const generatePackagesDiagnostics = async (
           documentDiagnostics.push(packageDiagnostic)
 
           if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
-            documentDecorations.setUpdateMessage(
+            return documentDecorations.setUpdateMessage(
               packageInfo.versionRange.end.line,
               packageDiagnostic,
               await packagesInstalled.catch(() => undefined)
@@ -236,12 +236,7 @@ export const generatePackagesDiagnostics = async (
           }
         }
 
-        if (
-          !packageDiagnostic ||
-          packageDiagnostic.severity === DiagnosticSeverity.Information
-        ) {
-          documentDecorations.clearLine(packageInfo.versionRange.end.line)
-        }
+        documentDecorations.clearLine(packageInfo.versionRange.end.line)
       })
     })
   )
