@@ -1,22 +1,23 @@
 import { Diagnostic, DiagnosticCollection, TextDocument } from "vscode"
 
+import { lazyCallback } from "./Utils"
+
 // This class assists in managing diagnostics for the document.
 export class DocumentDiagnostics {
   private diagnostics: Diagnostic[] = []
 
+  public render = lazyCallback(() => {
+    this.diagnosticsCollection.clear()
+    this.diagnosticsCollection.set(this.document.uri, this.diagnostics)
+  }, 100)
+
   constructor(
     private document: TextDocument,
     private diagnosticsCollection: DiagnosticCollection
-  ) {
-    diagnosticsCollection.clear()
-  }
+  ) {}
 
   public push(diagnostic: Diagnostic) {
     this.diagnostics.push(diagnostic)
-    this.flush()
-  }
-
-  private flush() {
-    this.diagnosticsCollection.set(this.document.uri, this.diagnostics)
+    this.render()
   }
 }

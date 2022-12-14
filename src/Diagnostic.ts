@@ -226,4 +226,6 @@ export const generatePackagesDiagnostics = async (
       })
     })
   )
+
+  documentDiagnostics.render()
 }
