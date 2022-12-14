@@ -23,3 +23,10 @@ export const getCacheLifetime = (): number =>
   ) *
   60 *
   1000
+
+// Defines how much packages can be analyzed together.
+// Default: 10 packages.
+export const getParallelProcessesLimit = (): number =>
+  workspace
+    .getConfiguration()
+    .get<number>("npm-outdated.parallelProcessesLimit") as number

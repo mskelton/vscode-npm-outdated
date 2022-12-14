@@ -22,7 +22,8 @@ import {
 } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { getPackageLatestVersion, getPackagesInstalled } from "./NPM"
-import { getLevel } from "./Settings"
+import { getLevel, getParallelProcessesLimit } from "./Settings"
+import { promiseLimit } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
@@ -178,6 +179,8 @@ export const generatePackagesDiagnostics = async (
 
   const packagesInstalled = getPackagesInstalled(document)
 
+  const parallelProcessing = promiseLimit(getParallelProcessesLimit())
+
   // Obtains, through NPM, the latest available version of each installed package.
   // As a result of each promise, we will have the package name and its latest version.
   await Promise.all(
@@ -188,35 +191,39 @@ export const generatePackagesDiagnostics = async (
         return
       }
 
-      documentDecorations.setCheckingMessage(packageInfo.versionRange.end.line)
+      return parallelProcessing(() => {
+        documentDecorations.setCheckingMessage(
+          packageInfo.versionRange.end.line
+        )
 
-      return getPackageLatestVersion(packageInfo).then(
-        async (versionLatest) => {
-          const packageDiagnostic = getPackageDiagnostic(document, {
-            ...packageInfo,
-            versionLatest: versionLatest ?? "",
-          })
+        return getPackageLatestVersion(packageInfo).then(
+          async (versionLatest) => {
+            const packageDiagnostic = getPackageDiagnostic(document, {
+              ...packageInfo,
+              versionLatest: versionLatest ?? "",
+            })
 
-          if (packageDiagnostic !== undefined) {
-            documentDiagnostics.push(packageDiagnostic)
+            if (packageDiagnostic !== undefined) {
+              documentDiagnostics.push(packageDiagnostic)
 
-            if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
-              documentDecorations.setUpdateMessage(
-                packageInfo.versionRange.end.line,
-                packageDiagnostic,
-                await packagesInstalled.catch(() => undefined)
-              )
+              if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
+                documentDecorations.setUpdateMessage(
+                  packageInfo.versionRange.end.line,
+                  packageDiagnostic,
+                  await packagesInstalled.catch(() => undefined)
+                )
+              }
+            }
+
+            if (
+              !packageDiagnostic ||
+              packageDiagnostic.severity === DiagnosticSeverity.Information
+            ) {
+              documentDecorations.clearLine(packageInfo.versionRange.end.line)
             }
           }
-
-          if (
-            !packageDiagnostic ||
-            packageDiagnostic.severity === DiagnosticSeverity.Information
-          ) {
-            documentDecorations.clearLine(packageInfo.versionRange.end.line)
-          }
-        }
-      )
+        )
+      })
     })
   )
 }

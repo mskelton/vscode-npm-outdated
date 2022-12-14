@@ -33,3 +33,45 @@ export const lazyCallback = <T, A>(callback: (...args: A[]) => T) => {
 
   return activate
 }
+
+// This function checks if a promise can be processed as long as the conditional callback returns true.
+// @see https://stackoverflow.com/a/64947598/755393
+const waitUntil = (condition: () => boolean): Promise<void> => {
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (!condition()) {
+        return
+      }
+
+      clearInterval(interval)
+      resolve()
+    })
+  })
+}
+
+// This function lets you control how many promises can be worked on concurrently.
+// As soon as one promise ends, another one can be processed.
+// If the concurrency number is zero then they will be processed immediately.
+export const promiseLimit = (concurrency: number) => {
+  // If concurrency is zero, all promises are executed immediately.
+  if (concurrency === 0) {
+    return <T>(func: () => T) => {
+      return func()
+    }
+  }
+
+  let inProgress = 0
+
+  return async <T>(func: () => T) => {
+    // Otherwise, it will be necessary to wait until there is a "vacancy" in the concurrency process for the promise to be executed.
+    await waitUntil(() => inProgress < concurrency)
+
+    // As soon as this "vacancy" is made available, the function is executed.
+    // Note that the execution of the function "takes a seat" during the process.
+    inProgress++
+    const funcResult = await func()
+    inProgress--
+
+    return funcResult
+  }
+}

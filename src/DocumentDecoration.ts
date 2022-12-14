@@ -103,7 +103,7 @@ export class DocumentDecoration {
   }
 
   public setCheckingMessage(line: number) {
-    this.setLine(line, [new Message("• Checking for update...")])
+    this.setLine(line, [new Message("🗘")])
   }
 
   public async setUpdateMessage(
@@ -115,8 +115,7 @@ export class DocumentDecoration {
       packagesInstalled?.[packageInfo.packageRelated.name]
 
     const updateDetails = [
-      new Message(`🗘`),
-      new Message(`Update available:`, { color: "gray" }),
+      new Message(`⚠ Update available:`, { color: "gray" }),
       new Message(packageInfo.packageRelated.versionLatest, { color: "blue" }),
     ]
 
