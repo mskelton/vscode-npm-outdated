@@ -213,38 +213,35 @@ export const generatePackagesDiagnostics = async (
         return
       }
 
-      return parallelProcessing(() => {
+      return parallelProcessing(async () => {
         documentDecorations.setCheckingMessage(
           packageInfo.versionRange.end.line
         )
 
-        return getPackageLatestVersion(packageInfo).then(
-          async (versionLatest) => {
-            const packageDiagnostic = getPackageDiagnostic(document, {
-              ...packageInfo,
-              versionLatest: versionLatest ?? "",
-            })
+        const versionLatest = await getPackageLatestVersion(packageInfo)
+        const packageDiagnostic = getPackageDiagnostic(document, {
+          ...packageInfo,
+          versionLatest: versionLatest ?? "",
+        })
 
-            if (packageDiagnostic !== undefined) {
-              documentDiagnostics.push(packageDiagnostic)
+        if (packageDiagnostic !== undefined) {
+          documentDiagnostics.push(packageDiagnostic)
 
-              if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
-                documentDecorations.setUpdateMessage(
-                  packageInfo.versionRange.end.line,
-                  packageDiagnostic,
-                  await packagesInstalled.catch(() => undefined)
-                )
-              }
-            }
-
-            if (
-              !packageDiagnostic ||
-              packageDiagnostic.severity === DiagnosticSeverity.Information
-            ) {
-              documentDecorations.clearLine(packageInfo.versionRange.end.line)
-            }
+          if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
+            documentDecorations.setUpdateMessage(
+              packageInfo.versionRange.end.line,
+              packageDiagnostic,
+              await packagesInstalled.catch(() => undefined)
+            )
           }
-        )
+        }
+
+        if (
+          !packageDiagnostic ||
+          packageDiagnostic.severity === DiagnosticSeverity.Information
+        ) {
+          documentDecorations.clearLine(packageInfo.versionRange.end.line)
+        }
       })
     })
   )

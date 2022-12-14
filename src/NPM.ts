@@ -1,6 +1,6 @@
 import { exec } from "child_process"
 import { dirname } from "path"
-import { maxSatisfying, prerelease } from "semver"
+import { coerce, gt, maxSatisfying, prerelease } from "semver"
 import { TextDocument } from "vscode"
 
 import { Cache } from "./Cache"
@@ -63,8 +63,23 @@ export const getPackageLatestVersion = async (
     return versionLatest
   }
 
+  const isPrerelease = prerelease(versionClean) !== null
+
+  // If we are dealing with a user-defined pre-release, we should check the latest compatible non-pre-release version available.
+  // If this version is superior to the current pre-release version, we will suggest it first.
+  if (isPrerelease) {
+    const versionNonPrerelease = maxSatisfying(
+      packageVersions,
+      `^${coerce(versionClean)}`
+    )
+
+    if (versionNonPrerelease && gt(versionNonPrerelease, versionClean)) {
+      return versionNonPrerelease
+    }
+  }
+
   const versionSatisfying = maxSatisfying(packageVersions, `^${versionClean}`, {
-    includePrerelease: prerelease(versionClean) !== null,
+    includePrerelease: isPrerelease,
   })
 
   // If the user-defined version is exactly the same version available within the range given by the user,
