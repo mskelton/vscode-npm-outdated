@@ -14,7 +14,7 @@ const CACHE_PACKAGES: NPMViewResults = {}
 type NPMViewResults = Record<string, Cache<Promise<string[]>>>
 
 // Get all package versions through `npm view` command.
-const getPackageVersions = async (name: string) => {
+export const getPackageVersions = async (name: string) => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
   if (CACHE_PACKAGES[name]?.isValid(getCacheLifetime())) {
@@ -85,7 +85,7 @@ export const getPackageLatestVersion = async (
   // If the user-defined version is exactly the same version available within the range given by the user,
   // we may suggest the latest version, which may include a major bump.
   // Eg. { "package": "^5.1.3" } and latest is also "5.1.3".
-  if (versionClean === versionSatisfying) {
+  if (!versionSatisfying || versionClean === versionSatisfying) {
     return versionLatest
   }
 

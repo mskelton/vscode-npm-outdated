@@ -4,6 +4,7 @@ import {
   coerce,
   diff,
   gt,
+  maxSatisfying,
   prerelease,
   ReleaseType,
   valid,
@@ -29,7 +30,11 @@ import {
   DocumentDecorationManager,
 } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
-import { getPackageLatestVersion, getPackagesInstalled } from "./NPM"
+import {
+  getPackageLatestVersion,
+  getPackagesInstalled,
+  getPackageVersions,
+} from "./NPM"
 import { getLevel, getParallelProcessesLimit } from "./Settings"
 import { promiseLimit, versionClear } from "./Utils"
 
@@ -106,10 +111,10 @@ export class PackageRelatedDiagnostic extends Diagnostic {
   }
 }
 
-export const getPackageDiagnostic = (
+export const getPackageDiagnostic = async (
   document: TextDocument,
   packageInfoChecked: PackageInfoChecked
-): PackageRelatedDiagnostic | Diagnostic | undefined => {
+): Promise<PackageRelatedDiagnostic | Diagnostic | undefined> => {
   // If the version specified by the user is not a valid range, it issues an error diagnostic.
   // Eg. { "package": "blah blah blah" }
   if (!validRange(packageInfoChecked.version)) {
@@ -126,6 +131,25 @@ export const getPackageDiagnostic = (
     return
   }
 
+  // Verify that the user-defined version is a released versions (including pre-releases).
+  const packageVersions = await getPackageVersions(packageInfoChecked.name)
+
+  if (!maxSatisfying(packageVersions, packageInfoChecked.version)) {
+    const diagnostic = new PackageRelatedDiagnostic(
+      packageInfoChecked.versionRange,
+      "Invalid package version.",
+      DiagnosticSeverity.Error
+    )
+
+    diagnostic.code = { target: document.uri, value: DIAGNOSTIC_ACTION }
+    diagnostic.packageRelated = packageInfoChecked
+
+    return diagnostic
+  }
+
+  // Normalizes the package version, through the informed range.
+  // If the result is an invalid version, try to correct it via coerce().
+  // Eg. "^3" (valid range, but "3" is a invalid version) => "3.0".
   let packageVersion = versionClear(packageInfoChecked.version)
 
   if (!valid(packageVersion)) {
@@ -219,7 +243,7 @@ export const generatePackagesDiagnostics = async (
         )
 
         const versionLatest = await getPackageLatestVersion(packageInfo)
-        const packageDiagnostic = getPackageDiagnostic(document, {
+        const packageDiagnostic = await getPackageDiagnostic(document, {
           ...packageInfo,
           versionLatest: versionLatest ?? "",
         })
