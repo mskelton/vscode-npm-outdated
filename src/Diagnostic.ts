@@ -1,6 +1,14 @@
 import { sep } from "path"
 
-import { coerce, diff, gt, ReleaseType, SemVer, validRange } from "semver"
+import {
+  coerce,
+  diff,
+  gt,
+  prerelease,
+  ReleaseType,
+  valid,
+  validRange,
+} from "semver"
 
 import {
   Diagnostic,
@@ -23,7 +31,7 @@ import {
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { getPackageLatestVersion, getPackagesInstalled } from "./NPM"
 import { getLevel, getParallelProcessesLimit } from "./Settings"
-import { promiseLimit } from "./Utils"
+import { promiseLimit, versionClear } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
@@ -82,11 +90,10 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   major: 2,
   minor: 1,
   patch: 0,
-  // Ignore any pre-release diff:
-  premajor: -1,
-  preminor: -1,
-  prepatch: -1,
-  prerelease: -1,
+  /** ignore */ premajor: -1,
+  /** ignore */ preminor: -1,
+  /** ignore */ prepatch: -1,
+  /** ignore */ prerelease: -1,
 }
 
 export class PackageRelatedDiagnostic extends Diagnostic {
@@ -119,20 +126,35 @@ export const getPackageDiagnostic = (
     )
   }
 
-  const packageVersion = coerce(packageInfoChecked.version) as SemVer
+  let packageVersion = versionClear(packageInfoChecked.version)
 
-  // Check if the version difference is compatible with what was configured by the user.
-  // If the difference is less than the minimum configured then there is no need for a diagnostic.
-  // Eg. "1.0 => 1.1" is a "minor" diff(). By default, we allow any non-prerelease diff() starting from "patch".
-  const versionDiff = getLevel()
-  const packageDiff = diff(packageInfoChecked.versionLatest, packageVersion)
+  if (!valid(packageVersion)) {
+    const packageVersionCoerced = coerce(packageVersion)
 
-  if (
-    packageDiff &&
-    versionDiff &&
-    PACKAGE_DIFF_LEVELS[packageDiff] < PACKAGE_DIFF_LEVELS[versionDiff]
-  ) {
-    return
+    if (!packageVersionCoerced) {
+      return
+    }
+
+    packageVersion = packageVersionCoerced.version
+  }
+
+  const isPrerelease = prerelease(packageVersion) !== null
+
+  if (!isPrerelease) {
+    // Check if the version difference is compatible with what was configured by the user.
+    // If the difference is less than the minimum configured then there is no need for a diagnostic.
+    // Eg. "1.0 => 1.1" is a "minor" diff(). By default, we allow any non-prerelease diff() starting from "patch".
+    // Pre-releases user-defined will always be recommended.
+    const versionDiff = getLevel()
+    const packageDiff = diff(packageInfoChecked.versionLatest, packageVersion)
+
+    if (
+      packageDiff &&
+      versionDiff &&
+      PACKAGE_DIFF_LEVELS[packageDiff] < PACKAGE_DIFF_LEVELS[versionDiff]
+    ) {
+      return
+    }
   }
 
   // If the latest available version is greater than the user-defined version,
@@ -150,12 +172,12 @@ export const getPackageDiagnostic = (
     return diagnostic
   }
 
-  // If the user-defined version is higher than the last available version,
-  // then the user is probably using a pre-release version. In this case, we will only generate a informational diagnostic.
-  if (gt(packageVersion, packageInfoChecked.versionLatest)) {
+  // If the user-defined version is higher than the last available version, then the user is probably using a pre-release version.
+  // In this case, we will only generate a informational diagnostic.
+  if (isPrerelease && gt(packageVersion, packageInfoChecked.versionLatest)) {
     return new Diagnostic(
       packageInfoChecked.versionRange,
-      `Version of "${packageInfoChecked.name}" is greater than latest release: ${packageInfoChecked.versionLatest}.`,
+      `Pre-release version of "${packageInfoChecked.name}".`,
       DiagnosticSeverity.Information
     )
   }

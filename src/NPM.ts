@@ -1,11 +1,12 @@
 import { exec } from "child_process"
 import { dirname } from "path"
-import { coerce, maxSatisfying } from "semver"
+import { maxSatisfying, prerelease } from "semver"
 import { TextDocument } from "vscode"
 
 import { Cache } from "./Cache"
 import { PackageInfo } from "./Document"
 import { getCacheLifetime, hasMajorUpdateProtection } from "./Settings"
+import { versionClear } from "./Utils"
 
 const CACHE_PACKAGES: NPMViewResults = {}
 
@@ -51,6 +52,7 @@ export const getPackageLatestVersion = async (
   packageInfo: PackageInfo
 ): Promise<string | null> => {
   const packageVersions = await getPackageVersions(packageInfo.name)
+  const versionClean = versionClear(packageInfo.version)
 
   // We captured the largest version currently available.
   const versionLatest = maxSatisfying(packageVersions, ">=0")
@@ -61,13 +63,14 @@ export const getPackageLatestVersion = async (
     return versionLatest
   }
 
-  const versionClean = coerce(packageInfo.version)
-  const versionSatisfying = maxSatisfying(packageVersions, `^${versionClean}`)
+  const versionSatisfying = maxSatisfying(packageVersions, `^${versionClean}`, {
+    includePrerelease: prerelease(versionClean) !== null,
+  })
 
   // If the user-defined version is exactly the same version available within the range given by the user,
   // we may suggest the latest version, which may include a major bump.
   // Eg. { "package": "^5.1.3" } and latest is also "5.1.3".
-  if (versionClean?.version === versionSatisfying) {
+  if (versionClean === versionSatisfying) {
     return versionLatest
   }
 
