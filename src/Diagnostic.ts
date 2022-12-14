@@ -26,6 +26,9 @@ const PACKAGE_JSON_PATH = `${sep}package.json`
 const PACKAGE_NAME_REGEXP =
   /^(?:@[a-z0-9-][a-z0-9-._]*\/)?[a-z0-9-][a-z0-9-._]*$/
 
+const isPackageJsonDocument = (document: TextDocument) =>
+  document.fileName.endsWith(PACKAGE_JSON_PATH)
+
 export const diagnosticSubscribe = (
   context: ExtensionContext,
   diagnostics: DiagnosticCollection,
@@ -33,7 +36,7 @@ export const diagnosticSubscribe = (
 ): void => {
   // Handles the active editor change, but only continues with package.json files.
   const handleChange = (document: TextDocument): void => {
-    if (document.fileName.endsWith(PACKAGE_JSON_PATH)) {
+    if (isPackageJsonDocument(document)) {
       onChange(document)
     }
   }
@@ -61,9 +64,11 @@ export const diagnosticSubscribe = (
 
   // Trigger when the active document is closed, removing the current document from the diagnostic collection.
   context.subscriptions.push(
-    workspace.onDidCloseTextDocument((document: TextDocument) =>
-      diagnostics.delete(document.uri)
-    )
+    workspace.onDidCloseTextDocument((document: TextDocument) => {
+      if (isPackageJsonDocument(document)) {
+        diagnostics.delete(document.uri)
+      }
+    })
   )
 }
 
