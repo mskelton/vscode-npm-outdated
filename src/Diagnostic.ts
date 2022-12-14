@@ -43,6 +43,8 @@ const PACKAGE_JSON_PATH = `${sep}package.json`
 const PACKAGE_NAME_REGEXP =
   /^(?:@[a-z0-9-][a-z0-9-._]*\/)?[a-z0-9-][a-z0-9-._]*$/
 
+const PACKAGE_VERSION_COMPLEX_REGEXP = /\s|\|\|/
+
 const isPackageJsonDocument = (document: TextDocument) =>
   document.fileName.endsWith(PACKAGE_JSON_PATH)
 
@@ -234,6 +236,12 @@ export const generatePackagesDiagnostics = async (
       // Avoid packages with invalid names (usually typos).
       // Eg. "type script" instead of "typescript".
       if (!PACKAGE_NAME_REGEXP.test(packageInfo.name)) {
+        return
+      }
+
+      // Ignores complex versions as it is difficult to understand user needs.
+      // Eg. "^13 || ^14.5 || 15.6 - 15.7 || >=16.4 <17"
+      if (PACKAGE_VERSION_COMPLEX_REGEXP.test(packageInfo.version)) {
         return
       }
 
