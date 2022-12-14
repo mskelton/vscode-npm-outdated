@@ -10,6 +10,7 @@ import {
 
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { PackagesInstalled } from "./NPM"
+import { lazyCallback } from "./Utils"
 
 class Message {
   constructor(
@@ -39,7 +40,7 @@ export class DocumentDecorationManager {
 
   // Returns the decoration layers of a document.
   // If the document has never been used, then instantiate and return.
-  public static fromDocument(document: TextDocument) {
+  public static from(document: TextDocument) {
     if (!this.documents.has(document)) {
       this.documents.set(document, new DocumentDecorationManager())
     }
@@ -48,7 +49,15 @@ export class DocumentDecorationManager {
   }
 
   // When the document is closed, then it unloads the layers defined for it.
-  public static unsetDocument(document: TextDocument) {
+  public static flush(document: TextDocument) {
+    DocumentDecorationManager.from(document).layers.forEach((layer) => {
+      window.visibleTextEditors.forEach((editor) => {
+        if (editor.document === document) {
+          editor.setDecorations(layer.type, [])
+        }
+      })
+    })
+
     this.documents.delete(document)
   }
 }
@@ -62,6 +71,14 @@ class DocumentDecorationLayer {
 export class DocumentDecoration {
   private editors: TextEditor[]
 
+  private render = lazyCallback(() => {
+    DocumentDecorationManager.from(this.document).layers.forEach((layer) => {
+      this.editors.forEach((editor) =>
+        editor.setDecorations(layer.type, Object.values(layer.lines).flat())
+      )
+    })
+  })
+
   constructor(private document: TextDocument) {
     this.editors = window.visibleTextEditors.filter(
       (editor) => editor.document === document
@@ -69,9 +86,7 @@ export class DocumentDecoration {
   }
 
   private setLine(line: number, messages: Message[]) {
-    const decorationManager = DocumentDecorationManager.fromDocument(
-      this.document
-    )
+    const decorationManager = DocumentDecorationManager.from(this.document)
 
     messages.forEach((message, messageIndex) => {
       const decorationLayer = decorationManager.getLayer(messageIndex)
@@ -89,17 +104,17 @@ export class DocumentDecoration {
       }
     })
 
-    this.flush()
+    this.render()
   }
 
   public clearLine(line: number): void {
-    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
+    DocumentDecorationManager.from(this.document).layers.forEach(
       (decoration) => {
         delete decoration.lines[line]
       }
     )
 
-    this.flush()
+    this.render()
   }
 
   public setCheckingMessage(line: number) {
@@ -124,15 +139,5 @@ export class DocumentDecoration {
     }
 
     this.setLine(line, updateDetails)
-  }
-
-  private flush() {
-    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
-      (layer) => {
-        this.editors.forEach((editor) =>
-          editor.setDecorations(layer.type, Object.values(layer.lines).flat())
-        )
-      }
-    )
   }
 }
