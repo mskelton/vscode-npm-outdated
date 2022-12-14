@@ -1,7 +1,10 @@
-// This function allows to make a function "lazy". Although its first execution happens immediately, the next execution only occurs when this one ends (+delay ms).
+// This function allows to call a "lazy" callback.
+// The first execution can be delayed when the "wait" parameter is different from zero, otherwise it will be immediate.
+// The next execution can be delayed as long as "delay" is non - zero, with a minimum time of zero ms.
 // Furthermore, if several executions happen at the same time, only the last one will be actually be executed.
 export const lazyCallback = <T, A>(
   callback: (...args: A[]) => T,
+  wait = 0,
   delay = 0
 ) => {
   // Defines whether there is a process currently running.
@@ -18,7 +21,18 @@ export const lazyCallback = <T, A>(
     if (!isRunning) {
       // If no callback is running right now, then run the current one immediately.
       isRunning = true
-      await callback(...args)
+
+      if (wait === 0) {
+        await callback(...args)
+      } else {
+        await new Promise((resolve: (value: void) => void) => {
+          setTimeout(async () => {
+            await callback(...args)
+
+            resolve()
+          }, wait)
+        })
+      }
 
       // If afterwards there is already some callback waiting to be executed, it starts it after the delay.
       // Note that this will only happen after the full completion of the previous process.

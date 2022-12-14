@@ -72,7 +72,7 @@ export const diagnosticSubscribe = (
       if (isPackageJsonDocument(document)) {
         diagnostics.delete(document.uri)
 
-        DocumentDecorationManager.flush(document)
+        DocumentDecorationManager.flushDocument(document)
       }
     })
   )

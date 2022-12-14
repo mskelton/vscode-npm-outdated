@@ -38,9 +38,13 @@ export class DocumentDecorationManager {
     return this.layers[layer]
   }
 
+  flushLayers() {
+    this.layers.forEach((layer) => (layer.lines = []))
+  }
+
   // Returns the decoration layers of a document.
   // If the document has never been used, then instantiate and return.
-  public static from(document: TextDocument) {
+  public static fromDocument(document: TextDocument) {
     if (!this.documents.has(document)) {
       this.documents.set(document, new DocumentDecorationManager())
     }
@@ -49,8 +53,8 @@ export class DocumentDecorationManager {
   }
 
   // When the document is closed, then it unloads the layers defined for it.
-  public static flush(document: TextDocument) {
-    DocumentDecorationManager.from(document).layers.forEach((layer) => {
+  public static flushDocument(document: TextDocument) {
+    DocumentDecorationManager.fromDocument(document).layers.forEach((layer) => {
       window.visibleTextEditors.forEach((editor) => {
         if (editor.document === document) {
           editor.setDecorations(layer.type, [])
@@ -71,13 +75,17 @@ class DocumentDecorationLayer {
 export class DocumentDecoration {
   private editors: TextEditor[]
 
+  private flushed = false
+
   private render = lazyCallback(() => {
-    DocumentDecorationManager.from(this.document).layers.forEach((layer) => {
-      this.editors.forEach((editor) =>
-        editor.setDecorations(layer.type, Object.values(layer.lines).flat())
-      )
-    })
-  })
+    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
+      (layer) => {
+        this.editors.forEach((editor) =>
+          editor.setDecorations(layer.type, Object.values(layer.lines).flat())
+        )
+      }
+    )
+  }, 100)
 
   constructor(private document: TextDocument) {
     this.editors = window.visibleTextEditors.filter(
@@ -86,7 +94,14 @@ export class DocumentDecoration {
   }
 
   private setLine(line: number, messages: Message[]) {
-    const decorationManager = DocumentDecorationManager.from(this.document)
+    const decorationManager = DocumentDecorationManager.fromDocument(
+      this.document
+    )
+
+    if (!this.flushed) {
+      this.flushed = true
+      decorationManager.flushLayers()
+    }
 
     messages.forEach((message, messageIndex) => {
       const decorationLayer = decorationManager.getLayer(messageIndex)
@@ -108,7 +123,7 @@ export class DocumentDecoration {
   }
 
   public clearLine(line: number): void {
-    DocumentDecorationManager.from(this.document).layers.forEach(
+    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
       (decoration) => {
         delete decoration.lines[line]
       }
