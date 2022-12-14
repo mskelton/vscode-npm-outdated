@@ -16,7 +16,10 @@ import {
 
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
 import { getDocumentPackages, PackageInfoChecked } from "./Document"
-import { DocumentDecoration } from "./DocumentDecoration"
+import {
+  DocumentDecoration,
+  DocumentDecorationManager,
+} from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { getPackageLatestVersion, getPackagesInstalled } from "./NPM"
 import { getLevel } from "./Settings"
@@ -67,6 +70,8 @@ export const diagnosticSubscribe = (
     workspace.onDidCloseTextDocument((document: TextDocument) => {
       if (isPackageJsonDocument(document)) {
         diagnostics.delete(document.uri)
+
+        DocumentDecorationManager.unsetDocument(document)
       }
     })
   )

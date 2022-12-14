@@ -21,34 +21,60 @@ class Message {
 // We need to create some decoration levels as needed.
 // Each layer must have its own style implementation, so that the message order is respected.
 // @see https://github.com/microsoft/vscode/issues/169051
-class DecorationLayer {
-  public static layers: DecorationLayer[] = []
+export class DocumentDecorationManager {
+  private static documents = new WeakMap<
+    TextDocument,
+    DocumentDecorationManager
+  >()
 
+  public layers: DocumentDecorationLayer[] = []
+
+  public getLayer(layer: number): DocumentDecorationLayer {
+    if (this.layers[layer] === undefined) {
+      this.layers[layer] = new DocumentDecorationLayer()
+    }
+
+    return this.layers[layer]
+  }
+
+  // Returns the decoration layers of a document.
+  // If the document has never been used, then instantiate and return.
+  public static fromDocument(document: TextDocument) {
+    if (!this.documents.has(document)) {
+      this.documents.set(document, new DocumentDecorationManager())
+    }
+
+    return this.documents.get(document) as DocumentDecorationManager
+  }
+
+  // When the document is closed, then it unloads the layers defined for it.
+  public static unsetDocument(document: TextDocument) {
+    this.documents.delete(document)
+  }
+}
+
+class DocumentDecorationLayer {
   public lines: Record<number, DecorationOptions> = []
 
   public type = window.createTextEditorDecorationType({})
-
-  public static getLayer(layer: number): DecorationLayer {
-    if (DecorationLayer.layers[layer] === undefined) {
-      DecorationLayer.layers[layer] = new DecorationLayer()
-    }
-
-    return DecorationLayer.layers[layer]
-  }
 }
 
 export class DocumentDecoration {
   private editors: TextEditor[]
 
-  constructor(document: TextDocument) {
+  constructor(private document: TextDocument) {
     this.editors = window.visibleTextEditors.filter(
       (editor) => editor.document === document
     )
   }
 
   private setLine(line: number, messages: Message[]) {
+    const decorationManager = DocumentDecorationManager.fromDocument(
+      this.document
+    )
+
     messages.forEach((message, messageIndex) => {
-      const decorationLayer = DecorationLayer.getLayer(messageIndex)
+      const decorationLayer = decorationManager.getLayer(messageIndex)
 
       decorationLayer.lines[line] = {
         range: new Range(new Position(line, 4096), new Position(line, 4096)),
@@ -67,9 +93,11 @@ export class DocumentDecoration {
   }
 
   public clearLine(line: number): void {
-    DecorationLayer.layers.forEach((decoration) => {
-      delete decoration.lines[line]
-    })
+    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
+      (decoration) => {
+        delete decoration.lines[line]
+      }
+    )
 
     this.flush()
   }
@@ -100,10 +128,12 @@ export class DocumentDecoration {
   }
 
   private flush() {
-    DecorationLayer.layers.forEach((layer) => {
-      this.editors.forEach((editor) =>
-        editor.setDecorations(layer.type, Object.values(layer.lines).flat())
-      )
-    })
+    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
+      (layer) => {
+        this.editors.forEach((editor) =>
+          editor.setDecorations(layer.type, Object.values(layer.lines).flat())
+        )
+      }
+    )
   }
 }
