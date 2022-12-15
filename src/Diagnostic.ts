@@ -35,6 +35,7 @@ import {
   getPackageLatestVersion,
   getPackagesInstalled,
   getPackageVersions,
+  packagesInstalledCache,
 } from "./NPM"
 import { getLevel, getParallelProcessesLimit } from "./Settings"
 import { promiseLimit, versionClear } from "./Utils"
@@ -80,6 +81,20 @@ export const diagnosticSubscribe = (
     workspace.onDidChangeTextDocument((editor: TextDocumentChangeEvent) =>
       handleChange(editor.document)
     )
+  )
+
+  // Activates when any file in the workspace is modified.
+  // Our interest here is to know about package-lock.json.
+  context.subscriptions.push(
+    workspace
+      .createFileSystemWatcher("**/package-lock.json")
+      .onDidChange(() => {
+        packagesInstalledCache?.invalidate()
+
+        window.visibleTextEditors.forEach((editor) =>
+          handleChange(editor.document)
+        )
+      })
   )
 
   // Trigger when the active document is closed, removing the current document from the diagnostic collection.

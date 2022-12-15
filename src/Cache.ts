@@ -1,5 +1,5 @@
 export class Cache<T> {
-  private at: number
+  private at: number | undefined
 
   constructor(public value: T) {
     this.at = Date.now()
@@ -8,6 +8,10 @@ export class Cache<T> {
 
   // Checks if the cache is still valid, being within lifetime.
   public isValid(lifetime: number) {
-    return this.at >= Date.now() - lifetime
+    return this.at && this.at >= Date.now() - lifetime
+  }
+
+  public invalidate() {
+    this.at = undefined
   }
 }

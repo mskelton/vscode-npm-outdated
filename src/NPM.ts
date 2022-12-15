@@ -102,7 +102,7 @@ interface NPMListResponse {
   }
 }
 
-let CACHE_PACKAGES_INSTALLED:
+export let packagesInstalledCache:
   | Cache<Promise<PackagesInstalled | undefined>>
   | undefined
 
@@ -112,8 +112,8 @@ export type PackagesInstalled = Record<string, string>
 export const getPackagesInstalled = (
   document: TextDocument
 ): Promise<PackagesInstalled | undefined> => {
-  if (CACHE_PACKAGES_INSTALLED?.isValid(60 * 1000)) {
-    return CACHE_PACKAGES_INSTALLED.value
+  if (packagesInstalledCache?.isValid(60 * 60 * 1000)) {
+    return packagesInstalledCache.value
   }
 
   const execPromise = new Promise<PackagesInstalled | undefined>((resolve) =>
@@ -147,7 +147,7 @@ export const getPackagesInstalled = (
     )
   )
 
-  CACHE_PACKAGES_INSTALLED = new Cache(execPromise)
+  packagesInstalledCache = new Cache(execPromise)
 
   return execPromise
 }
