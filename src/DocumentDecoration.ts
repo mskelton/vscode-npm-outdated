@@ -1,3 +1,5 @@
+import { prerelease } from "semver"
+
 import {
   DecorationOptions,
   Position,
@@ -151,7 +153,16 @@ export class DocumentDecoration {
     ]
 
     if (packageInfo.packageRelated.versionLatest === packageVersionInstalled) {
-      updateDetails.push(new Message(`(already installed)`, { color: "black" }))
+      // If the latest version is already installed, it informs that only a user-defined version will be bumped.
+      updateDetails.push(
+        new Message(`(already installed, bump-only)`, { color: "black" })
+      )
+    }
+
+    // Indicate that the suggested version is pre-release.
+    // This will only happen if the user defined version is also pre-release.
+    if (prerelease(packageInfo.packageRelated.versionLatest)) {
+      updateDetails.push(new Message(`(pre-release)`, { color: "lightblue" }))
     }
 
     this.setLine(line, updateDetails)
