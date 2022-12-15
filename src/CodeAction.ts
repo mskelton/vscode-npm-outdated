@@ -157,10 +157,15 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     diagnostic: PackageRelatedDiagnostic
   ) {
     const versionLatest = await diagnostic.packageRelated.getVersionLatest()
+    const updateWarning =
+      hasMajorUpdateProtection() &&
+      (await diagnostic.packageRelated.isVersionMajorUpdate())
+        ? " (major)"
+        : ""
 
     const action = this.createAction(
       document,
-      `Update "${diagnostic.packageRelated.name}" to ${versionLatest}`,
+      `Update "${diagnostic.packageRelated.name}" to ${versionLatest}${updateWarning}`,
       [diagnostic],
       true
     )
