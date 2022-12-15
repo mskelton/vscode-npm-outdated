@@ -16,6 +16,7 @@ import {
   DiagnosticCollection,
   DiagnosticSeverity,
   ExtensionContext,
+  Range,
   TextDocument,
   TextDocumentChangeEvent,
   TextEditor,
@@ -104,7 +105,17 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
 }
 
 export class PackageRelatedDiagnostic extends Diagnostic {
-  public declare packageRelated: PackageInfoChecked
+  constructor(
+    range: Range,
+    message: string,
+    severity: DiagnosticSeverity,
+    document: TextDocument,
+    public packageRelated: PackageInfoChecked
+  ) {
+    super(range, message, severity)
+
+    this.code = { target: document.uri, value: DIAGNOSTIC_ACTION }
+  }
 
   public static is(
     diagnostic: PackageRelatedDiagnostic | Diagnostic
@@ -137,16 +148,13 @@ export const getPackageDiagnostic = async (
   const packageVersions = await getPackageVersions(packageInfoChecked.name)
 
   if (!maxSatisfying(packageVersions, packageInfoChecked.version)) {
-    const diagnostic = new PackageRelatedDiagnostic(
+    return new PackageRelatedDiagnostic(
       packageInfoChecked.versionRange,
       "Invalid package version.",
-      DiagnosticSeverity.Error
+      DiagnosticSeverity.Error,
+      document,
+      packageInfoChecked
     )
-
-    diagnostic.code = { target: document.uri, value: DIAGNOSTIC_ACTION }
-    diagnostic.packageRelated = packageInfoChecked
-
-    return diagnostic
   }
 
   // Normalizes the package version, through the informed range.
@@ -186,16 +194,13 @@ export const getPackageDiagnostic = async (
   // If the latest available version is greater than the user-defined version,
   // we generate a diagnostic suggesting a modification.
   if (gt(packageInfoChecked.versionLatest, packageVersion)) {
-    const diagnostic = new PackageRelatedDiagnostic(
+    return new PackageRelatedDiagnostic(
       packageInfoChecked.versionRange,
       `Newer version of "${packageInfoChecked.name}" is available: ${packageInfoChecked.versionLatest}.`,
-      DiagnosticSeverity.Warning
+      DiagnosticSeverity.Warning,
+      document,
+      packageInfoChecked
     )
-
-    diagnostic.code = { target: document.uri, value: DIAGNOSTIC_ACTION }
-    diagnostic.packageRelated = packageInfoChecked
-
-    return diagnostic
   }
 
   // If the user-defined version is higher than the last available version, then the user is probably using a pre-release version.
