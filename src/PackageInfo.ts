@@ -147,11 +147,11 @@ export class PackageInfo {
 
   // Get the last version released of this package.
   public async getVersionLatest() {
-    return await getPackageLatestVersion(this)
+    return getPackageLatestVersion(this)
   }
 
   // Get all versions released of this package.
   public async getVersions() {
-    return await getPackageVersions(this.name)
+    return getPackageVersions(this.name)
   }
 }

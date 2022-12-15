@@ -6,6 +6,7 @@ import { commands, OutputChannel, Uri, window } from "vscode"
 export const COMMAND_INSTALL = "npm-outdated.install"
 export const COMMAND_NOTIFY = "npm-outdated.notify"
 
+// @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
 export const packageNotify = async (uri: Uri) => {
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
@@ -27,7 +28,7 @@ export const packageNotify = async (uri: Uri) => {
   }
 }
 
-export const packageInstall = async (
+export const packageInstall = (
   outputChannel: OutputChannel,
   command: string,
   cwd: string
