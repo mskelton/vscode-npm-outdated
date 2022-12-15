@@ -1,7 +1,6 @@
 import {
   coerce,
   diff,
-  gt,
   maxSatisfying,
   prerelease,
   ReleaseType,
@@ -93,7 +92,9 @@ export class PackageInfo {
     const versionInstalled = await this.getVersionInstalled()
 
     return (
-      versionLatest && versionInstalled && gt(versionLatest, versionInstalled)
+      versionLatest &&
+      versionInstalled &&
+      diff(versionLatest, versionInstalled) === "major"
     )
   }
 
