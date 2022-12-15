@@ -218,7 +218,7 @@ export const getPackageDiagnostic = async (
 
   // If the user-defined version is higher than the last available version, then the user is probably using a pre-release version.
   // In this case, we will only generate a informational diagnostic.
-  if (isPrerelease && gt(packageVersion, packageInfoChecked.versionLatest)) {
+  if (isPrerelease) {
     return new Diagnostic(
       packageInfoChecked.versionRange,
       `Pre-release version of "${packageInfoChecked.name}".`,
