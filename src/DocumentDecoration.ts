@@ -1,4 +1,4 @@
-import { prerelease } from "semver"
+import { gt, prerelease } from "semver"
 
 import {
   DecorationOptions,
@@ -180,10 +180,20 @@ export class DocumentDecoration {
       )
     }
 
+    // Identifies whether the suggested version is a major update.
+    if (
+      packageVersionInstalled &&
+      gt(packageInfo.packageRelated.versionLatest, packageVersionInstalled)
+    ) {
+      updateDetails.push(
+        new Message(`(beware: major update!)`, { color: "red" })
+      )
+    }
+
     // Indicate that the suggested version is pre-release.
     // This will only happen if the user defined version is also pre-release.
     if (prerelease(packageInfo.packageRelated.versionLatest)) {
-      updateDetails.push(new Message(`(pre-release)`, { color: "lightblue" }))
+      updateDetails.push(new Message(`<pre-release>`, { color: "lightblue" }))
     }
 
     this.setLine(line, updateDetails)
