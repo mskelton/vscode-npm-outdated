@@ -43,7 +43,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
     // If only a single-line is selected or range accepts only one diagnostic then create a direct action for a specific package.
     // Else, it will be suggested to update all <number of> packages within range.
-    if (range.isSingleLine || diagnosticsSelected.length === 1) {
+    if (diagnosticsSelected.length === 1) {
       diagnosticsPromises.push(
         ...diagnosticsSelected.map((diagnostic) =>
           this.createUpdateSingleAction(document, diagnostic)
