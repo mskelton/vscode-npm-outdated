@@ -26,7 +26,11 @@
       "plugin:promise/recommended"
     ],
     "rules": {
-      "no-return-await": "warn"
+      "no-return-await": "warn",
+      "curly": [
+        "warn",
+        "all"
+      ]
     }
   },
   "scripts": {

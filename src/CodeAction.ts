@@ -41,28 +41,61 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
     const diagnosticsPromises = []
 
+    let diagnosticsSelectedFiltered = diagnosticsSelected
+
     // If only a single-line is selected or range accepts only one diagnostic then create a direct action for a specific package.
     // Else, it will be suggested to update all <number of> packages within range.
     if (diagnosticsSelected.length === 1) {
       diagnosticsPromises.push(
-        ...diagnosticsSelected.map((diagnostic) =>
-          this.createUpdateSingleAction(document, diagnostic)
-        )
+        this.createUpdateSingleAction(document, diagnosticsSelected[0])
       )
     } else {
-      diagnosticsPromises.push(
-        this.createUpdateManyAction(
-          document,
-          diagnosticsSelected,
-          `Update ${diagnosticsSelected.length} packages`
+      let updateWarning = ""
+
+      // Ensures that we will not include major updates together with minor, if protection is enabled.
+      if (hasMajorUpdateProtection()) {
+        const diagnosticsSelectedMajors: PackageRelatedDiagnostic[] = []
+
+        for (const diagnosticSelected of diagnosticsSelected) {
+          if (await diagnosticSelected.packageRelated.isVersionMajorUpdate()) {
+            diagnosticsSelectedMajors.push(diagnosticSelected)
+          }
+        }
+
+        if (diagnosticsSelectedMajors.length) {
+          if (diagnosticsSelectedMajors.length < diagnosticsSelected.length) {
+            updateWarning = " (excluding major)"
+            diagnosticsSelectedFiltered = diagnosticsSelectedFiltered.filter(
+              (diagnostic) => !diagnosticsSelectedMajors.includes(diagnostic)
+            )
+          } else {
+            updateWarning = " (major)"
+          }
+        }
+      }
+
+      if (diagnosticsSelectedFiltered.length === 1) {
+        diagnosticsPromises.push(
+          this.createUpdateSingleAction(
+            document,
+            diagnosticsSelectedFiltered[0]
+          )
         )
-      )
+      } else {
+        diagnosticsPromises.push(
+          this.createUpdateManyAction(
+            document,
+            diagnosticsSelectedFiltered,
+            `Update ${diagnosticsSelectedFiltered.length} packages${updateWarning}`
+          )
+        )
+      }
     }
 
     // If the total number of diagnostics is greater than the number of selected ones, then it is suggested to update all.
     if (
       diagnostics.length > 1 &&
-      diagnostics.length > diagnosticsSelected.length
+      diagnostics.length > diagnosticsSelectedFiltered.length
     ) {
       let updateWarning = ""
       let diagnosticsFiltered = diagnostics
@@ -79,7 +112,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
         if (diagnosticsMajors.length) {
           if (diagnosticsMajors.length < diagnostics.length) {
-            updateWarning = " (excluding majors)"
+            updateWarning = " (excluding major)"
             diagnosticsFiltered = diagnosticsFiltered.filter(
               (diagnostic) => !diagnosticsMajors.includes(diagnostic)
             )
@@ -89,13 +122,15 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         }
       }
 
-      diagnosticsPromises.push(
-        this.createUpdateManyAction(
-          document,
-          diagnosticsFiltered,
-          `Update all ${diagnosticsFiltered.length} packages${updateWarning}`
+      if (diagnosticsFiltered.length > diagnosticsSelectedFiltered.length) {
+        diagnosticsPromises.push(
+          this.createUpdateManyAction(
+            document,
+            diagnosticsFiltered,
+            `Update all ${diagnosticsFiltered.length} packages${updateWarning}`
+          )
         )
-      )
+      }
     }
 
     return Promise.all(diagnosticsPromises)

@@ -63,7 +63,7 @@ export const diagnosticSubscribe = (
     )
   )
 
-  // Activates when any file in the workspace is modified.
+  // Trigger when any file in the workspace is modified.
   // Our interest here is to know about package-lock.json.
   context.subscriptions.push(
     workspace
