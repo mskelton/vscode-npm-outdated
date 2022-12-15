@@ -10,13 +10,14 @@ import {
 
 import { COMMAND_INSTALL_REQUEST } from "./Command"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { hasMajorUpdateProtection } from "./Settings"
 
 export const DIAGNOSTIC_ACTION = "npm-outdated"
 
 const VERSION_PREFIX_REGEXP = /^\s*(\^|~|=|>=|<=)/
 
 export class PackageJsonCodeActionProvider implements CodeActionProvider {
-  provideCodeActions(
+  async provideCodeActions(
     document: TextDocument,
     range: Range
   ): Promise<CodeAction[]> {
@@ -63,11 +64,36 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       diagnostics.length > 1 &&
       diagnostics.length > diagnosticsSelected.length
     ) {
+      let updateWarning = ""
+      let diagnosticsFiltered = diagnostics
+
+      // Ensures that we will not include major updates together with minor, if protection is enabled.
+      if (hasMajorUpdateProtection()) {
+        const diagnosticsMajors: PackageRelatedDiagnostic[] = []
+
+        for (const diagnostic of diagnostics) {
+          if (await diagnostic.packageRelated.isVersionMajorUpdate()) {
+            diagnosticsMajors.push(diagnostic)
+          }
+        }
+
+        if (diagnosticsMajors.length) {
+          if (diagnosticsMajors.length < diagnostics.length) {
+            updateWarning = " (excluding majors)"
+            diagnosticsFiltered = diagnosticsFiltered.filter(
+              (diagnostic) => !diagnosticsMajors.includes(diagnostic)
+            )
+          } else {
+            updateWarning = " (major)"
+          }
+        }
+      }
+
       diagnosticsPromises.push(
         this.createUpdateManyAction(
           document,
-          diagnostics,
-          `Update all ${diagnostics.length} packages`
+          diagnosticsFiltered,
+          `Update all ${diagnosticsFiltered.length} packages${updateWarning}`
         )
       )
     }

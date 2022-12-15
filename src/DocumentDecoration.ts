@@ -1,4 +1,4 @@
-import { gt, prerelease } from "semver"
+import { prerelease } from "semver"
 
 import {
   DecorationOptions,
@@ -161,6 +161,7 @@ export class DocumentDecoration {
         new Message("Install pending", { color: "silver" }),
       ])
     }
+
     const updateDetails = [
       new Message(`⚠`, { color: "gold" }),
       new Message(
@@ -183,7 +184,7 @@ export class DocumentDecoration {
     }
 
     // Identifies whether the suggested version is a major update.
-    if (packageVersionInstalled && gt(versionLatest, packageVersionInstalled)) {
+    if (await packageInfo.packageRelated.isVersionMajorUpdate()) {
       updateDetails.push(
         new Message(`(beware: major update!)`, { color: "red" })
       )

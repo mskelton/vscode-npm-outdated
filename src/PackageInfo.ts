@@ -1,6 +1,7 @@
 import {
   coerce,
   diff,
+  gt,
   maxSatisfying,
   prerelease,
   ReleaseType,
@@ -84,6 +85,16 @@ export class PackageInfo {
   // If the version is the latest version available for this package.
   public async isVersionMaxed() {
     return (await this.getVersionLatest()) === this.getVersionNormalized()
+  }
+
+  // If the latest version update require a major bump.
+  public async isVersionMajorUpdate() {
+    const versionLatest = await this.getVersionLatest()
+    const versionInstalled = await this.getVersionInstalled()
+
+    return (
+      versionLatest && versionInstalled && gt(versionLatest, versionInstalled)
+    )
   }
 
   // Get the package version installed.
