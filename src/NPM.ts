@@ -101,24 +101,26 @@ interface NPMListResponse {
   }
 }
 
-let CACHE_PACKAGES_INSTALLED: Cache<Promise<PackagesInstalled>> | undefined
+let CACHE_PACKAGES_INSTALLED:
+  | Cache<Promise<PackagesInstalled | undefined>>
+  | undefined
 
 export type PackagesInstalled = Record<string, string>
 
 // Returns packages installed by the user and their respective versions.
 export const getPackagesInstalled = (
   document: TextDocument
-): Promise<PackagesInstalled> => {
+): Promise<PackagesInstalled | undefined> => {
   if (CACHE_PACKAGES_INSTALLED?.isValid(60 * 1000)) {
     return CACHE_PACKAGES_INSTALLED.value
   }
 
-  const execPromise = new Promise<PackagesInstalled>((resolve, reject) =>
+  const execPromise = new Promise<PackagesInstalled | undefined>((resolve) =>
     exec(
       `npm ls --json --depth=0`,
       { cwd: dirname(document.uri.fsPath) },
-      (error, stdout) => {
-        if (!error) {
+      (_error, stdout) => {
+        if (stdout) {
           try {
             const execResult = JSON.parse(stdout) as NPMListResponse
 
@@ -139,7 +141,7 @@ export const getPackagesInstalled = (
           }
         }
 
-        return reject()
+        return resolve(undefined)
       }
     )
   )
