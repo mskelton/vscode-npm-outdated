@@ -173,7 +173,9 @@ export class DocumentDecoration {
     if (!packageVersionInstalled) {
       // If the package has not yet been installed by the user, but defined in the dependencies.
       updateDetails.push(new Message(`(pending install)`, { color: "black" }))
-    } else if (versionLatest === packageVersionInstalled) {
+    } else if (
+      await packageInfo.packageRelated.isVersionLatestAlreadyInstalled()
+    ) {
       // If the latest version is already installed, it informs that only a user-defined version will be bumped.
       updateDetails.push(
         new Message(`(already installed, bump-only)`, { color: "black" })

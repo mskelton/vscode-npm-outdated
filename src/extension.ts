@@ -10,9 +10,9 @@ import {
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import {
   COMMAND_INSTALL,
-  COMMAND_NOTIFY,
+  COMMAND_INSTALL_REQUEST,
   packageInstall,
-  packageNotify,
+  packageInstallRequest,
 } from "./Command"
 import { diagnosticSubscribe, generatePackagesDiagnostics } from "./Diagnostic"
 import { lazyCallback } from "./Utils"
@@ -34,7 +34,7 @@ export function activate(context: ExtensionContext) {
     diagnostics,
     outputChannel,
 
-    commands.registerCommand(COMMAND_NOTIFY, packageNotify),
+    commands.registerCommand(COMMAND_INSTALL_REQUEST, packageInstallRequest),
     commands.registerCommand(
       COMMAND_INSTALL,
       packageInstall.bind(null, outputChannel)

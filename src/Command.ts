@@ -4,10 +4,10 @@ import { dirname } from "path"
 import { commands, OutputChannel, Uri, window } from "vscode"
 
 export const COMMAND_INSTALL = "npm-outdated.install"
-export const COMMAND_NOTIFY = "npm-outdated.notify"
+export const COMMAND_INSTALL_REQUEST = "npm-outdated.installRequest"
 
-// @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
-export const packageNotify = async (uri: Uri) => {
+export const packageInstallRequest = async (uri: Uri) => {
+  // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
     uri

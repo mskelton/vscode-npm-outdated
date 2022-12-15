@@ -145,9 +145,16 @@ export class PackageInfo {
     return version
   }
 
-  // Get the last version released of this package.
+  // Get the latest version released of this package.
   public async getVersionLatest() {
     return getPackageLatestVersion(this)
+  }
+
+  // If the latest version is already installed.
+  public async isVersionLatestAlreadyInstalled() {
+    return (
+      (await this.getVersionLatest()) === (await this.getVersionInstalled())
+    )
   }
 
   // Get all versions released of this package.

@@ -2,14 +2,13 @@ import {
   CodeAction,
   CodeActionKind,
   CodeActionProvider,
-  Diagnostic,
   languages,
   Range,
   TextDocument,
   WorkspaceEdit,
 } from "vscode"
 
-import { COMMAND_NOTIFY } from "./Command"
+import { COMMAND_INSTALL_REQUEST } from "./Command"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 
 export const DIAGNOSTIC_ACTION = "npm-outdated"
@@ -76,10 +75,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     return Promise.all(diagnosticsPromises)
   }
 
-  private createAction(
+  private async createAction(
     document: TextDocument,
     message: string,
-    diagnostics: Diagnostic[],
+    diagnostics: PackageRelatedDiagnostic[],
     isPreferred?: boolean
   ) {
     const edit = new WorkspaceEdit()
@@ -88,10 +87,24 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     action.edit = edit
     action.diagnostics = diagnostics
     action.isPreferred = isPreferred
-    action.command = {
-      arguments: [document.uri],
-      command: COMMAND_NOTIFY,
-      title: "update",
+
+    let requiresUpdate = false
+
+    for (const diagnostic of diagnostics) {
+      if (
+        !(await diagnostic.packageRelated.isVersionLatestAlreadyInstalled())
+      ) {
+        requiresUpdate = true
+        break
+      }
+    }
+
+    if (requiresUpdate) {
+      action.command = {
+        arguments: [document.uri],
+        command: COMMAND_INSTALL_REQUEST,
+        title: "update",
+      }
     }
 
     return action
@@ -102,7 +115,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     diagnostics: PackageRelatedDiagnostic[],
     message: string
   ) {
-    const action = this.createAction(doc, message, diagnostics)
+    const action = await this.createAction(doc, message, diagnostics)
 
     await Promise.all(
       diagnostics.map((diagnostic) =>
@@ -126,7 +139,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       true
     )
 
-    await this.updatePackageVersion(action, document, diagnostic)
+    await this.updatePackageVersion(await action, document, diagnostic)
 
     return action
   }
