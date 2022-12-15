@@ -172,6 +172,19 @@ export const getPackageDiagnostic = async (
     packageVersion = packageVersionCoerced.version
   }
 
+  // Diagnostic that the package has not yet been installed by the user.
+  const packagesInstalled = await getPackagesInstalled(document)
+
+  if (!packagesInstalled?.[packageInfoChecked.name]) {
+    return new PackageRelatedDiagnostic(
+      packageInfoChecked.versionRange,
+      `Waiting install of "${packageInfoChecked.name}": ${packageInfoChecked.versionLatest}.`,
+      DiagnosticSeverity.Warning,
+      document,
+      packageInfoChecked
+    )
+  }
+
   const isPrerelease = prerelease(packageVersion) !== null
 
   if (!isPrerelease) {
@@ -268,7 +281,7 @@ export const generatePackagesDiagnostics = async (
             return documentDecorations.setUpdateMessage(
               packageInfo.versionRange.end.line,
               packageDiagnostic,
-              await packagesInstalled.catch(() => undefined)
+              await packagesInstalled
             )
           }
         }

@@ -53,17 +53,18 @@ export const getPackageLatestVersion = async (
 ): Promise<string | null> => {
   const packageVersions = await getPackageVersions(packageInfo.name)
   const versionClean = versionClear(packageInfo.version)
+  const isPrerelease = prerelease(versionClean) !== null
 
   // We captured the largest version currently available.
-  const versionLatest = maxSatisfying(packageVersions, ">=0")
+  const versionLatest = maxSatisfying(packageVersions, ">=0", {
+    includePrerelease: isPrerelease,
+  })
 
   // If protection is not enabled, we will return the latest available version, even if there is a major bump.
   // Otherwise, we will try to respect the user-defined version limit.
   if (!hasMajorUpdateProtection()) {
     return versionLatest
   }
-
-  const isPrerelease = prerelease(versionClean) !== null
 
   // If we are dealing with a user-defined pre-release, we should check the latest compatible non-pre-release version available.
   // If this version is superior to the current pre-release version, we will suggest it first.

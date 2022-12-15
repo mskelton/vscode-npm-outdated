@@ -12,7 +12,7 @@ import {
 
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { PackagesInstalled } from "./NPM"
-import { lazyCallback } from "./Utils"
+import { lazyCallback, versionClear } from "./Utils"
 
 class Message {
   constructor(
@@ -146,13 +146,34 @@ export class DocumentDecoration {
     const packageVersionInstalled =
       packagesInstalled?.[packageInfo.packageRelated.name]
 
+    // It informs that the version has not yet been installed,
+    // but the user's version is in fact the last one available.
+    if (
+      !packageVersionInstalled &&
+      packageInfo.packageRelated.versionLatest ===
+        versionClear(packageInfo.packageRelated.version)
+    ) {
+      return this.setLine(line, [
+        new Message(`⭳`, { color: "gray" }),
+        new Message("Install pending", { color: "silver" }),
+      ])
+    }
+
     const updateDetails = [
       new Message(`⚠`, { color: "gold" }),
-      new Message(`Update available:`, { color: "gray" }),
+      new Message(
+        packageVersionInstalled ? `Update available:` : `Version available:`,
+        { color: "gray" }
+      ),
       new Message(packageInfo.packageRelated.versionLatest, { color: "blue" }),
     ]
 
-    if (packageInfo.packageRelated.versionLatest === packageVersionInstalled) {
+    if (!packageVersionInstalled) {
+      // If the package has not yet been installed by the user, but defined in the dependencies.
+      updateDetails.push(new Message(`(pending install)`, { color: "black" }))
+    } else if (
+      packageInfo.packageRelated.versionLatest === packageVersionInstalled
+    ) {
       // If the latest version is already installed, it informs that only a user-defined version will be bumped.
       updateDetails.push(
         new Message(`(already installed, bump-only)`, { color: "black" })
