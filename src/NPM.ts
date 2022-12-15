@@ -1,12 +1,11 @@
 import { exec } from "child_process"
-import { dirname } from "path"
-import { coerce, gt, maxSatisfying, prerelease } from "semver"
-import { TextDocument } from "vscode"
+
+import { coerce, gt, maxSatisfying } from "semver"
+import { workspace } from "vscode"
 
 import { Cache } from "./Cache"
-import { PackageInfo } from "./Document"
+import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime, hasMajorUpdateProtection } from "./Settings"
-import { versionClear } from "./Utils"
 
 const CACHE_PACKAGES: NPMViewResults = {}
 
@@ -51,9 +50,9 @@ export const getPackageVersions = async (name: string) => {
 export const getPackageLatestVersion = async (
   packageInfo: PackageInfo
 ): Promise<string | null> => {
-  const packageVersions = await getPackageVersions(packageInfo.name)
-  const versionClean = versionClear(packageInfo.version)
-  const isPrerelease = prerelease(versionClean) !== null
+  const packageVersions = await packageInfo.getVersions()
+  const versionClean = packageInfo.getVersionClear()
+  const isPrerelease = packageInfo.isVersionPrerelease()
 
   // We captured the largest version currently available.
   const versionLatest = maxSatisfying(packageVersions, ">=0", {
@@ -109,43 +108,38 @@ export let packagesInstalledCache:
 export type PackagesInstalled = Record<string, string>
 
 // Returns packages installed by the user and their respective versions.
-export const getPackagesInstalled = (
-  document: TextDocument
-): Promise<PackagesInstalled | undefined> => {
+export const getPackagesInstalled = (): Promise<
+  PackagesInstalled | undefined
+> => {
   if (packagesInstalledCache?.isValid(60 * 60 * 1000)) {
     return packagesInstalledCache.value
   }
 
-  const execPromise = new Promise<PackagesInstalled | undefined>((resolve) =>
-    exec(
-      `npm ls --json --depth=0`,
-      { cwd: dirname(document.uri.fsPath) },
-      (_error, stdout) => {
-        if (stdout) {
-          try {
-            const execResult = JSON.parse(stdout) as NPMListResponse
+  const execPromise = new Promise<PackagesInstalled | undefined>((resolve) => {
+    const cwd = workspace.workspaceFolders?.[0].uri.fsPath
 
-            if (execResult.dependencies) {
-              // The `npm ls` command returns a lot of information.
-              // We only need the name of the installed package and its version.
-              const packageEntries = Object.entries(
-                execResult.dependencies
-              ).map(([packageName, packageInfo]) => [
-                packageName,
-                packageInfo.version,
-              ])
+    return exec(`npm ls --json --depth=0`, { cwd }, (_error, stdout) => {
+      if (stdout) {
+        try {
+          const execResult = JSON.parse(stdout) as NPMListResponse
 
-              return resolve(Object.fromEntries(packageEntries))
-            }
-          } catch (e) {
-            /* empty */
+          if (execResult.dependencies) {
+            // The `npm ls` command returns a lot of information.
+            // We only need the name of the installed package and its version.
+            const packageEntries = Object.entries(execResult.dependencies).map(
+              ([packageName, packageInfo]) => [packageName, packageInfo.version]
+            )
+
+            return resolve(Object.fromEntries(packageEntries))
           }
+        } catch (e) {
+          /* empty */
         }
-
-        return resolve(undefined)
       }
-    )
-  )
+
+      return resolve(undefined)
+    })
+  })
 
   packagesInstalledCache = new Cache(execPromise)
 

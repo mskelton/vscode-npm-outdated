@@ -95,11 +95,3 @@ export const promiseLimit = (concurrency: number) => {
     return funcResult
   }
 }
-
-// Strip all non-numeric values from the beginning of a version.
-// In principle, we should use semver.coerce() or semver.clean() for this, but they don't work well for pre-release ranges.
-// Eg.: semver.coerce("^13.0.7-canary.3") => "13.0.7"
-// Eg.: semver.clean("^13.0.7-canary.3") => null
-// Expected: "13.0.7-canary.3"
-export const versionClear = (version: string) =>
-  version.replace(/^\D+/, "").trimEnd()

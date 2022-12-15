@@ -1,62 +1,27 @@
-import {
-  commands,
-  Diagnostic,
-  DocumentSymbol,
-  Range,
-  TextDocument,
-} from "vscode"
+import { commands, DocumentSymbol, Range, TextDocument } from "vscode"
 
-// The package info, based on user-document.
-export interface PackageInfo {
-  // Package name.
-  name: string
-
-  // The package range.
-  range: Range
-
-  // The package current version (user-defined).
-  version: string
-
-  // The package version range only.
-  versionRange: Range
-}
-
-// The package info after it being checked for update.
-export interface PackageInfoChecked extends PackageInfo {
-  // The package latest version.
-  versionLatest: string
-}
-
-// The package diagnostic.
-export interface PackageDiagnostic {
-  // Package diagnostic.
-  diagnostic: Diagnostic | null
-
-  // Package info.
-  documentPackage: PackageInfo
-}
+import { PackageInfo } from "./PackageInfo"
 
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.
-const mapDependencyRange = (
-  documentSymbol: DocumentSymbol | undefined
-): PackageInfo[] => {
+const mapDependencyRange = (documentSymbol: DocumentSymbol | undefined) => {
   if (!documentSymbol || documentSymbol.children.length === 0) {
     return []
   }
 
   return documentSymbol.children.map(
-    (child): PackageInfo => ({
-      name: child.name,
-      range: child.range,
-      version: child.detail,
-      versionRange: new Range(
-        child.range.end.line,
-        child.range.end.character - 1 - child.detail.length,
-        child.range.end.line,
-        child.range.end.character - 1
-      ),
-    })
+    (child) =>
+      new PackageInfo(
+        child.name,
+        child.range,
+        child.detail,
+        new Range(
+          child.range.end.line,
+          child.range.end.character - 1 - child.detail.length,
+          child.range.end.line,
+          child.range.end.character - 1
+        )
+      )
   )
 }
 

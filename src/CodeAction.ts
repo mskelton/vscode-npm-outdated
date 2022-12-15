@@ -11,7 +11,6 @@ import {
 
 import { COMMAND_NOTIFY } from "./Command"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
-import { getPackageLatestVersion } from "./NPM"
 
 export const DIAGNOSTIC_ACTION = "npm-outdated"
 
@@ -118,9 +117,11 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument,
     diagnostic: PackageRelatedDiagnostic
   ) {
+    const versionLatest = await diagnostic.packageRelated.getVersionLatest()
+
     const action = this.createAction(
       document,
-      `Update "${diagnostic.packageRelated.name}" to ${diagnostic.packageRelated.versionLatest}`,
+      `Update "${diagnostic.packageRelated.name}" to ${versionLatest}`,
       [diagnostic],
       true
     )
@@ -141,9 +142,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         diagnostic.range.end.character
       ),
       versionPrefix = version.match(VERSION_PREFIX_REGEXP)?.[1] ?? "",
-      versionUpdated = (await getPackageLatestVersion(
-        diagnostic.packageRelated
-      )) as string
+      versionUpdated = await diagnostic.packageRelated.getVersionLatest()
 
     action.edit?.replace(
       document.uri,

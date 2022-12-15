@@ -1,17 +1,6 @@
 import { sep } from "path"
 
 import {
-  coerce,
-  diff,
-  gt,
-  maxSatisfying,
-  prerelease,
-  ReleaseType,
-  valid,
-  validRange,
-} from "semver"
-
-import {
   Diagnostic,
   DiagnosticCollection,
   DiagnosticSeverity,
@@ -25,27 +14,18 @@ import {
 } from "vscode"
 
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
-import { getDocumentPackages, PackageInfoChecked } from "./Document"
+import { getDocumentPackages } from "./Document"
 import {
   DocumentDecoration,
   DocumentDecorationManager,
 } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
-import {
-  getPackageLatestVersion,
-  getPackagesInstalled,
-  getPackageVersions,
-  packagesInstalledCache,
-} from "./NPM"
-import { getLevel, getParallelProcessesLimit } from "./Settings"
-import { promiseLimit, versionClear } from "./Utils"
+import { packagesInstalledCache } from "./NPM"
+import { PackageInfo } from "./PackageInfo"
+import { getParallelProcessesLimit } from "./Settings"
+import { promiseLimit } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
-
-const PACKAGE_NAME_REGEXP =
-  /^(?:@[a-z0-9-][a-z0-9-._]*\/)?[a-z0-9-][a-z0-9-._]*$/
-
-const PACKAGE_VERSION_COMPLEX_REGEXP = /\s|\|\|/
 
 const isPackageJsonDocument = (document: TextDocument) =>
   document.fileName.endsWith(PACKAGE_JSON_PATH)
@@ -109,23 +89,13 @@ export const diagnosticSubscribe = (
   )
 }
 
-const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
-  major: 2,
-  minor: 1,
-  patch: 0,
-  /** ignore */ premajor: -1,
-  /** ignore */ preminor: -1,
-  /** ignore */ prepatch: -1,
-  /** ignore */ prerelease: -1,
-}
-
 export class PackageRelatedDiagnostic extends Diagnostic {
   constructor(
     range: Range,
     message: string,
     severity: DiagnosticSeverity,
     document: TextDocument,
-    public packageRelated: PackageInfoChecked
+    public packageRelated: PackageInfo
   ) {
     super(range, message, severity)
 
@@ -141,102 +111,64 @@ export class PackageRelatedDiagnostic extends Diagnostic {
 
 export const getPackageDiagnostic = async (
   document: TextDocument,
-  packageInfoChecked: PackageInfoChecked
+  packageInfo: PackageInfo
 ): Promise<PackageRelatedDiagnostic | Diagnostic | undefined> => {
-  // If the version specified by the user is not a valid range, it issues an error diagnostic.
-  // Eg. { "package": "blah blah blah" }
-  if (!validRange(packageInfoChecked.version)) {
+  if (!packageInfo.isVersionValidRange()) {
     return new Diagnostic(
-      packageInfoChecked.versionRange,
+      packageInfo.versionRange,
       "Invalid package version.",
       DiagnosticSeverity.Error
     )
   }
 
+  const versionLatest = await packageInfo.getVersionLatest()
+
   // When no latest version is found, we just ignore it.
   // In practice, this is an exception-of-the-exception, and is expected to never happen.
-  if (!packageInfoChecked.versionLatest) {
+  if (!versionLatest) {
     return
   }
 
-  // Verify that the user-defined version is a released versions (including pre-releases).
-  const packageVersions = await getPackageVersions(packageInfoChecked.name)
-
-  if (!maxSatisfying(packageVersions, packageInfoChecked.version)) {
+  if (!packageInfo.isVersionReleased()) {
     return new PackageRelatedDiagnostic(
-      packageInfoChecked.versionRange,
+      packageInfo.versionRange,
       "Invalid package version.",
       DiagnosticSeverity.Error,
       document,
-      packageInfoChecked
+      packageInfo
     )
   }
 
-  // Normalizes the package version, through the informed range.
-  // If the result is an invalid version, try to correct it via coerce().
-  // Eg. "^3" (valid range, but "3" is a invalid version) => "3.0".
-  let packageVersion = versionClear(packageInfoChecked.version)
-
-  if (!valid(packageVersion)) {
-    const packageVersionCoerced = coerce(packageVersion)
-
-    if (!packageVersionCoerced) {
-      return
-    }
-
-    packageVersion = packageVersionCoerced.version
-  }
-
-  // Diagnostic that the package has not yet been installed by the user.
-  const packagesInstalled = await getPackagesInstalled(document)
-
-  if (!packagesInstalled?.[packageInfoChecked.name]) {
+  if (!packageInfo.isInstalled()) {
     return new PackageRelatedDiagnostic(
-      packageInfoChecked.versionRange,
-      `Waiting install of "${packageInfoChecked.name}": ${packageInfoChecked.versionLatest}.`,
+      packageInfo.versionRange,
+      `Waiting install of "${packageInfo.name}": ${versionLatest}.`,
       DiagnosticSeverity.Warning,
       document,
-      packageInfoChecked
+      packageInfo
     )
   }
 
-  const isPrerelease = prerelease(packageVersion) !== null
-
-  if (!isPrerelease) {
-    // Check if the version difference is compatible with what was configured by the user.
-    // If the difference is less than the minimum configured then there is no need for a diagnostic.
-    // Eg. "1.0 => 1.1" is a "minor" diff(). By default, we allow any non-prerelease diff() starting from "patch".
-    // Pre-releases user-defined will always be recommended.
-    const versionDiff = getLevel()
-    const packageDiff = diff(packageInfoChecked.versionLatest, packageVersion)
-
-    if (
-      packageDiff &&
-      versionDiff &&
-      PACKAGE_DIFF_LEVELS[packageDiff] < PACKAGE_DIFF_LEVELS[versionDiff]
-    ) {
-      return
-    }
+  if (!packageInfo.isVersionUpgradable()) {
+    return
   }
 
-  // If the latest available version is greater than the user-defined version,
-  // we generate a diagnostic suggesting a modification.
-  if (gt(packageInfoChecked.versionLatest, packageVersion)) {
+  if (!(await packageInfo.isVersionMaxed())) {
     return new PackageRelatedDiagnostic(
-      packageInfoChecked.versionRange,
-      `Newer version of "${packageInfoChecked.name}" is available: ${packageInfoChecked.versionLatest}.`,
+      packageInfo.versionRange,
+      `Newer version of "${packageInfo.name}" is available: ${versionLatest}.`,
       DiagnosticSeverity.Warning,
       document,
-      packageInfoChecked
+      packageInfo
     )
   }
 
   // If the user-defined version is higher than the last available version, then the user is probably using a pre-release version.
   // In this case, we will only generate a informational diagnostic.
-  if (isPrerelease) {
+  if (packageInfo.isVersionPrerelease()) {
     return new Diagnostic(
-      packageInfoChecked.versionRange,
-      `Pre-release version of "${packageInfoChecked.name}".`,
+      packageInfo.versionRange,
+      `Pre-release version of "${packageInfo.name}".`,
       DiagnosticSeverity.Information
     )
   }
@@ -258,50 +190,40 @@ export const generatePackagesDiagnostics = async (
     diagnosticsCollection
   )
 
-  const packagesInstalled = getPackagesInstalled(document)
-
   const parallelProcessing = promiseLimit(getParallelProcessesLimit())
 
   // Obtains, through NPM, the latest available version of each installed package.
   // As a result of each promise, we will have the package name and its latest version.
   await Promise.all(
     packagesInfos.map((packageInfo) => {
-      // Avoid packages with invalid names (usually typos).
-      // Eg. "type script" instead of "typescript".
-      if (!PACKAGE_NAME_REGEXP.test(packageInfo.name)) {
+      if (!packageInfo.isNameValid()) {
         return
       }
 
-      // Ignores complex versions as it is difficult to understand user needs.
-      // Eg. "^13 || ^14.5 || 15.6 - 15.7 || >=16.4 <17"
-      if (PACKAGE_VERSION_COMPLEX_REGEXP.test(packageInfo.version)) {
+      if (packageInfo.isVersionComplex()) {
         return
       }
 
       return parallelProcessing(async () => {
-        documentDecorations.setCheckingMessage(
-          packageInfo.versionRange.end.line
-        )
+        documentDecorations.setCheckingMessage(packageInfo.getLine())
 
-        const versionLatest = await getPackageLatestVersion(packageInfo)
-        const packageDiagnostic = await getPackageDiagnostic(document, {
-          ...packageInfo,
-          versionLatest: versionLatest ?? "",
-        })
+        const packageDiagnostic = await getPackageDiagnostic(
+          document,
+          packageInfo
+        )
 
         if (packageDiagnostic !== undefined) {
           documentDiagnostics.push(packageDiagnostic)
 
           if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
             return documentDecorations.setUpdateMessage(
-              packageInfo.versionRange.end.line,
-              packageDiagnostic,
-              await packagesInstalled
+              packageInfo.getLine(),
+              packageDiagnostic
             )
           }
         }
 
-        documentDecorations.clearLine(packageInfo.versionRange.end.line)
+        documentDecorations.clearLine(packageInfo.getLine())
       })
     })
   )

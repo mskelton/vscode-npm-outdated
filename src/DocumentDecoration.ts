@@ -11,8 +11,7 @@ import {
 } from "vscode"
 
 import { PackageRelatedDiagnostic } from "./Diagnostic"
-import { PackagesInstalled } from "./NPM"
-import { lazyCallback, versionClear } from "./Utils"
+import { lazyCallback } from "./Utils"
 
 class Message {
   constructor(
@@ -140,40 +139,41 @@ export class DocumentDecoration {
 
   public async setUpdateMessage(
     line: number,
-    packageInfo: PackageRelatedDiagnostic,
-    packagesInstalled?: PackagesInstalled
+    packageInfo: PackageRelatedDiagnostic
   ) {
+    const versionLatest = await packageInfo.packageRelated.getVersionLatest()
+
+    if (!versionLatest) {
+      return
+    }
+
     const packageVersionInstalled =
-      packagesInstalled?.[packageInfo.packageRelated.name]
+      await packageInfo.packageRelated.getVersionInstalled()
 
     // It informs that the version has not yet been installed,
     // but the user's version is in fact the last one available.
     if (
       !packageVersionInstalled &&
-      packageInfo.packageRelated.versionLatest ===
-        versionClear(packageInfo.packageRelated.version)
+      (await packageInfo.packageRelated.isVersionMaxed())
     ) {
       return this.setLine(line, [
         new Message(`⭳`, { color: "gray" }),
         new Message("Install pending", { color: "silver" }),
       ])
     }
-
     const updateDetails = [
       new Message(`⚠`, { color: "gold" }),
       new Message(
         packageVersionInstalled ? `Update available:` : `Version available:`,
         { color: "gray" }
       ),
-      new Message(packageInfo.packageRelated.versionLatest, { color: "blue" }),
+      new Message(versionLatest, { color: "blue" }),
     ]
 
     if (!packageVersionInstalled) {
       // If the package has not yet been installed by the user, but defined in the dependencies.
       updateDetails.push(new Message(`(pending install)`, { color: "black" }))
-    } else if (
-      packageInfo.packageRelated.versionLatest === packageVersionInstalled
-    ) {
+    } else if (versionLatest === packageVersionInstalled) {
       // If the latest version is already installed, it informs that only a user-defined version will be bumped.
       updateDetails.push(
         new Message(`(already installed, bump-only)`, { color: "black" })
@@ -181,10 +181,7 @@ export class DocumentDecoration {
     }
 
     // Identifies whether the suggested version is a major update.
-    if (
-      packageVersionInstalled &&
-      gt(packageInfo.packageRelated.versionLatest, packageVersionInstalled)
-    ) {
+    if (packageVersionInstalled && gt(versionLatest, packageVersionInstalled)) {
       updateDetails.push(
         new Message(`(beware: major update!)`, { color: "red" })
       )
@@ -192,7 +189,7 @@ export class DocumentDecoration {
 
     // Indicate that the suggested version is pre-release.
     // This will only happen if the user defined version is also pre-release.
-    if (prerelease(packageInfo.packageRelated.versionLatest)) {
+    if (prerelease(versionLatest)) {
       updateDetails.push(new Message(`<pre-release>`, { color: "lightblue" }))
     }
 
