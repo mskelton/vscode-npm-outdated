@@ -1,9 +1,16 @@
 .vscode/**
+.github/**
 src/**
 images/**
+node_modules/**
 locales/bundle.l10n.jsonc
+.eslintignore
+.prettierignore
 .gitignore
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
+
+out/**
+!out/extension.js
