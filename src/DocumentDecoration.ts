@@ -12,12 +12,14 @@ import {
 } from "vscode"
 
 import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme"
 import { lazyCallback } from "./Utils"
 
 class Message {
   constructor(
     public message: string,
-    public style?: ThemableDecorationAttachmentRenderOptions
+    public styleDefault?: ThemableDecorationAttachmentRenderOptions,
+    public styleDark?: ThemableDecorationAttachmentRenderOptions
   ) {}
 }
 
@@ -112,10 +114,18 @@ export class DocumentDecoration {
         range: new Range(new Position(line, 4096), new Position(line, 4096)),
         renderOptions: {
           after: {
-            color: "silver",
             contentText: message.message,
-            margin: `0 0 0 ${messageIndex === 0 ? 2 : 1}ch`,
-            ...message.style,
+            ...ThemeLight.DEFAULT,
+            ...(messageIndex === 0
+              ? Margins.MARGIN_INITIAL
+              : Margins.MARGIN_THEN),
+            ...message.styleDefault,
+          },
+          dark: {
+            after: {
+              ...ThemeDark.DEFAULT,
+              ...message.styleDark,
+            },
           },
         },
       }
@@ -135,7 +145,7 @@ export class DocumentDecoration {
   }
 
   public setCheckingMessage(line: number) {
-    this.setLine(line, [new Message("🗘")])
+    this.setLine(line, [new Message(Icons.CHECKING)])
   }
 
   public async setUpdateMessage(
@@ -158,26 +168,43 @@ export class DocumentDecoration {
       (await packageInfo.packageRelated.isVersionMaxed())
     ) {
       return this.setLine(line, [
-        new Message(`⭳`, { color: "gray" }),
-        new Message(l10n.t("Install pending"), { color: "silver" }),
+        new Message(
+          Icons.PENDING,
+          ThemeLight.ICON_AVAILABLE,
+          ThemeDark.ICON_AVAILABLE
+        ),
+        new Message(l10n.t("Install pending")),
       ])
     }
 
     const updateDetails = [
-      new Message(`⚠`, { color: "gold" }),
+      new Message(
+        Icons.UPDATABLE,
+        ThemeLight.ICON_UPDATABLE,
+        ThemeDark.ICON_UPDATABLE
+      ),
       new Message(
         packageVersionInstalled
           ? l10n.t("Update available:")
           : l10n.t("Latest version:"),
-        { color: "gray" }
+        ThemeLight.LABEL_UPDATABLE,
+        ThemeDark.LABEL_UPDATABLE
       ),
-      new Message(versionLatest, { color: "blue" }),
+      new Message(
+        versionLatest,
+        ThemeLight.LABEL_VERSION,
+        ThemeDark.LABEL_VERSION
+      ),
     ]
 
     if (!packageVersionInstalled) {
       // If the package has not yet been installed by the user, but defined in the dependencies.
       updateDetails.push(
-        new Message(`(${l10n.t("install pending")})`, { color: "black" })
+        new Message(
+          `(${l10n.t("install pending")})`,
+          ThemeLight.LABEL_PENDING,
+          ThemeDark.LABEL_PENDING
+        )
       )
     } else if (
       await packageInfo.packageRelated.isVersionLatestAlreadyInstalled()
@@ -186,9 +213,8 @@ export class DocumentDecoration {
       updateDetails.push(
         new Message(
           "(" + l10n.t("already installed, just formalization") + ")",
-          {
-            color: "black",
-          }
+          ThemeLight.LABEL_FORMALIZATION,
+          ThemeDark.LABEL_FORMALIZATION
         )
       )
     }
@@ -196,9 +222,11 @@ export class DocumentDecoration {
     // Identifies whether the suggested version is a major update.
     if (await packageInfo.packageRelated.isVersionMajorUpdate()) {
       updateDetails.push(
-        new Message("(" + l10n.t("attention: major update!") + ")", {
-          color: "red",
-        })
+        new Message(
+          "(" + l10n.t("attention: major update!") + ")",
+          ThemeLight.LABEL_MAJOR,
+          ThemeDark.LABEL_MAJOR
+        )
       )
     }
 
@@ -206,7 +234,11 @@ export class DocumentDecoration {
     // This will only happen if the user defined version is also pre-release.
     if (prerelease(versionLatest)) {
       updateDetails.push(
-        new Message("<" + l10n.t("pre-release") + ">", { color: "lightblue" })
+        new Message(
+          "<" + l10n.t("pre-release") + ">",
+          ThemeLight.LABEL_PRERELEASE,
+          ThemeDark.LABEL_PRERELEASE
+        )
       )
     }
 
