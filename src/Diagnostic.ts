@@ -130,7 +130,7 @@ export const getPackageDiagnostic = async (
     return
   }
 
-  if (!packageInfo.isVersionReleased()) {
+  if (!(await packageInfo.isVersionReleased())) {
     return new PackageRelatedDiagnostic(
       packageInfo.versionRange,
       l10n.t("Package version not available."),
@@ -154,7 +154,7 @@ export const getPackageDiagnostic = async (
     )
   }
 
-  if (!packageInfo.isVersionUpgradable()) {
+  if (!(await packageInfo.isVersionUpgradable())) {
     return
   }
 
