@@ -94,6 +94,12 @@
           "default": true,
           "markdownDescription": "%npm-outdated.configuration.majorUpdateProtection.description%"
         },
+        "npm-outdated.decorations": {
+          "order": 3000,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%npm-outdated.configuration.decorations.description%"
+        },
         "npm-outdated.cacheLifetime": {
           "order": 9000,
           "type": "number",

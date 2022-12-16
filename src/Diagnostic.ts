@@ -23,7 +23,7 @@ import {
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
 import { packagesInstalledCache } from "./NPM"
 import { PackageInfo } from "./PackageInfo"
-import { getParallelProcessesLimit } from "./Settings"
+import { getParallelProcessesLimit, isDecorationsEnabled } from "./Settings"
 import { promiseLimit } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
@@ -193,11 +193,18 @@ export const generatePackagesDiagnostics = async (
   // Read dependencies from package.json to get the name of packages used.
   const packagesInfos = Object.values(await getDocumentPackages(document))
 
-  const documentDecorations = new DocumentDecoration(document)
+  const documentDecorations = isDecorationsEnabled()
+    ? new DocumentDecoration(document)
+    : undefined
+
   const documentDiagnostics = new DocumentDiagnostics(
     document,
     diagnosticsCollection
   )
+
+  if (!documentDecorations) {
+    DocumentDecorationManager.flushDocument(document)
+  }
 
   const parallelProcessing = promiseLimit(getParallelProcessesLimit())
 
@@ -214,7 +221,7 @@ export const generatePackagesDiagnostics = async (
       }
 
       return parallelProcessing(async () => {
-        documentDecorations.setCheckingMessage(packageInfo.getLine())
+        documentDecorations?.setCheckingMessage(packageInfo.getLine())
 
         const packageDiagnostic = await getPackageDiagnostic(
           document,
@@ -225,14 +232,14 @@ export const generatePackagesDiagnostics = async (
           documentDiagnostics.push(packageDiagnostic)
 
           if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
-            return documentDecorations.setUpdateMessage(
+            return documentDecorations?.setUpdateMessage(
               packageInfo.getLine(),
               packageDiagnostic
             )
           }
         }
 
-        documentDecorations.clearLine(packageInfo.getLine())
+        documentDecorations?.clearLine(packageInfo.getLine())
       })
     })
   )

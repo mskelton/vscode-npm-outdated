@@ -15,6 +15,13 @@ export const hasMajorUpdateProtection = (): boolean =>
     .getConfiguration()
     .get<boolean>("npm-outdated.majorUpdateProtection") as boolean
 
+// Displays decorations on the right side of packages.
+// Default: true.
+export const isDecorationsEnabled = (): boolean =>
+  workspace
+    .getConfiguration()
+    .get<boolean>("npm-outdated.decorations") as boolean
+
 // Time in minutes in which the versions of packages already analyzed will be kept internally.
 // Default: 60 minutes.
 export const getCacheLifetime = (): number =>
