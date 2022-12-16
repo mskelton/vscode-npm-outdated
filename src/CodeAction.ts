@@ -2,6 +2,7 @@ import {
   CodeAction,
   CodeActionKind,
   CodeActionProvider,
+  l10n,
   languages,
   Range,
   TextDocument,
@@ -64,12 +65,12 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
         if (diagnosticsSelectedMajors.length) {
           if (diagnosticsSelectedMajors.length < diagnosticsSelected.length) {
-            updateWarning = " (excluding major)"
+            updateWarning = ` (${l10n.t("excluding major")})`
             diagnosticsSelectedFiltered = diagnosticsSelectedFiltered.filter(
               (diagnostic) => !diagnosticsSelectedMajors.includes(diagnostic)
             )
           } else {
-            updateWarning = " (major)"
+            updateWarning = ` (${l10n.t("major")})`
           }
         }
       }
@@ -86,7 +87,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
           this.createUpdateManyAction(
             document,
             diagnosticsSelectedFiltered,
-            `Update ${diagnosticsSelectedFiltered.length} packages${updateWarning}`
+            `${l10n.t(
+              "Update {0} selected packages",
+              diagnosticsSelectedFiltered.length
+            )}${updateWarning}`
           )
         )
       }
@@ -112,12 +116,12 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
         if (diagnosticsMajors.length) {
           if (diagnosticsMajors.length < diagnostics.length) {
-            updateWarning = " (excluding major)"
+            updateWarning = ` (${l10n.t("excluding major")})`
             diagnosticsFiltered = diagnosticsFiltered.filter(
               (diagnostic) => !diagnosticsMajors.includes(diagnostic)
             )
           } else {
-            updateWarning = " (major)"
+            updateWarning = ` (${l10n.t("major")})`
           }
         }
       }
@@ -127,7 +131,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
           this.createUpdateManyAction(
             document,
             diagnosticsFiltered,
-            `Update all ${diagnosticsFiltered.length} packages${updateWarning}`
+            `${l10n.t(
+              "Update all {0} packages",
+              diagnosticsFiltered.length
+            )}${updateWarning}`
           )
         )
       }
@@ -195,12 +202,16 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     const updateWarning =
       hasMajorUpdateProtection() &&
       (await diagnostic.packageRelated.isVersionMajorUpdate())
-        ? " (major)"
+        ? ` (${l10n.t("major")})`
         : ""
 
     const action = this.createAction(
       document,
-      `Update "${diagnostic.packageRelated.name}" to ${versionLatest}${updateWarning}`,
+      `${l10n.t(
+        'Update "{0}" to {1}',
+        diagnostic.packageRelated.name,
+        versionLatest!
+      )}${updateWarning}`,
       [diagnostic],
       true
     )

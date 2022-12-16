@@ -2,6 +2,7 @@ import { prerelease } from "semver"
 
 import {
   DecorationOptions,
+  l10n,
   Position,
   Range,
   TextDocument,
@@ -158,14 +159,16 @@ export class DocumentDecoration {
     ) {
       return this.setLine(line, [
         new Message(`⭳`, { color: "gray" }),
-        new Message("Install pending", { color: "silver" }),
+        new Message(l10n.t("Install pending"), { color: "silver" }),
       ])
     }
 
     const updateDetails = [
       new Message(`⚠`, { color: "gold" }),
       new Message(
-        packageVersionInstalled ? `Update available:` : `Version available:`,
+        packageVersionInstalled
+          ? l10n.t("Update available:")
+          : l10n.t("Latest version:"),
         { color: "gray" }
       ),
       new Message(versionLatest, { color: "blue" }),
@@ -173,27 +176,38 @@ export class DocumentDecoration {
 
     if (!packageVersionInstalled) {
       // If the package has not yet been installed by the user, but defined in the dependencies.
-      updateDetails.push(new Message(`(pending install)`, { color: "black" }))
+      updateDetails.push(
+        new Message(`(${l10n.t("install pending")})`, { color: "black" })
+      )
     } else if (
       await packageInfo.packageRelated.isVersionLatestAlreadyInstalled()
     ) {
       // If the latest version is already installed, it informs that only a user-defined version will be bumped.
       updateDetails.push(
-        new Message(`(already installed, bump-only)`, { color: "black" })
+        new Message(
+          "(" + l10n.t("already installed, just formalization") + ")",
+          {
+            color: "black",
+          }
+        )
       )
     }
 
     // Identifies whether the suggested version is a major update.
     if (await packageInfo.packageRelated.isVersionMajorUpdate()) {
       updateDetails.push(
-        new Message(`(beware: major update!)`, { color: "red" })
+        new Message("(" + l10n.t("attention: major update!") + ")", {
+          color: "red",
+        })
       )
     }
 
     // Indicate that the suggested version is pre-release.
     // This will only happen if the user defined version is also pre-release.
     if (prerelease(versionLatest)) {
-      updateDetails.push(new Message(`<pre-release>`, { color: "lightblue" }))
+      updateDetails.push(
+        new Message("<" + l10n.t("pre-release") + ">", { color: "lightblue" })
+      )
     }
 
     this.setLine(line, updateDetails)

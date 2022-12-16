@@ -5,6 +5,7 @@ import {
   DiagnosticCollection,
   DiagnosticSeverity,
   ExtensionContext,
+  l10n,
   Range,
   TextDocument,
   TextDocumentChangeEvent,
@@ -116,7 +117,7 @@ export const getPackageDiagnostic = async (
   if (!packageInfo.isVersionValidRange()) {
     return new Diagnostic(
       packageInfo.versionRange,
-      "Invalid package version.",
+      l10n.t("Invalid package version."),
       DiagnosticSeverity.Error
     )
   }
@@ -132,7 +133,7 @@ export const getPackageDiagnostic = async (
   if (!packageInfo.isVersionReleased()) {
     return new PackageRelatedDiagnostic(
       packageInfo.versionRange,
-      "Invalid package version.",
+      l10n.t("Package version not available."),
       DiagnosticSeverity.Error,
       document,
       packageInfo
@@ -142,7 +143,11 @@ export const getPackageDiagnostic = async (
   if (!packageInfo.isInstalled()) {
     return new PackageRelatedDiagnostic(
       packageInfo.versionRange,
-      `Waiting install of "${packageInfo.name}": ${versionLatest}.`,
+      l10n.t(
+        'Package "{0}" pending installation: {1}.',
+        packageInfo.name,
+        versionLatest
+      ),
       DiagnosticSeverity.Warning,
       document,
       packageInfo
@@ -156,7 +161,11 @@ export const getPackageDiagnostic = async (
   if (!(await packageInfo.isVersionMaxed())) {
     return new PackageRelatedDiagnostic(
       packageInfo.versionRange,
-      `Newer version of "${packageInfo.name}" is available: ${versionLatest}.`,
+      l10n.t(
+        'Newer version of "{0}" is available: {1}.',
+        packageInfo.name,
+        versionLatest
+      ),
       DiagnosticSeverity.Warning,
       document,
       packageInfo
@@ -168,7 +177,7 @@ export const getPackageDiagnostic = async (
   if (packageInfo.isVersionPrerelease()) {
     return new Diagnostic(
       packageInfo.versionRange,
-      `Pre-release version of "${packageInfo.name}".`,
+      l10n.t('Pre-release version of "{0}".', packageInfo.name),
       DiagnosticSeverity.Information
     )
   }

@@ -1,10 +1,11 @@
 {
   "name": "npm-outdated",
   "displayName": "npm Outdated",
-  "description": "Displays a diagnostic message in package.json files for packages with newer versions available.",
+  "description": "%npm-outdated.description%",
   "version": "0.0.0-semantically-released",
   "publisher": "mskelton",
   "author": "Mark Skelton",
+  "l10n": "./locales",
   "repository": {
     "type": "git",
     "url": "https://github.com/mskelton/vscode-npm-outdated.git"
@@ -85,27 +86,27 @@
             "minor",
             "patch"
           ],
-          "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
+          "markdownDescription": "%npm-outdated.configuration.level.description%"
         },
         "npm-outdated.majorUpdateProtection": {
           "order": 2000,
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Avoid suggesting that a package be upgraded to a `major` version directly. The suggestion will only happen if the user-defined version is the latest `minor` version available."
+          "markdownDescription": "%npm-outdated.configuration.majorUpdateProtection.description%"
         },
         "npm-outdated.cacheLifetime": {
           "order": 9000,
           "type": "number",
           "default": 60,
           "minimum": 1,
-          "description": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
+          "markdownDescription": "%npm-outdated.configuration.cacheLifetime.description%"
         },
         "npm-outdated.parallelProcessesLimit": {
           "order": 9100,
           "type": "number",
           "default": 10,
           "minimum": 0,
-          "description": "Defines how much packages can be analyzed together. A high value processes faster but consumes much more CPU. Set 0 to be unlimited (use with moderation)."
+          "markdownDescription": "%npm-outdated.configuration.parallelProcessesLimit.description%"
         }
       }
     }

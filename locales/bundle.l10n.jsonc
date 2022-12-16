@@ -1,0 +1,39 @@
+// Use this file as a reference only. It is not bundled in the released package.
+// (1) You only need to define the key-value if you actually need to translate the term or phrase;
+// (2) If you need to correct any original terms (in english), modify the file that uses them directly (and all actual locale keys).
+// (3) If you want to create a new locale support, create a new `bundle.l10n.{locale}.json` file.
+
+{
+  // CodeAction.ts related.
+  "major": "", // The package selected will be major updating (eg. "Update $packageName to 2.0 (major)").
+  "excluding major": "", // The packages update will not affects major versions (eg. "Update 5 packages (excluding major)").
+
+  "Update {0} selected packages": "", // User have selected {0} packages to be updated.
+  "Update all {0} packages": "", // Possibility to update all packages at the same time.
+  "Update \"{0}\" to {1}": "", // The user chose a single package to upgrade (eg. "Update $packageName to $version").
+
+  // Command.ts related.
+  "Run your package manager install command to finish updating packages.": "", // Notification balloon to update via the user's package manager.
+
+  "Installing selected packages...": "", // Displayed in the log during the process of installing new versions.
+  "Done.": "", // Indicates that the process completed (either success or failure).
+
+  "Packages installed successfully!": "", // Notification balloon on success.
+  "Failed to install packages. Check the output console.": "", // Notification balloon on failure.
+
+  // Diagnostic.ts related.
+  "Invalid package version.": "", // The package version entered by the user is invalid (eg. `{ "@package/name": "abc" }`).
+  "Package version not available.": "", // The package version entered by the was never released (even considering pre-releases).
+  "Package \"{0}\" pending installation: {1}.": "", // The package has been declared as a dependency, but no version has yet been installed.
+  "Newer version of \"{0}\" is available: {1}.": "", // New version available which can be used by user.
+  "Pre-release version of \"{0}\".": "", // The defined user version is a pre-release, and there is no better alternative yet.
+
+  // DocumentDecoration.ts related.
+  "Install pending": "", // The package was never installed, but the version entered by the user is the latest available.
+  "Update available:": "", // The package has already been installed and has a new version available.
+  "Latest version:": "", // The package was never installed, and the user's version is not the latest available.
+  "install pending": "", // The informed version has not yet been installed by the user.
+  "already installed, just formalization": "", // The version informed by the user is already installed, only a version formalization of package.json will be needed.
+  "attention: major update!": "", // Warns the user that a major update will take place.
+  "pre-release": "" // Warns the user that this is a pre-release version.
+}

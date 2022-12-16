@@ -1,6 +1,7 @@
 .vscode/**
 src/**
 images/**
+locales/bundle.l10n.jsonc
 .gitignore
 **/tsconfig.json
 **/.eslintrc.json

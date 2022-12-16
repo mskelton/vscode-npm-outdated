@@ -1,7 +1,7 @@
 import { exec } from "child_process"
 import { dirname } from "path"
 
-import { commands, OutputChannel, Uri, window } from "vscode"
+import { commands, l10n, OutputChannel, Uri, window } from "vscode"
 
 export const COMMAND_INSTALL = "npm-outdated.install"
 export const COMMAND_INSTALL_REQUEST = "npm-outdated.installRequest"
@@ -15,7 +15,9 @@ export const packageInstallRequest = async (uri: Uri) => {
 
   const action = `Run "${packageManager} install"`
   const result = await window.showInformationMessage(
-    `Run your package manager install command to finish updating packages.`,
+    l10n.t(
+      "Run your package manager install command to finish updating packages."
+    ),
     action
   )
 
@@ -35,7 +37,7 @@ export const packageInstall = (
 ) => {
   outputChannel.clear()
   outputChannel.show()
-  outputChannel.append(`Updating selected packages...\n\n---\n`)
+  outputChannel.append(`${l10n.t("Installing selected packages...")}\n\n---\n`)
 
   const process = exec(command, { cwd })
   const handleData = (data: string) => outputChannel.append(data)
@@ -50,13 +52,13 @@ export const packageInstall = (
   })
 
   process.on("close", () => {
-    outputChannel.append("\n---\n\nDone.\n\n")
+    outputChannel.append(`\n---\n\n${l10n.t("Done.")}\n\n`)
 
     if (!hasError) {
-      window.showInformationMessage("Packages updated successfully!")
+      window.showInformationMessage(l10n.t("Packages installed successfully!"))
     } else {
       window.showErrorMessage(
-        "Failed to update packages. Check the output console."
+        l10n.t("Failed to install packages. Check the output console.")
       )
     }
   })
