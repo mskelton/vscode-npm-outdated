@@ -78,7 +78,11 @@ export class PackageInfo {
   // If the version is a pre-release version.
   // Eg. "13.0.7-canary.3"
   public isVersionPrerelease() {
-    return prerelease(this.getVersionNormalized()) !== null
+    const versionNormalized = this.getVersionNormalized()
+
+    return (
+      versionNormalized !== undefined && prerelease(versionNormalized) !== null
+    )
   }
 
   // If the version is the latest version available for this package.
@@ -118,11 +122,17 @@ export class PackageInfo {
       return false
     }
 
+    const versionNormalized = this.getVersionNormalized()
+
+    if (!versionNormalized) {
+      return false
+    }
+
     // Check if the version difference is compatible with what was configured by the user.
     // If the difference is less than the minimum configured then there is no need for a diagnostic.
     // Eg. "1.0 => 1.1" is a "minor" diff(). By default, we allow any non-prerelease diff() starting from "patch".
     // Pre-releases user-defined will always be recommended.
-    const packageDiff = diff(versionLatest, this.getVersionNormalized())
+    const packageDiff = diff(versionLatest, versionNormalized)
 
     return (
       packageDiff &&
@@ -151,7 +161,7 @@ export class PackageInfo {
     const version = this.getVersionClear()
 
     if (!valid(version)) {
-      return coerce(version)?.version ?? version
+      return coerce(version)?.version
     }
 
     return version
