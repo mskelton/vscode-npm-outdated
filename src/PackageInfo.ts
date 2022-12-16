@@ -54,7 +54,10 @@ export class PackageInfo {
       return false
     }
 
-    return this.name in packagesInstalled
+    return (
+      this.name in packagesInstalled &&
+      packagesInstalled[this.name] !== undefined
+    )
   }
 
   // Check if is a valid package name.

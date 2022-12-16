@@ -140,7 +140,7 @@ export const getPackageDiagnostic = async (
     )
   }
 
-  if (!packageInfo.isInstalled()) {
+  if (!(await packageInfo.isInstalled())) {
     return new PackageRelatedDiagnostic(
       packageInfo.versionRange,
       l10n.t(
