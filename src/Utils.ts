@@ -27,7 +27,15 @@ export const lazyCallback = <T, A>(
       } else {
         await new Promise((resolve: (value: void) => void) => {
           setTimeout(async () => {
-            await callback(...args)
+            // Must execute the callback with the most recent arguments, if any.
+            if (argsNext) {
+              const argsNextCopied = argsNext
+              argsNext = undefined
+
+              await callback(...argsNextCopied)
+            } else {
+              await callback(...args)
+            }
 
             resolve()
           }, wait)
