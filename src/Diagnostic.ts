@@ -182,6 +182,7 @@ export const getPackageDiagnostic = async (
     )
   }
 
+  // istanbul ignore next: must never happen
   return
 }
 

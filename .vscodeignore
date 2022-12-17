@@ -2,15 +2,17 @@
 .github/**
 src/**
 images/**
+coverage/**
 node_modules/**
+
 locales/bundle.l10n.jsonc
+
 .eslintignore
 .prettierignore
 .gitignore
-**/tsconfig.json
-**/.eslintrc.json
-**/*.map
-**/*.ts
+
+jest.config.js
+tsconfig.json
 
 out/**
 !out/extension.js

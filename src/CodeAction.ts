@@ -32,8 +32,8 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.
-    const diagnosticsSelected = diagnostics.filter((diagnostic) =>
-      diagnostic.range.intersection(range)
+    const diagnosticsSelected = diagnostics.filter(
+      (diagnostic) => diagnostic.range.intersection(range) !== undefined
     )
 
     if (!diagnosticsSelected.length) {
