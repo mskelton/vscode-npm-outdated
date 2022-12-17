@@ -7,17 +7,17 @@ import { Cache } from "./Cache"
 import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime, hasMajorUpdateProtection } from "./Settings"
 
-const CACHE_PACKAGES: NPMViewResults = {}
-
 // The `npm view` cache.
-type NPMViewResults = Record<string, Cache<Promise<string[]>>>
+const CACHE_PACKAGES = new Map<string, Cache<Promise<string[]>>>()
 
 // Get all package versions through `npm view` command.
 export const getPackageVersions = async (name: string): Promise<string[]> => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
-  if (CACHE_PACKAGES[name]?.isValid(getCacheLifetime())) {
-    return CACHE_PACKAGES[name].value
+  const cachePackages = CACHE_PACKAGES.get(name)
+
+  if (cachePackages?.isValid(getCacheLifetime())) {
+    return cachePackages.value
   }
 
   // Starts the `npm view` execution process.
@@ -35,13 +35,13 @@ export const getPackageVersions = async (name: string): Promise<string[]> => {
 
       // In case of error or failure in processing the returned JSON,
       // we remove it from the cache and reject the Promise.
-      delete CACHE_PACKAGES[name]
+      CACHE_PACKAGES.delete(name)
 
       return reject()
     })
   )
 
-  CACHE_PACKAGES[name] = new Cache(execPromise)
+  CACHE_PACKAGES.set(name, new Cache(execPromise))
 
   return execPromise
 }
@@ -94,18 +94,14 @@ export const getPackageLatestVersion = async (
 }
 
 interface NPMListResponse {
-  dependencies?: {
-    [packageName: string]: {
-      version: string
-    }
-  }
+  dependencies?: Record<string, { version: string }>
 }
 
 export let packagesInstalledCache:
   | Cache<Promise<PackagesInstalled | undefined>>
   | undefined
 
-export type PackagesInstalled = Record<string, string>
+export type PackagesInstalled = Record<string, string | undefined>
 
 // Returns packages installed by the user and their respective versions.
 export const getPackagesInstalled = (): Promise<

@@ -27,9 +27,7 @@ const mapDependencyRange = (
   )
 }
 
-export interface DocumentsPackagesInterface {
-  [packageName: string]: PackageInfo
-}
+export type DocumentsPackagesInterface = Record<string, PackageInfo>
 
 // Gets an array of packages used in the document, regardless of dependency type.
 export const getDocumentPackages = async (

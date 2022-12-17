@@ -32,18 +32,18 @@ export class DocumentDecorationManager {
     DocumentDecorationManager
   >()
 
-  public layers: DocumentDecorationLayer[] = []
+  public layers = new Map<number, DocumentDecorationLayer>()
 
   public getLayer(layer: number): DocumentDecorationLayer {
-    if (this.layers[layer] === undefined) {
-      this.layers[layer] = new DocumentDecorationLayer()
+    if (!this.layers.has(layer)) {
+      this.layers.set(layer, new DocumentDecorationLayer())
     }
 
-    return this.layers[layer]
+    return this.layers.get(layer)!
   }
 
   flushLayers(): void {
-    this.layers.forEach((layer) => (layer.lines = []))
+    this.layers.forEach((layer) => layer.lines.clear())
   }
 
   // Returns the decoration layers of a document.
@@ -55,7 +55,7 @@ export class DocumentDecorationManager {
       this.documents.set(document, new DocumentDecorationManager())
     }
 
-    return this.documents.get(document) as DocumentDecorationManager
+    return this.documents.get(document)!
   }
 
   // When the document is closed, then it unloads the layers defined for it.
@@ -73,7 +73,7 @@ export class DocumentDecorationManager {
 }
 
 class DocumentDecorationLayer {
-  public lines: Record<number, DecorationOptions> = []
+  public lines = new Map<number, DecorationOptions>()
 
   public type = window.createTextEditorDecorationType({})
 }
@@ -112,7 +112,7 @@ export class DocumentDecoration {
     messages.forEach((message, messageIndex) => {
       const decorationLayer = decorationManager.getLayer(messageIndex)
 
-      decorationLayer.lines[line] = {
+      decorationLayer.lines.set(line, {
         range: new Range(new Position(line, 4096), new Position(line, 4096)),
         renderOptions: {
           after: {
@@ -130,7 +130,7 @@ export class DocumentDecoration {
             },
           },
         },
-      }
+      })
     })
 
     this.render()
@@ -138,9 +138,7 @@ export class DocumentDecoration {
 
   public clearLine(line: number): void {
     DocumentDecorationManager.fromDocument(this.document).layers.forEach(
-      (decoration) => {
-        delete decoration.lines[line]
-      }
+      (decoration) => decoration.lines.delete(line)
     )
 
     this.render()

@@ -44,8 +44,8 @@ export const packageInstall = (
 
   let hasError = false
 
-  process.stdout?.on?.("data", handleData)
-  process.stderr?.on?.("data", (error: string) => {
+  process.stdout?.on("data", handleData)
+  process.stderr?.on("data", (error: string) => {
     hasError = true
 
     handleData(error)
