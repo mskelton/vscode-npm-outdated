@@ -58,7 +58,9 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         const diagnosticsSelectedMajors: PackageRelatedDiagnostic[] = []
 
         for (const diagnosticSelected of diagnosticsSelected) {
-          if (await diagnosticSelected.packageRelated.isVersionMajorUpdate()) {
+          if (
+            await diagnosticSelected.packageRelated.requiresVersionMajorUpdate()
+          ) {
             diagnosticsSelectedMajors.push(diagnosticSelected)
           }
         }
@@ -109,7 +111,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         const diagnosticsMajors: PackageRelatedDiagnostic[] = []
 
         for (const diagnostic of diagnostics) {
-          if (await diagnostic.packageRelated.isVersionMajorUpdate()) {
+          if (await diagnostic.packageRelated.requiresVersionMajorUpdate()) {
             diagnosticsMajors.push(diagnostic)
           }
         }
@@ -201,7 +203,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     const versionLatest = await diagnostic.packageRelated.getVersionLatest()
     const updateWarning =
       hasMajorUpdateProtection() &&
-      (await diagnostic.packageRelated.isVersionMajorUpdate())
+      (await diagnostic.packageRelated.requiresVersionMajorUpdate())
         ? ` (${l10n.t("major")})`
         : ""
 

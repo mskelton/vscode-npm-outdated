@@ -220,7 +220,7 @@ export class DocumentDecoration {
     }
 
     // Identifies whether the suggested version is a major update.
-    if (await packageInfo.packageRelated.isVersionMajorUpdate()) {
+    if (await packageInfo.packageRelated.requiresVersionMajorUpdate()) {
       updateDetails.push(
         new Message(
           "(" + l10n.t("attention: major update!") + ")",

@@ -1,6 +1,7 @@
 import {
   coerce,
   diff,
+  gt,
   maxSatisfying,
   prerelease,
   ReleaseType,
@@ -25,12 +26,8 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   /** ignore */ prerelease: -1,
 }
 
-import {
-  getPackageLatestVersion,
-  getPackagesInstalled,
-  getPackageVersions,
-} from "./NPM"
-import { getLevel } from "./Settings"
+import { getPackagesInstalled, getPackageVersions } from "./NPM"
+import { getLevel, hasMajorUpdateProtection } from "./Settings"
 
 // The package info, based on user-document.
 export class PackageInfo {
@@ -94,7 +91,7 @@ export class PackageInfo {
   }
 
   // If the latest version update require a major bump.
-  public async isVersionMajorUpdate(): Promise<boolean> {
+  public async requiresVersionMajorUpdate(): Promise<boolean> {
     const versionLatest = await this.getVersionLatest()
     const versionInstalled = await this.getVersionInstalled()
 
@@ -160,7 +157,7 @@ export class PackageInfo {
   // Normalizes the package version, through the informed range.
   // If the result is an invalid version, try to correct it via coerce().
   // Eg. "^3" (valid range, but "3" is a invalid version) => "3.0".
-  public getVersionNormalized(): string | undefined {
+  private getVersionNormalized(): string | undefined {
     const version = this.getVersionClear()
 
     if (!valid(version)) {
@@ -172,7 +169,51 @@ export class PackageInfo {
 
   // Get the latest version released of this package.
   public async getVersionLatest(): Promise<string | null> {
-    return getPackageLatestVersion(this)
+    const packageVersions = await this.getVersions()
+    const versionClean = this.getVersionClear()
+    const isPrerelease = this.isVersionPrerelease()
+
+    // We captured the largest version currently available.
+    const versionLatest = maxSatisfying(packageVersions, "*", {
+      includePrerelease: isPrerelease,
+    })
+
+    // If protection is not enabled, we will return the latest available version, even if there is a major bump.
+    // Otherwise, we will try to respect the user-defined version limit.
+    if (!hasMajorUpdateProtection()) {
+      return versionLatest
+    }
+
+    // If we are dealing with a user-defined pre-release, we should check the latest compatible non-pre-release version available.
+    // If this version is superior to the current pre-release version, we will suggest it first.
+    if (isPrerelease) {
+      const versionNonPrerelease = maxSatisfying(
+        packageVersions,
+        `^${coerce(versionClean)}`
+      )
+
+      if (versionNonPrerelease && gt(versionNonPrerelease, versionClean)) {
+        return versionNonPrerelease
+      }
+    }
+
+    const versionSatisfying = maxSatisfying(
+      packageVersions,
+      `^${versionClean}`,
+      {
+        includePrerelease: isPrerelease,
+      }
+    )
+
+    // If the user-defined version is exactly the same version available within the range given by the user,
+    // we may suggest the latest version, which may include a major bump.
+    // Eg. { "package": "^5.1.3" } and latest is also "5.1.3".
+    if (!versionSatisfying || versionClean === versionSatisfying) {
+      return versionLatest
+    }
+
+    // Otherwise, we will suggest the latest version within the user's range first.
+    return versionSatisfying
   }
 
   // If the latest version is already installed.
