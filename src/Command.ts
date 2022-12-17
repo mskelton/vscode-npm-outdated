@@ -6,7 +6,7 @@ import { commands, l10n, OutputChannel, Uri, window } from "vscode"
 export const COMMAND_INSTALL = "npm-outdated.install"
 export const COMMAND_INSTALL_REQUEST = "npm-outdated.installRequest"
 
-export const packageInstallRequest = async (uri: Uri) => {
+export const packageInstallRequest = async (uri: Uri): Promise<void> => {
   // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
@@ -34,13 +34,13 @@ export const packageInstall = (
   outputChannel: OutputChannel,
   command: string,
   cwd: string
-) => {
+): void => {
   outputChannel.clear()
   outputChannel.show()
   outputChannel.append(`${l10n.t("Installing selected packages...")}\n\n---\n`)
 
   const process = exec(command, { cwd })
-  const handleData = (data: string) => outputChannel.append(data)
+  const handleData = (data: string): void => outputChannel.append(data)
 
   let hasError = false
 

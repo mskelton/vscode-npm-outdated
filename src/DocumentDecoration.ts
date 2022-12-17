@@ -42,13 +42,15 @@ export class DocumentDecorationManager {
     return this.layers[layer]
   }
 
-  flushLayers() {
+  flushLayers(): void {
     this.layers.forEach((layer) => (layer.lines = []))
   }
 
   // Returns the decoration layers of a document.
   // If the document has never been used, then instantiate and return.
-  public static fromDocument(document: TextDocument) {
+  public static fromDocument(
+    document: TextDocument
+  ): DocumentDecorationManager {
     if (!this.documents.has(document)) {
       this.documents.set(document, new DocumentDecorationManager())
     }
@@ -57,7 +59,7 @@ export class DocumentDecorationManager {
   }
 
   // When the document is closed, then it unloads the layers defined for it.
-  public static flushDocument(document: TextDocument) {
+  public static flushDocument(document: TextDocument): void {
     DocumentDecorationManager.fromDocument(document).layers.forEach((layer) => {
       window.visibleTextEditors.forEach((editor) => {
         if (editor.document === document) {
@@ -97,7 +99,7 @@ export class DocumentDecoration {
     )
   }
 
-  private setLine(line: number, messages: Message[]) {
+  private setLine(line: number, messages: Message[]): void {
     const decorationManager = DocumentDecorationManager.fromDocument(
       this.document
     )
@@ -144,14 +146,14 @@ export class DocumentDecoration {
     this.render()
   }
 
-  public setCheckingMessage(line: number) {
+  public setCheckingMessage(line: number): void {
     this.setLine(line, [new Message(Icons.CHECKING)])
   }
 
   public async setUpdateMessage(
     line: number,
     packageInfo: PackageRelatedDiagnostic
-  ) {
+  ): Promise<void> {
     const versionLatest = await packageInfo.packageRelated.getVersionLatest()
 
     if (!versionLatest) {

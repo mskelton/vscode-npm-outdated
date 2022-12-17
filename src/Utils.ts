@@ -6,7 +6,7 @@ export const lazyCallback = <T, A>(
   callback: (...args: A[]) => T,
   wait = 0,
   delay = 0
-) => {
+): ((...args: A[]) => Promise<void>) => {
   // Defines whether there is a process currently running.
   let isRunning = false
 
@@ -17,7 +17,7 @@ export const lazyCallback = <T, A>(
 
   // Here's the magic: a "activator" is returned, instead of the original callback.
   // It manages when the current execution ends and when the next one starts, if it exists.
-  const activate = async (...args: A[]) => {
+  const activate = async (...args: A[]): Promise<void> => {
     if (!isRunning) {
       // If no callback is running right now, then run the current one immediately.
       isRunning = true
@@ -77,20 +77,24 @@ const waitUntil = (condition: () => boolean): Promise<void> => {
   })
 }
 
+type OptionalPromise<T> = T | Promise<T>
+
 // This function lets you control how many promises can be worked on concurrently.
 // As soon as one promise ends, another one can be processed.
 // If the concurrency number is zero then they will be processed immediately.
-export const promiseLimit = (concurrency: number) => {
+export const promiseLimit = (
+  concurrency: number
+): (<T>(func: () => T) => OptionalPromise<T>) => {
   // If concurrency is zero, all promises are executed immediately.
   if (concurrency === 0) {
-    return <T>(func: () => T) => {
+    return <T>(func: () => T): T => {
       return func()
     }
   }
 
   let inProgress = 0
 
-  return async <T>(func: () => T) => {
+  return async <T>(func: () => T): Promise<T> => {
     // Otherwise, it will be necessary to wait until there is a "vacancy" in the concurrency process for the promise to be executed.
     await waitUntil(() => inProgress < concurrency)
 

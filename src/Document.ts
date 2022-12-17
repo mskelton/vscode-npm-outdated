@@ -4,7 +4,9 @@ import { PackageInfo } from "./PackageInfo"
 
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.
-const mapDependencyRange = (documentSymbol: DocumentSymbol | undefined) => {
+const mapDependencyRange = (
+  documentSymbol: DocumentSymbol | undefined
+): PackageInfo[] => {
   if (!documentSymbol || documentSymbol.children.length === 0) {
     return []
   }

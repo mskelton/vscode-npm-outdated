@@ -31,7 +31,8 @@
       "curly": [
         "warn",
         "all"
-      ]
+      ],
+      "@typescript-eslint/explicit-function-return-type": "warn"
     }
   },
   "scripts": {

@@ -148,7 +148,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     message: string,
     diagnostics: PackageRelatedDiagnostic[],
     isPreferred?: boolean
-  ) {
+  ): Promise<CodeAction> {
     const edit = new WorkspaceEdit()
     const action = new CodeAction(message, CodeActionKind.QuickFix)
 
@@ -182,7 +182,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     doc: TextDocument,
     diagnostics: PackageRelatedDiagnostic[],
     message: string
-  ) {
+  ): Promise<CodeAction> {
     const action = await this.createAction(doc, message, diagnostics)
 
     await Promise.all(
@@ -197,7 +197,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   private async createUpdateSingleAction(
     document: TextDocument,
     diagnostic: PackageRelatedDiagnostic
-  ) {
+  ): Promise<CodeAction> {
     const versionLatest = await diagnostic.packageRelated.getVersionLatest()
     const updateWarning =
       hasMajorUpdateProtection() &&
@@ -225,7 +225,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     action: CodeAction,
     document: TextDocument,
     diagnostic: PackageRelatedDiagnostic
-  ) {
+  ): Promise<void> {
     const line = document.lineAt(diagnostic.range.start.line),
       version = line.text.slice(
         diagnostic.range.start.character,

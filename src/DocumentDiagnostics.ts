@@ -16,7 +16,7 @@ export class DocumentDiagnostics {
     private diagnosticsCollection: DiagnosticCollection
   ) {}
 
-  public push(diagnostic: Diagnostic) {
+  public push(diagnostic: Diagnostic): void {
     this.diagnostics.push(diagnostic)
     this.render()
   }

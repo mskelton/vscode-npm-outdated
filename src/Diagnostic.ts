@@ -28,7 +28,7 @@ import { promiseLimit } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
-const isPackageJsonDocument = (document: TextDocument) =>
+const isPackageJsonDocument = (document: TextDocument): boolean =>
   document.fileName.endsWith(PACKAGE_JSON_PATH)
 
 export const diagnosticSubscribe = (
@@ -189,7 +189,7 @@ export const getPackageDiagnostic = async (
 export const generatePackagesDiagnostics = async (
   document: TextDocument,
   diagnosticsCollection: DiagnosticCollection
-) => {
+): Promise<void> => {
   // Read dependencies from package.json to get the name of packages used.
   const packagesInfos = Object.values(await getDocumentPackages(document))
 

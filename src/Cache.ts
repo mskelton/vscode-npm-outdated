@@ -7,11 +7,11 @@ export class Cache<T> {
   }
 
   // Checks if the cache is still valid, being within lifetime.
-  public isValid(lifetime: number) {
-    return this.at && this.at >= Date.now() - lifetime
+  public isValid(lifetime: number): boolean {
+    return Boolean(this.at && this.at >= Date.now() - lifetime)
   }
 
-  public invalidate() {
+  public invalidate(): void {
     this.at = undefined
   }
 }

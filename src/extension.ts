@@ -17,7 +17,7 @@ import {
 import { diagnosticSubscribe, generatePackagesDiagnostics } from "./Diagnostic"
 import { lazyCallback } from "./Utils"
 
-export function activate(context: ExtensionContext) {
+export function activate(context: ExtensionContext): void {
   const diagnostics = languages.createDiagnosticCollection("json")
 
   diagnosticSubscribe(

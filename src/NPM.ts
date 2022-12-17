@@ -13,7 +13,7 @@ const CACHE_PACKAGES: NPMViewResults = {}
 type NPMViewResults = Record<string, Cache<Promise<string[]>>>
 
 // Get all package versions through `npm view` command.
-export const getPackageVersions = async (name: string) => {
+export const getPackageVersions = async (name: string): Promise<string[]> => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
   if (CACHE_PACKAGES[name]?.isValid(getCacheLifetime())) {
