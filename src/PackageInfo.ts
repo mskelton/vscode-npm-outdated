@@ -111,22 +111,13 @@ export class PackageInfo {
 
   // Whether version upgrade can be suggested according to user settings.
   // Pre-release versions are always suggested.
-  public async isVersionUpgradable(): Promise<boolean> {
+  public async isVersionUpdatable(): Promise<boolean> {
     if (this.isVersionPrerelease()) {
       return true
     }
 
-    const versionLatest = await this.getVersionLatest()
-
-    if (!versionLatest) {
-      return false
-    }
-
-    const versionNormalized = this.getVersionNormalized()
-
-    if (!versionNormalized) {
-      return false
-    }
+    const versionLatest = (await this.getVersionLatest())!
+    const versionNormalized = this.getVersionNormalized()!
 
     // Check if the version difference is compatible with what was configured by the user.
     // If the difference is less than the minimum configured then there is no need for a diagnostic.
@@ -142,7 +133,9 @@ export class PackageInfo {
 
   // If the user-defined version is a released version (including pre-releases).
   public async isVersionReleased(): Promise<boolean> {
-    return maxSatisfying(await this.getVersions(), this.version) !== null
+    const versions = await this.getVersions()
+
+    return Boolean(versions && maxSatisfying(versions, this.version) !== null)
   }
 
   // Strip all non-numeric values from the beginning of a version.
@@ -170,6 +163,11 @@ export class PackageInfo {
   // Get the latest version released of this package.
   public async getVersionLatest(): Promise<string | null> {
     const packageVersions = await this.getVersions()
+
+    if (!packageVersions) {
+      return null
+    }
+
     const versionClean = this.getVersionClear()
     const isPrerelease = this.isVersionPrerelease()
 
@@ -224,7 +222,7 @@ export class PackageInfo {
   }
 
   // Get all versions released of this package.
-  public async getVersions(): Promise<string[]> {
+  public async getVersions(): ReturnType<typeof getPackageVersions> {
     return getPackageVersions(this.name)
   }
 }

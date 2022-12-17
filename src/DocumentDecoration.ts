@@ -3,7 +3,6 @@ import { prerelease } from "semver"
 import {
   DecorationOptions,
   l10n,
-  Position,
   Range,
   TextDocument,
   TextEditor,
@@ -43,7 +42,9 @@ export class DocumentDecorationManager {
   }
 
   flushLayers(): void {
-    this.layers.forEach((layer) => layer.lines.clear())
+    this.layers.forEach((layer) => {
+      return layer.lines.clear()
+    })
   }
 
   // Returns the decoration layers of a document.
@@ -113,7 +114,7 @@ export class DocumentDecoration {
       const decorationLayer = decorationManager.getLayer(messageIndex)
 
       decorationLayer.lines.set(line, {
-        range: new Range(new Position(line, 4096), new Position(line, 4096)),
+        range: new Range(line, 4096, line, 4096),
         renderOptions: {
           after: {
             contentText: message.message,
@@ -152,11 +153,7 @@ export class DocumentDecoration {
     line: number,
     packageInfo: PackageRelatedDiagnostic
   ): Promise<void> {
-    const versionLatest = await packageInfo.packageRelated.getVersionLatest()
-
-    if (!versionLatest) {
-      return
-    }
+    const versionLatest = (await packageInfo.packageRelated.getVersionLatest())!
 
     const packageVersionInstalled =
       await packageInfo.packageRelated.getVersionInstalled()

@@ -107,3 +107,6 @@ export const promiseLimit = (
     return funcResult
   }
 }
+
+// During testing, this function is mocked to return false in some cases.
+export const cacheEnabled = (): boolean => true

@@ -4,24 +4,29 @@ import { workspace } from "vscode"
 
 import { Cache } from "./Cache"
 import { getCacheLifetime } from "./Settings"
+import { cacheEnabled } from "./Utils"
 
 // The `npm view` cache.
-const CACHE_PACKAGES = new Map<string, Cache<Promise<string[]>>>()
+const packagesCache = new Map<string, Cache<Promise<string[] | null>>>()
 
 // Get all package versions through `npm view` command.
-export const getPackageVersions = async (name: string): Promise<string[]> => {
+export const getPackageVersions = async (
+  name: string
+): Promise<string[] | null> => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
-  const cachePackages = CACHE_PACKAGES.get(name)
+  if (cacheEnabled()) {
+    const cachePackages = packagesCache.get(name)
 
-  if (cachePackages?.isValid(getCacheLifetime())) {
-    return cachePackages.value
+    if (cachePackages?.isValid(getCacheLifetime())) {
+      return cachePackages.value
+    }
   }
 
   // Starts the `npm view` execution process.
   // The process is cached if it is triggered quickly, within lifetime.
   // @todo Make compatible with other package managers.
-  const execPromise = new Promise<string[]>((resolve, reject) =>
+  const execPromise = new Promise<string[] | null>((resolve) =>
     exec(`npm view --json ${name} versions`, (error, stdout) => {
       if (!error) {
         try {
@@ -32,14 +37,14 @@ export const getPackageVersions = async (name: string): Promise<string[]> => {
       }
 
       // In case of error or failure in processing the returned JSON,
-      // we remove it from the cache and reject the Promise.
-      CACHE_PACKAGES.delete(name)
+      // we remove it from the cache and resolve as null.
+      packagesCache.delete(name)
 
-      return reject()
+      return resolve(null)
     })
   )
 
-  CACHE_PACKAGES.set(name, new Cache(execPromise))
+  packagesCache.set(name, new Cache(execPromise))
 
   return execPromise
 }
@@ -58,12 +63,12 @@ export type PackagesInstalled = Record<string, string | undefined>
 export const getPackagesInstalled = (): Promise<
   PackagesInstalled | undefined
 > => {
-  if (packagesInstalledCache?.isValid(60 * 60 * 1000)) {
+  if (cacheEnabled() && packagesInstalledCache?.isValid(60 * 60 * 1000)) {
     return packagesInstalledCache.value
   }
 
   const execPromise = new Promise<PackagesInstalled | undefined>((resolve) => {
-    const cwd = workspace.workspaceFolders?.[0].uri.fsPath
+    const cwd = workspace.workspaceFolders?.[0]?.uri.fsPath
 
     return exec("npm ls --json --depth=0", { cwd }, (_error, stdout) => {
       if (stdout) {

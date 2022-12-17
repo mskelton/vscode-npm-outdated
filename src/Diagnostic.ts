@@ -154,7 +154,7 @@ export const getPackageDiagnostic = async (
     )
   }
 
-  if (!(await packageInfo.isVersionUpgradable())) {
+  if (!(await packageInfo.isVersionUpdatable())) {
     return
   }
 

@@ -48,7 +48,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     // Else, it will be suggested to update all <number of> packages within range.
     if (diagnosticsSelected.length === 1) {
       diagnosticsPromises.push(
-        this.createUpdateSingleAction(document, diagnosticsSelected[0])
+        this.createUpdateSingleAction(document, diagnosticsSelected[0]!)
       )
     } else {
       let updateWarning = ""
@@ -81,7 +81,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         diagnosticsPromises.push(
           this.createUpdateSingleAction(
             document,
-            diagnosticsSelectedFiltered[0]
+            diagnosticsSelectedFiltered[0]!
           )
         )
       } else {
