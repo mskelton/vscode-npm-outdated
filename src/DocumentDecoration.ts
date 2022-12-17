@@ -87,7 +87,7 @@ export class DocumentDecoration {
     DocumentDecorationManager.fromDocument(this.document).layers.forEach(
       (layer) => {
         this.editors.forEach((editor) =>
-          editor.setDecorations(layer.type, Object.values(layer.lines).flat())
+          editor.setDecorations(layer.type, [...layer.lines.values()])
         )
       }
     )
