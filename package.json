@@ -69,11 +69,11 @@
   "devDependencies": {
     "@mskelton/eslint-config": "^7.1.0",
     "@types/jest": "^29.2.4",
-    "@types/node": "^18.11.16",
+    "@types/node": "^18.11.17",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
-    "esbuild": "^0.16.8",
+    "esbuild": "^0.16.9",
     "eslint": "^8.30.0",
     "eslint-plugin-jest": "^27.1.7",
     "eslint-plugin-promise": "^6.1.1",
