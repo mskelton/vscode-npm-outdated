@@ -1,6 +1,7 @@
 import { commands, DocumentSymbol, Range, TextDocument } from "vscode"
 
 import { PackageInfo } from "./PackageInfo"
+import { waitUntil } from "./Utils"
 
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.
@@ -33,19 +34,21 @@ export type DocumentsPackagesInterface = Record<string, PackageInfo>
 export const getDocumentPackages = async (
   document: TextDocument
 ): Promise<DocumentsPackagesInterface> => {
-  const symbols: DocumentSymbol[] | undefined = await commands.executeCommand(
-    "vscode.executeDocumentSymbolProvider",
-    document.uri
-  )
+  let symbols: DocumentSymbol[] | undefined
 
-  if (!symbols) {
-    return {}
-  }
+  await waitUntil(async () => {
+    symbols = await commands.executeCommand(
+      "vscode.executeDocumentSymbolProvider",
+      document.uri
+    )
 
-  const symbolDependencies = symbols.find(
+    return symbols !== undefined
+  }, 33)
+
+  const symbolDependencies = symbols?.find(
       (symbol) => symbol.name === "dependencies"
     ),
-    symbolDevDependencies = symbols.find(
+    symbolDevDependencies = symbols?.find(
       (symbol) => symbol.name === "devDependencies"
     )
 

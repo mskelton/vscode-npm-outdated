@@ -19,6 +19,12 @@ jest.mock("./Utils", () => ({
     () =>
     <T extends () => void>(callback: T): unknown =>
       callback(),
+
+  waitUntil: (callback: () => void): Promise<true> => {
+    callback()
+
+    return Promise.resolve(true)
+  },
 }))
 
 interface PluginConfigurations {

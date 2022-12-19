@@ -70,16 +70,19 @@ export const lazyCallback = <T, A>(
 
 // This function checks if a promise can be processed as long as the conditional callback returns true.
 // @see https://stackoverflow.com/a/64947598/755393
-const waitUntil = (condition: () => boolean): Promise<void> => {
+export const waitUntil = (
+  condition: () => Promise<boolean>,
+  retryDelay = 0
+): Promise<void> => {
   return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      if (!condition()) {
+    const interval = setInterval(async () => {
+      if (!(await condition())) {
         return
       }
 
       clearInterval(interval)
       resolve()
-    })
+    }, retryDelay)
   })
 }
 
@@ -102,7 +105,7 @@ export const promiseLimit = (
 
   return async <T>(func: () => T): Promise<T> => {
     // Otherwise, it will be necessary to wait until there is a "vacancy" in the concurrency process for the promise to be executed.
-    await waitUntil(() => inProgress < concurrency)
+    await waitUntil(() => Promise.resolve(inProgress < concurrency))
 
     // As soon as this "vacancy" is made available, the function is executed.
     // Note that the execution of the function "takes a seat" during the process.
