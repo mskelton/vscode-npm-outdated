@@ -1,4 +1,7 @@
-jest.mock("child_process")
+jest.mock("child_process", () => ({
+  __esModule: true,
+  ...jest.requireActual("child_process"),
+}))
 
 import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
 import { vscodeSimulator } from "./TestUtils"

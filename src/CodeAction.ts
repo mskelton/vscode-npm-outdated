@@ -9,11 +9,12 @@ import {
   WorkspaceEdit,
 } from "vscode"
 
+import { name as packageName } from "../package.json"
 import { COMMAND_INSTALL_REQUEST } from "./Command"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { hasMajorUpdateProtection } from "./Settings"
 
-export const DIAGNOSTIC_ACTION = "npm-outdated"
+export const DIAGNOSTIC_ACTION = packageName
 
 const VERSION_PREFIX_REGEXP = /^\s*(\^|~|=|>=|<=)/
 

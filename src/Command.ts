@@ -3,8 +3,10 @@ import { dirname } from "path"
 
 import { commands, l10n, OutputChannel, Uri, window } from "vscode"
 
-export const COMMAND_INSTALL = "npm-outdated.install"
-export const COMMAND_INSTALL_REQUEST = "npm-outdated.installRequest"
+import { name as packageName } from "../package.json"
+
+export const COMMAND_INSTALL = `${packageName}.install`
+export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`
 
 export const packageInstallRequest = async (uri: Uri): Promise<void> => {
   // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json

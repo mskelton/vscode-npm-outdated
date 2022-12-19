@@ -6,6 +6,8 @@ import * as vscode from "vscode"
 
 import { Range } from "vscode"
 
+import { name as packageName } from "../package.json"
+
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { activate } from "./extension"
 import { PackageAdvisory } from "./NPM"
@@ -13,6 +15,8 @@ import { PackageAdvisory } from "./NPM"
 import * as Utils from "./Utils"
 
 jest.mock("./Utils", () => ({
+  __esModule: true,
+
   lazyCallback: <T extends () => void>(callback: T): T => callback,
 
   promiseLimit:
@@ -279,8 +283,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
 
   vscodeMock.workspace.getConfiguration = (): unknown => ({
     get: jest.fn(
-      <T extends keyof PluginConfigurations>(name: `npm-outdated.${T}`) => {
-        const nameWithoutPrefix = name.slice(13) as T
+      <T extends keyof PluginConfigurations>(name: `${string}.${T}`) => {
+        const nameWithoutPrefix = name.slice(packageName.length + 1) as T
 
         return options.configurations &&
           nameWithoutPrefix in options.configurations

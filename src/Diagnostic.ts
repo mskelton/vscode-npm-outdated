@@ -43,6 +43,8 @@ import {
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
 
+import { name as packageName } from "../package.json"
+
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
 const isPackageJsonDocument = (document: TextDocument): boolean =>
@@ -369,7 +371,7 @@ const detectAdvisoryDiagnostics = async (
       }
     }
 
-    advisoryMessages.push("(npm-outdated)")
+    advisoryMessages.push(`(${packageName})`)
 
     // And adds a new diagnostic.
     const diagnostic = new Diagnostic(
