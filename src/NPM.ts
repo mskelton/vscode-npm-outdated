@@ -1,13 +1,17 @@
 import { exec } from "child_process"
 
+import { prerelease } from "semver"
 import { workspace } from "vscode"
 
 import { Cache } from "./Cache"
+import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"
-import { cacheEnabled } from "./Utils"
+import { cacheEnabled, fetchLite } from "./Utils"
+
+type PackagesVersions = Map<string, Cache<Promise<string[] | null>>>
 
 // The `npm view` cache.
-const packagesCache = new Map<string, Cache<Promise<string[] | null>>>()
+const packagesCache: PackagesVersions = new Map()
 
 // Get all package versions through `npm view` command.
 export const getPackageVersions = async (
@@ -96,4 +100,82 @@ export const getPackagesInstalled = (): Promise<
   packagesInstalledCache = new Cache(execPromise)
 
   return execPromise
+}
+
+export interface PackageAdvisory {
+  cvss: { score: number }
+  severity: string
+  title: string
+  url: string
+  vulnerable_versions: string
+}
+
+export type PackagesAdvisories = Map<string, PackageAdvisory[]>
+
+const packagesAdvisoriesCache = new Map<string, Cache<PackageAdvisory[]>>()
+
+// Returns packages with known security advisories.
+export const getPackagesAdvisories = async (
+  packagesInfos: PackageInfo[]
+): Promise<PackagesAdvisories | undefined> => {
+  const packages: Record<string, string[]> = {}
+
+  for (const packageInfo of packagesInfos) {
+    if (packageInfo.name) {
+      // If already cached, so we keep the latest results.
+      // As it is already stored, then we ignore this package from the next fetch.
+      if (
+        !packageInfo.isNameValid() ||
+        packageInfo.isVersionComplex() ||
+        packagesAdvisoriesCache
+          .get(packageInfo.name)
+          ?.isValid(getCacheLifetime())
+      ) {
+        continue
+      }
+
+      // We need to push all versions to the NPM Registry.
+      // Thus, we can check in real time when the package version is modified by the user.
+      const packageVersions = await getPackageVersions(packageInfo.name)
+
+      // Add to be requested.
+      if (packageVersions) {
+        packages[packageInfo.name] = packageVersions.filter(
+          (packageVersion) => prerelease(packageVersion) === null
+        )
+      }
+    }
+  }
+
+  if (Object.keys(packages).length) {
+    // Query advisories through the NPM Registry.
+    const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>(
+      "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+      packages
+    )
+
+    // Fills the packages with their respective advisories.
+    if (responseAdvisories) {
+      Object.entries(responseAdvisories).forEach(
+        ([packageName, packageAdvisories]) =>
+          packagesAdvisoriesCache.set(
+            packageName,
+            new Cache(packageAdvisories as PackageAdvisory[])
+          )
+      )
+    }
+
+    // Autocomplete packages without any advisories.
+    Object.keys(packages).forEach((packageName) => {
+      if (!packagesAdvisoriesCache.has(packageName)) {
+        packagesAdvisoriesCache.set(packageName, new Cache([]))
+      }
+    })
+  }
+
+  return new Map(
+    Array.from(packagesAdvisoriesCache.entries()).map(
+      ([packageName, packageAdvisory]) => [packageName, packageAdvisory.value]
+    )
+  )
 }

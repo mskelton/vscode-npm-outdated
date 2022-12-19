@@ -11,6 +11,8 @@ import {
 } from "vscode"
 
 import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { PackageAdvisory } from "./NPM"
+import { PackageInfo } from "./PackageInfo"
 import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme"
 import { lazyCallback } from "./Utils"
 
@@ -42,9 +44,11 @@ export class DocumentDecorationManager {
   }
 
   flushLayers(): void {
-    this.layers.forEach((layer) => {
-      return layer.lines.clear()
-    })
+    this.layers.forEach((layer) => layer.lines.clear())
+  }
+
+  flushLine(line: number): void {
+    this.layers.forEach((layer) => layer.lines.delete(line))
   }
 
   // Returns the decoration layers of a document.
@@ -108,6 +112,8 @@ export class DocumentDecoration {
     if (!this.flushed) {
       this.flushed = true
       decorationManager.flushLayers()
+    } else {
+      decorationManager.flushLine(line)
     }
 
     messages.forEach((message, messageIndex) => {
@@ -240,5 +246,30 @@ export class DocumentDecoration {
     }
 
     this.setLine(line, updateDetails)
+  }
+
+  public async setAdvisoryMessage(
+    packageInfo: PackageInfo,
+    packageAdvisory: PackageAdvisory
+  ): Promise<void> {
+    this.setLine(packageInfo.getLine(), [
+      new Message(
+        Icons.ADVISORY,
+        ThemeLight.ICON_ADVISORY,
+        ThemeDark.ICON_ADVISORY
+      ),
+      new Message(
+        `${l10n.t("Security advisory")} (${l10n.t(
+          packageAdvisory.severity.toUpperCase()
+        )}/${packageAdvisory.cvss.score.toFixed(1)}):`,
+        ThemeLight.LABEL_ADVISORY,
+        ThemeDark.LABEL_ADVISORY
+      ),
+      new Message(
+        `${packageAdvisory.title.replace(/\.$/, "")}.`,
+        ThemeLight.LABEL_ADVISORY_TITLE,
+        ThemeDark.LABEL_ADVISORY_TITLE
+      ),
+    ])
   }
 }

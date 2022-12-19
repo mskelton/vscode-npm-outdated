@@ -1,4 +1,11 @@
 import { sep } from "path"
+import {
+  intersects,
+  maxSatisfying,
+  minSatisfying,
+  prerelease,
+  satisfies,
+} from "semver"
 
 import {
   Diagnostic,
@@ -10,6 +17,7 @@ import {
   TextDocument,
   TextDocumentChangeEvent,
   TextEditor,
+  Uri,
   window,
   workspace,
 } from "vscode"
@@ -21,9 +29,18 @@ import {
   DocumentDecorationManager,
 } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
-import { packagesInstalledCache } from "./NPM"
+import {
+  getPackagesAdvisories,
+  PackagesAdvisories,
+  packagesInstalledCache,
+} from "./NPM"
 import { PackageInfo } from "./PackageInfo"
-import { getParallelProcessesLimit, isDecorationsEnabled } from "./Settings"
+import {
+  getParallelProcessesLimit,
+  identifySecurityAdvisories,
+  isDecorationsEnabled,
+} from "./Settings"
+import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
@@ -245,5 +262,127 @@ export const generatePackagesDiagnostics = async (
     })
   )
 
+  if (identifySecurityAdvisories()) {
+    // Search for security advisories in current packages.
+    const packagesAdvisories = await getPackagesAdvisories(packagesInfos)
+
+    if (packagesAdvisories) {
+      await Promise.all(
+        packagesInfos.map((packageInfo) =>
+          detectAdvisoryDiagnostics(
+            packagesAdvisories,
+            packageInfo,
+            documentDecorations,
+            documentDiagnostics
+          )
+        )
+      )
+    }
+  }
+
   documentDiagnostics.render()
+}
+
+// Notifies you of potential security advisory issues.
+const detectAdvisoryDiagnostics = async (
+  packagesAdvisories: PackagesAdvisories,
+  packageInfo: PackageInfo,
+  documentDecorations: DocumentDecoration | undefined,
+  documentDiagnostics: DocumentDiagnostics
+): Promise<void> => {
+  const packageAdvisories = packagesAdvisories.get(packageInfo.name)
+
+  if (!packageAdvisories) {
+    return
+  }
+
+  const versionNormalized = packageInfo.getVersionNormalized()
+
+  if (!versionNormalized) {
+    return
+  }
+
+  const packageAdvisory = packageAdvisories.find((packageAdvisory) =>
+    intersects(packageAdvisory.vulnerable_versions, versionNormalized)
+  )
+
+  if (packageAdvisory) {
+    // If there is any advisory for the package, update the decoration.
+    documentDecorations?.setAdvisoryMessage(packageInfo, packageAdvisory)
+
+    const advisoryMessages = [
+      Icons.ADVISORY,
+      l10n.t(
+        "Security advisory: this package version has a known flaw of level {0}/{1}.",
+        packageAdvisory.severity.toUpperCase(),
+        packageAdvisory.cvss.score.toFixed(1)
+      ),
+    ]
+
+    // Filters available versions that are not affected by any type of advisory.
+    const versionsNotAffected = (await packageInfo.getVersions())!.filter(
+      (packageVersion) => {
+        if (prerelease(packageVersion)) {
+          return false
+        }
+
+        for (const packageAdvisory of packageAdvisories) {
+          if (satisfies(packageVersion, packageAdvisory.vulnerable_versions)) {
+            return false
+          }
+        }
+
+        return true
+      }
+    )
+
+    // Gets the closest possible future version that does not have the problem.
+    const versionFutureNotAffected = minSatisfying(
+      versionsNotAffected,
+      `>${versionNormalized}`
+    )
+
+    if (versionFutureNotAffected) {
+      advisoryMessages.push(
+        l10n.t(
+          "Please upgrade to version {0} or higher.",
+          versionFutureNotAffected
+        )
+      )
+    } else {
+      advisoryMessages.push(l10n.t("No fix available yet."))
+
+      // If there is no future version available then it suggests a downgrade.
+      // Gets the largest available version in which a flaw does not exist.
+      const versionPastNotAffected = maxSatisfying(
+        versionsNotAffected,
+        `<${versionNormalized}`
+      )
+
+      if (versionPastNotAffected) {
+        advisoryMessages.push(
+          l10n.t(
+            "If possible, downgrade to version {0}.",
+            versionPastNotAffected
+          )
+        )
+      }
+    }
+
+    advisoryMessages.push("(npm-outdated)")
+
+    // And adds a new diagnostic.
+    const diagnostic = new Diagnostic(
+      packageInfo.versionRange,
+      advisoryMessages.join(" "),
+      DiagnosticSeverity.Error
+    )
+
+    diagnostic.code = {
+      target: Uri.parse(packageAdvisory.url),
+      value: l10n.t("Details"),
+    }
+
+    documentDiagnostics.push(diagnostic)
+  }
 }

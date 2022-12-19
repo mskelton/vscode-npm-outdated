@@ -48,6 +48,10 @@ export const window = {
   createTextEditorDecorationType: jest.fn(),
 }
 
+export const Uri = {
+  parse: (): undefined => undefined,
+}
+
 export const workspace = jest.fn()
 
 export const WorkspaceEdit = jest.fn(() => ({

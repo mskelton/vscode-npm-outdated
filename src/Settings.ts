@@ -13,6 +13,13 @@ export const hasMajorUpdateProtection = (): boolean =>
     .getConfiguration()
     .get<boolean>("npm-outdated.majorUpdateProtection")!
 
+// Identifies packages used with known security advisories.
+// Default: true.
+export const identifySecurityAdvisories = (): boolean =>
+  workspace
+    .getConfiguration()
+    .get<boolean>("npm-outdated.identifySecurityAdvisories")!
+
 // Displays decorations on the right side of packages.
 // Default: true.
 export const isDecorationsEnabled = (): boolean =>

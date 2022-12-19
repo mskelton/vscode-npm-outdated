@@ -150,7 +150,7 @@ export class PackageInfo {
   // Normalizes the package version, through the informed range.
   // If the result is an invalid version, try to correct it via coerce().
   // Eg. "^3" (valid range, but "3" is a invalid version) => "3.0".
-  private getVersionNormalized(): string | undefined {
+  public getVersionNormalized(): string | undefined {
     const version = this.getVersionClear()
 
     if (!valid(version)) {

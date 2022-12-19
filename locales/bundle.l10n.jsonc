@@ -27,6 +27,11 @@
   "Package \"{0}\" pending installation: {1}.": "", // The package has been declared as a dependency, but no version has yet been installed.
   "Newer version of \"{0}\" is available: {1}.": "", // New version available which can be used by user.
   "Pre-release version of \"{0}\".": "", // The defined user version is a pre-release, and there is no better alternative yet.
+  "Security advisory: this package version has a known flaw level {0}/{1}.": "", // Diagnostic warning when a security advisory exists.
+  "Please upgrade to version {0} or higher.": "", // Suggested upgrade to a version above.
+  "No fix available yet.": "", // The flaw is not yet known to be resolved in a future release.
+  "If possible, downgrade to version {0}.": "", // But it is possible to downgrade to a version where the flaw does not exist.
+  "Details": "", // Link where you can learn more about the flaw.
 
   // DocumentDecoration.ts related.
   "Install pending": "", // The package was never installed, but the version entered by the user is the latest available.
@@ -35,5 +40,10 @@
   "install pending": "", // The informed version has not yet been installed by the user.
   "already installed, just formalization": "", // The version informed by the user is already installed, only a version formalization of package.json will be needed.
   "attention: major update!": "", // Warns the user that a major update will take place.
-  "pre-release": "" // Warns the user that this is a pre-release version.
+  "pre-release": "", // Warns the user that this is a pre-release version.
+  "Security advisory": "", // Informs that the package has a security advisory.
+  "low": "", // Security advisory level.
+  "moderate": "", // Security advisory level.
+  "high": "", // Security advisory level.
+  "critical": "" // Security advisory level.
 }

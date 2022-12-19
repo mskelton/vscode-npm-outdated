@@ -1,13 +1,14 @@
 import * as ChildProcess from "child_process"
-
 import { sep } from "path"
-import { ReleaseType } from "semver"
 
+import { ReleaseType } from "semver"
 import * as vscode from "vscode"
+
 import { Range } from "vscode"
 
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { activate } from "./extension"
+import { PackageAdvisory } from "./NPM"
 
 import * as Utils from "./Utils"
 
@@ -23,6 +24,7 @@ jest.mock("./Utils", () => ({
 interface PluginConfigurations {
   cacheLifetime?: number
   decorations?: boolean
+  identifySecurityAdvisories?: boolean
   level?: ReleaseType
   majorUpdateProtection?: boolean
   parallelProcessesLimit?: number
@@ -31,6 +33,7 @@ interface PluginConfigurations {
 const DefaultPluginConfigurations: PluginConfigurations = {
   cacheLifetime: 0,
   decorations: true,
+  identifySecurityAdvisories: true,
   level: "patch",
   majorUpdateProtection: true,
   parallelProcessesLimit: 0,
@@ -49,6 +52,8 @@ interface SimulatorOptions {
   execError?: boolean
 
   packageJson?: "" | PackageJson
+
+  packagesAdvisories?: Record<string, PackageAdvisory[]>
 
   packagesInstalled?: Record<string, string>
 
@@ -78,6 +83,8 @@ const ChildProcessMock = ChildProcess as {
 
 const UtilsMock = Utils as {
   cacheEnabled: typeof import("./Utils").cacheEnabled
+
+  fetchLite: unknown
 }
 
 const dependenciesAsChildren = (
@@ -132,6 +139,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   }
 
   UtilsMock.cacheEnabled = (): boolean => options.cacheEnabled === true
+
+  UtilsMock.fetchLite = (): unknown => options.packagesAdvisories
 
   ChildProcessMock.exec = (
     command: string,

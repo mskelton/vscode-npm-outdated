@@ -18,11 +18,21 @@
   "Package \"{0}\" pending installation: {1}.": "Dependência \"{0}\" com instalação pendente: {1}",
   "Newer version of \"{0}\" is available: {1}.": "Versão mais nova disponível para a dependência \"{0}\": {1}",
   "Pre-release version of \"{0}\".": "Versão pre-release de \"{0}\".",
+  "Security advisory: this package version has a known flaw level {0}/{1}.": "",
+  "Please upgrade to version {0} or higher.": "Por favor, atualize para a versão {0} ou superior.",
+  "No fix available yet.": "Ainda não há uma correção disponível.",
+  "If possible, downgrade to version {0}.": "Se possível, realize um downgrade para a versão {0}.",
+  "Details": "Detalhes",
 
   "Install pending": "Instalação pendente",
   "Update available:": "Atualização disponível:",
   "Latest version:": "Versão mais recente:",
   "install pending": "instalação pendente",
   "already installed, just formalization": "já instalado, apenas formalização",
-  "attention: major update!": "atenção: atualização major!"
+  "attention: major update!": "atenção: atualização major!",
+  "Security advisory": "Aviso de segurança",
+  "low": "baixo",
+  "moderate": "moderado",
+  "high": "alto",
+  "critical": "crítico"
 }

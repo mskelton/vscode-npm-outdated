@@ -580,3 +580,63 @@ describe("code coverage", () => {
     expect(decorations).toContain("Update available:")
   })
 })
+
+describe("security advisories", () => {
+  it("updatable", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      cacheEnabled: true,
+      packageJson: {
+        dependencies: {
+          "@typescript/eslint": "1.0.0",
+          "npm-outdated": "^1.0.0",
+        },
+      },
+      packagesAdvisories: {
+        "npm-outdated": [
+          {
+            cvss: { score: 5.6 },
+            severity: "high",
+            title: "flaw",
+            url: "https://testing",
+            vulnerable_versions: "1.0.0",
+          },
+        ],
+      },
+      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics).toHaveLength(2)
+    expect(diagnostics[1]?.message).toContain("Security advisory:")
+    expect(decorations).toContain("Security advisory (HIGH/5.6):")
+  })
+
+  it("needs downgrade", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      cacheEnabled: true,
+      packageJson: {
+        dependencies: {
+          "@typescript/eslint": "1.0.0",
+          "npm-outdated": "^1.0.1",
+        },
+      },
+      packagesAdvisories: {
+        "npm-outdated": [
+          {
+            cvss: { score: 5.6 },
+            severity: "high",
+            title: "flaw",
+            url: "https://testing",
+            vulnerable_versions: "1.0.1",
+          },
+        ],
+      },
+      packagesInstalled: { "npm-outdated": "1.0.1" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1", "1.0.1-alpha"] },
+    })
+
+    expect(diagnostics).toHaveLength(1)
+    expect(diagnostics[0]?.message).toContain("downgrade")
+    expect(decorations).toContain("Security advisory (HIGH/5.6):")
+  })
+})

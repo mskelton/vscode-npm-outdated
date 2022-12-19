@@ -1,3 +1,9 @@
+import url = require("node:url")
+import https = require("node:https")
+import zlib = require("node:zlib")
+
+import { IncomingMessage } from "http"
+
 // This function allows to call a "lazy" callback.
 // The first execution can be delayed when the "wait" parameter is different from zero, otherwise it will be immediate.
 // The next execution can be delayed as long as "delay" is non - zero, with a minimum time of zero ms.
@@ -110,3 +116,42 @@ export const promiseLimit = (
 
 // During testing, this function is mocked to return false in some cases.
 export const cacheEnabled = (): boolean => true
+
+// A simple post request.
+// Based on https://github.com/vasanthv/fetch-lite/blob/master/index.js
+export const fetchLite = <T>(
+  paramUrl: string,
+  body: object
+): Promise<T | undefined> => {
+  return new Promise<T | undefined>((resolve) => {
+    const { hostname, path } = url.parse(paramUrl)
+    const headers = { "content-type": "application/json" }
+
+    const thisReq = https.request(
+      { headers, hostname, method: "post", path },
+      (response: IncomingMessage) => {
+        const respondeBuffers: Buffer[] = []
+
+        response.on("data", (data: Buffer) => respondeBuffers.push(data))
+        // istanbul ignore next
+        response.on("error", () => resolve(undefined))
+        response.on("end", () =>
+          zlib.gunzip(Buffer.concat(respondeBuffers), (_error, contents) => {
+            resolve(JSON.parse(contents.toString()))
+          })
+        )
+      }
+    )
+
+    const bodyStringify = zlib.gzipSync(JSON.stringify(body))
+
+    thisReq.setHeader("Content-Type", "application/json")
+    thisReq.setHeader("Content-Length", bodyStringify.length)
+    thisReq.setHeader("Content-Encoding", "gzip")
+    thisReq.setHeader("Accept-Encoding", "gzip")
+    thisReq.write(bodyStringify)
+    // istanbul ignore next
+    thisReq.on("error", () => resolve(undefined))
+    thisReq.end()
+  })
+}
