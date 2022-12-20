@@ -158,12 +158,14 @@ export class DocumentDecoration {
     this.render()
   }
 
-  public clearLine(line: number): void {
-    DocumentDecorationManager.fromDocument(this.document).layers.forEach(
-      (decoration) => decoration.lines.delete(line)
-    )
-
-    this.render()
+  public setCheckedMessage(line: number): void {
+    this.setLine(line, [
+      new Message(
+        Icons.CHECKED,
+        ThemeLight.ICON_CHECKED,
+        ThemeDark.ICON_CHECKED
+      ),
+    ])
   }
 
   public setCheckingMessage(line: number): void {

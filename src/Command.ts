@@ -3,7 +3,7 @@ import { dirname } from "path"
 
 import { commands, l10n, OutputChannel, Uri, window } from "vscode"
 
-import { name as packageName } from "../package.json"
+import { name as packageName } from "./plugin.json"
 
 export const COMMAND_INSTALL = `${packageName}.install`
 export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`

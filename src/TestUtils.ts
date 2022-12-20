@@ -6,11 +6,10 @@ import * as vscode from "vscode"
 
 import { Range } from "vscode"
 
-import { name as packageName } from "../package.json"
-
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { activate } from "./extension"
 import { PackageAdvisory } from "./NPM"
+import { name as packageName } from "./plugin.json"
 
 import * as Utils from "./Utils"
 

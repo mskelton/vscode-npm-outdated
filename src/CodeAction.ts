@@ -9,9 +9,9 @@ import {
   WorkspaceEdit,
 } from "vscode"
 
-import { name as packageName } from "../package.json"
 import { COMMAND_INSTALL_REQUEST } from "./Command"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { name as packageName } from "./plugin.json"
 import { hasMajorUpdateProtection } from "./Settings"
 
 export const DIAGNOSTIC_ACTION = packageName

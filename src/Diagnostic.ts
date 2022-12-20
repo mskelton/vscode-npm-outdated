@@ -35,6 +35,7 @@ import {
   packagesInstalledCache,
 } from "./NPM"
 import { PackageInfo } from "./PackageInfo"
+import { name as packageName } from "./plugin.json"
 import {
   getParallelProcessesLimit,
   identifySecurityAdvisories,
@@ -42,8 +43,6 @@ import {
 } from "./Settings"
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
-
-import { name as packageName } from "../package.json"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 
@@ -259,7 +258,7 @@ export const generatePackagesDiagnostics = async (
           }
         }
 
-        documentDecorations?.clearLine(packageInfo.getLine())
+        documentDecorations?.setCheckedMessage(packageInfo.getLine())
       })
     })
   )

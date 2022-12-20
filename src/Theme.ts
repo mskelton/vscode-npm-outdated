@@ -1,5 +1,6 @@
 export const Icons = {
   ADVISORY: "☢",
+  CHECKED: "✓",
   CHECKING: "🗘",
   PENDING: "⭳",
   UPDATABLE: "⚠",
@@ -15,6 +16,7 @@ export const ThemeLight = {
 
   ICON_ADVISORY: { color: "#A31515" },
   ICON_AVAILABLE: { color: "gray" },
+  ICON_CHECKED: { color: "#E0E0E0" },
   ICON_UPDATABLE: { color: "gold" },
 
   LABEL_ADVISORY: { color: "#A31515" }, // Eg. "Security advisory (HIGH/7.7):"
@@ -32,6 +34,7 @@ export const ThemeDark = {
 
   ICON_ADVISORY: { color: "#F97583" },
   ICON_AVAILABLE: { color: "silver" },
+  ICON_CHECKED: { color: "#4F4F4F" },
   ICON_UPDATABLE: { color: "yellow" },
 
   LABEL_ADVISORY: { color: "#F97583" },
