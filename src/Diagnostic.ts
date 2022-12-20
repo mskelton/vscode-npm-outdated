@@ -272,6 +272,10 @@ export const generatePackagesDiagnostics = async (
               packageDiagnostic
             )
           }
+
+          if (packageDiagnostic.severity === DiagnosticSeverity.Error) {
+            return documentDecorations?.clearLine(packageInfo.getLine())
+          }
         }
 
         documentDecorations?.setCheckedMessage(packageInfo.getLine())

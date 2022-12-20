@@ -277,7 +277,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("Invalid package version")
-    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
+    expect(decorations).toStrictEqual([])
   })
 
   it("decorations disabled", async () => {
@@ -617,7 +617,7 @@ describe("code coverage", () => {
     )?.[1](document)
 
     expect(diagnostics).toHaveLength(1)
-    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
+    expect(decorations).toStrictEqual([])
   })
 
   it("decoration re-flush layers", async () => {
