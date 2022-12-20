@@ -1,33 +1,37 @@
 import { exec } from "child_process"
 import { dirname } from "path"
 
-import { commands, l10n, OutputChannel, Uri, window } from "vscode"
+import { commands, l10n, OutputChannel, TextDocument, window } from "vscode"
 
 import { name as packageName } from "./plugin.json"
 
 export const COMMAND_INSTALL = `${packageName}.install`
 export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`
 
-export const packageInstallRequest = async (uri: Uri): Promise<void> => {
+export const packageInstallRequest = async (
+  document: TextDocument
+): Promise<void> => {
   // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
-    uri
+    document.uri
   )
 
-  const action = `Run "${packageManager} install"`
+  const action = l10n.t("Do it for me!")
   const result = await window.showInformationMessage(
     l10n.t(
-      "Run your package manager install command to finish updating packages."
+      "Save your package.json and run your package manager install command to finish updating packages."
     ),
     action
   )
 
   if (result === action) {
+    await document.save()
+
     commands.executeCommand(
       COMMAND_INSTALL,
       `${packageManager} install`,
-      dirname(uri.fsPath)
+      dirname(document.uri.fsPath)
     )
   }
 }

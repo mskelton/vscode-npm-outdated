@@ -484,7 +484,7 @@ describe("commands", () => {
       packagesInstalled: { "npm-outdated": "1.0.0" },
       packagesRepository: { "npm-outdated": ["1.0.0", "2.0.0"] },
       runAction: {
-        args: [{ fsPath: "./test" }],
+        args: [{ save: jest.fn(), uri: { fsPath: "./test" } }],
         name: COMMAND_INSTALL_REQUEST,
       },
       selectFirsts: 1,

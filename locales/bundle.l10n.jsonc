@@ -13,7 +13,8 @@
   "Update \"{0}\" to {1}": "", // The user chose a single package to upgrade (eg. "Update $packageName to $version").
 
   // Command.ts related.
-  "Run your package manager install command to finish updating packages.": "", // Notification balloon to update via the user's package manager.
+  "Save your package.json and run your package manager install command to finish updating packages.": "", // Notification balloon to update via the user's package manager.
+  "Do it for me!": "", // Notification action to save package.json and run npm install.
 
   "Installing selected packages...": "", // Displayed in the log during the process of installing new versions.
   "Done.": "", // Indicates that the process completed (either success or failure).

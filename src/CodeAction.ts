@@ -172,7 +172,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
     if (requiresUpdate) {
       action.command = {
-        arguments: [document.uri],
+        arguments: [document],
         command: COMMAND_INSTALL_REQUEST,
         title: "update",
       }

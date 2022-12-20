@@ -5,7 +5,8 @@
   "Update {0} selected packages": "Atualizar as {0} dependências selecionadas",
   "Update all {0} packages": "Atualizar todas as {0} dependências",
 
-  "Run your package manager install command to finish updating packages.": "Use o seu gerenciador de pacotes para concluir a instalação de suas dependências.",
+  "Save your package.json and run your package manager install command to finish updating packages.": "Salve o package.json e use o seu gerenciador de pacotes para concluir a instalação de suas dependências.",
+  "Do it for me!": "Faça para mim!",
 
   "Installing selected packages...": "Instalando as dependências selecionadas...",
   "Done.": "Concluído.",
