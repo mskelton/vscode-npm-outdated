@@ -35,15 +35,15 @@ export const getPackageVersions = async (
   // This avoids loading processes via `npm view`.
   // The process is cached if it is triggered quickly, within lifetime.
   const execPromise = new Promise<string[] | null>((resolve) =>
-    fetchLite<NPMRegistryPackage>(`https://registry.npmjs.org/${name}`).then(
-      (data) => {
-        if (data?.versions) {
-          return resolve(Object.keys(data.versions))
-        }
-
-        return resolve(null)
+    fetchLite<NPMRegistryPackage>({
+      url: `https://registry.npmjs.org/${name}`,
+    }).then((data) => {
+      if (data?.versions) {
+        return resolve(Object.keys(data.versions))
       }
-    )
+
+      return resolve(null)
+    })
   )
 
   packagesCache.set(name, new Cache(execPromise))
@@ -147,11 +147,11 @@ export const getPackagesAdvisories = async (
 
   if (Object.keys(packages).length) {
     // Query advisories through the NPM Registry.
-    const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>(
-      "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
-      "post",
-      packages
-    )
+    const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>({
+      body: packages,
+      method: "post",
+      url: "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+    })
 
     // Fills the packages with their respective advisories.
     if (responseAdvisories) {

@@ -120,19 +120,21 @@ export const promiseLimit = (
 // During testing, this function is mocked to return false in some cases.
 export const cacheEnabled = (): boolean => true
 
+interface FetchLite {
+  body?: object
+  method?: "get" | "post"
+  url: string
+}
+
 // A simple post request.
 // Based on https://github.com/vasanthv/fetch-lite/blob/master/index.js
-export const fetchLite = <T>(
-  paramUrl: string,
-  method?: "get" | "post" | undefined,
-  body?: object | undefined
-): Promise<T | undefined> => {
+export const fetchLite = <T>(options: FetchLite): Promise<T | undefined> => {
   return new Promise<T | undefined>((resolve) => {
-    const { hostname, path } = url.parse(paramUrl)
+    const { hostname, path } = url.parse(options.url)
     const headers = { "content-type": "application/json" }
 
     const thisReq = https.request(
-      { headers, hostname, method: method ?? "get", path },
+      { headers, hostname, method: options.method ?? "get", path },
       (response: IncomingMessage) => {
         const responseBuffers: Buffer[] = []
 
@@ -158,8 +160,8 @@ export const fetchLite = <T>(
     thisReq.setHeader("Content-Encoding", "gzip")
     thisReq.setHeader("Accept-Encoding", "gzip")
 
-    if (body !== undefined) {
-      const bodyStringify = zlib.gzipSync(JSON.stringify(body))
+    if (options.body !== undefined) {
+      const bodyStringify = zlib.gzipSync(JSON.stringify(options.body))
 
       thisReq.setHeader("Content-Length", bodyStringify.length)
       thisReq.write(bodyStringify)

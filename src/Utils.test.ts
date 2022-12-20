@@ -136,11 +136,11 @@ describe("utils", () => {
   it("fetchLite: access to NPM Registry (advisories)", async () => {
     expect.assertions(1)
 
-    const fetchSuccess = await fetchLite(
-      "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
-      "post",
-      { "npm-outdated": ["2.0.3"] }
-    )
+    const fetchSuccess = await fetchLite({
+      body: { "npm-outdated": ["2.0.3"] },
+      method: "post",
+      url: "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+    })
 
     expect(fetchSuccess).toStrictEqual({})
   })
@@ -148,9 +148,9 @@ describe("utils", () => {
   it("fetchLite: access to NPM Registry (package)", async () => {
     expect.assertions(1)
 
-    const fetchSuccess = await fetchLite(
-      "https://registry.npmjs.org/node-fetch"
-    )
+    const fetchSuccess = await fetchLite({
+      url: "https://registry.npmjs.org/node-fetch",
+    })
 
     expect(fetchSuccess).toBeInstanceOf(Object)
   })
@@ -158,9 +158,9 @@ describe("utils", () => {
   it("fetchLite: access to a private NPM Registry without auth token", async () => {
     expect.assertions(1)
 
-    const fetchSuccess = await fetchLite<{ error: string }>(
-      "https://registry.npmjs.org/@fortawesome/pro-light-svg-icons"
-    )
+    const fetchSuccess = await fetchLite<{ error: string }>({
+      url: "https://registry.npmjs.org/@fortawesome/pro-light-svg-icons",
+    })
 
     expect(fetchSuccess?.error).toBe("Not found")
   })
@@ -168,7 +168,7 @@ describe("utils", () => {
   it("fetchLite: invalid URL", async () => {
     expect.assertions(1)
 
-    const fetchSuccess = await fetchLite("invalid")
+    const fetchSuccess = await fetchLite({ url: "invalid" })
 
     expect(fetchSuccess).toBeUndefined()
   })

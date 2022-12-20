@@ -156,7 +156,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
 
   UtilsMock.cacheEnabled = (): boolean => options.cacheEnabled === true
 
-  UtilsMock.fetchLite = (url: string): unknown => {
+  UtilsMock.fetchLite = ({ url }: { url: string }): unknown => {
     if (url.endsWith("/bulk")) {
       return options.packagesAdvisories
     }
