@@ -4,6 +4,8 @@
     "target": "ES2022",
     "outDir": "out",
     "lib": ["ES2022"],
+    "rootDir": "src",
+    "rootDirs": [".", "src"],
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
