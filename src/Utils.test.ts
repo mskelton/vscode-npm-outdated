@@ -155,6 +155,16 @@ describe("utils", () => {
     expect(fetchSuccess).toBeInstanceOf(Object)
   })
 
+  it("fetchLite: access to a private NPM Registry without auth token", async () => {
+    expect.assertions(1)
+
+    const fetchSuccess = await fetchLite<{ error: string }>(
+      "https://registry.npmjs.org/@fortawesome/pro-light-svg-icons"
+    )
+
+    expect(fetchSuccess?.error).toBe("Not found")
+  })
+
   it("fetchLite: invalid URL", async () => {
     expect.assertions(1)
 

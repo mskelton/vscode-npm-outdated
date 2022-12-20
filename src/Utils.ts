@@ -140,6 +140,10 @@ export const fetchLite = <T>(
         // istanbul ignore next
         response.on("error", () => resolve(undefined))
         response.on("end", () => {
+          if (!response.headers["content-encoding"]) {
+            return resolve(JSON.parse(responseBuffers.toString()))
+          }
+
           return zlib.gunzip(
             Buffer.concat(responseBuffers),
             (_error, contents) => {
