@@ -2,12 +2,20 @@
   "npm-outdated.description": "Exibe uma mensagem nos arquivos package.json para dependências com novas versões disponíveis.",
 
   "npm-outdated.configuration.level.description": "Diferença mínima *semver* necessária para que uma dependência seja exibida como desatualizada. Veja a [documentação Semver](https://docs.npmjs.com/cli/v6/using-npm/semver) (*em inglês*) para mais detalhes.",
+  "npm-outdated.configuration.level.major.description": "Somente exibirá um aviso de atualização quando houver uma atualização para versão major (ex. de 1.0.0 para 2.0.0).",
+  "npm-outdated.configuration.level.minor.description": "Somente exibirá um aviso de atualização quando houver uma atualização para versão minor (ex. de 1.0.0 para 1.1.0).",
+  "npm-outdated.configuration.level.patch.description": "Somente exibirá um aviso de atualização quando houver uma atualização para versão patch (ex. de 1.0.0 para 1.0.1).",
+
   "npm-outdated.configuration.majorUpdateProtection.description": "Evita que uma dependência possa atualizar para uma versão `major` diretamente. Uma sugestão deste tipo só acontecerá se a versão definida pelo usuário já estiver na última versão `minor` disponível.",
+
   "npm-outdated.configuration.identifySecurityAdvisories.description": "Identifica as dependências utilizadas com avisos de segurança conhecidos.",
+
   "npm-outdated.configuration.decorations.description": "Exibe decorações ao lado direito das dependências contendo mais detalhes sobre as possibilidades de atualização.",
   "npm-outdated.configuration.decorations.fancy.description": "Os detalhes são coloridos e muito mais fáceis de identificar.",
   "npm-outdated.configuration.decorations.simple.description": "Os detalhes são exibidos de uma forma mais simples, menos chamativa, mas ainda informativa. Ajuda na performance se você não se importa com as cores.",
   "npm-outdated.configuration.decorations.disabled.description": "Os detalhes não serão exibidos diretamente, mas você ainda verá ao passar o mouse na versão da dependência em uma tooltip.",
+
   "npm-outdated.configuration.cacheLifetime.description": "Quantidade de minutos na qual as versões das dependências já analisadas poderão ser mantidas internamente em cache. Melhora o desempenho.",
+
   "npm-outdated.configuration.parallelProcessesLimit.description": "Define quantas dependências poderão ser analisadas ao mesmo tempo. Um valor alto torna o processo mais rápido, porém, consome mais CPU. Defina como `0` para desativar este limite (mas use com moderação)."
 }

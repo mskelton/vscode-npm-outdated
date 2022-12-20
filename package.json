@@ -104,6 +104,11 @@
             "minor",
             "patch"
           ],
+          "enumDescriptions": [
+            "%npm-outdated.configuration.level.major.description%",
+            "%npm-outdated.configuration.level.minor.description%",
+            "%npm-outdated.configuration.level.patch.description%"
+          ],
           "markdownDescription": "%npm-outdated.configuration.level.description%"
         },
         "npm-outdated.majorUpdateProtection": {
