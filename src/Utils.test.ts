@@ -155,6 +155,6 @@ describe("utils", () => {
       { Accept: "application/vnd.npm.install-v1+json" }
     )
 
-    expect(fetchSuccess).toStrictEqual({})
+    expect(fetchSuccess).toBeInstanceOf(Object)
   })
 })

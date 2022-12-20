@@ -114,7 +114,8 @@ export class PackageRelatedDiagnostic extends Diagnostic {
     message: string,
     severity: DiagnosticSeverity,
     document: TextDocument,
-    public packageRelated: PackageInfo
+    public packageRelated: PackageInfo,
+    public isSelectable = true
   ) {
     super(range, message, severity)
 
@@ -173,6 +174,21 @@ export const getPackageDiagnostic = async (
   }
 
   if (!(await packageInfo.isVersionUpdatable())) {
+    // The user has the latest version defined in `package.json`,
+    // but still needs to run `npm install` to complete.
+    if (await packageInfo.requiresInstallCommand()) {
+      return new PackageRelatedDiagnostic(
+        packageInfo.versionRange,
+        l10n.t(
+          "Ready-to-install package. Just run your package manager install command."
+        ),
+        DiagnosticSeverity.Information,
+        document,
+        packageInfo,
+        false
+      )
+    }
+
     return
   }
 
@@ -200,7 +216,7 @@ export const getPackageDiagnostic = async (
     )
   }
 
-  // istanbul ignore next: must never happen
+  // istanbul ignore next
   return
 }
 

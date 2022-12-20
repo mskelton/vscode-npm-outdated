@@ -197,6 +197,17 @@ export class DocumentDecoration {
       ])
     }
 
+    if (await packageInfo.packageRelated.requiresInstallCommand()) {
+      return this.setLine(line, [
+        new Message(
+          Icons.PENDING,
+          ThemeLight.ICON_AVAILABLE,
+          ThemeDark.ICON_AVAILABLE
+        ),
+        new Message(l10n.t("Now run your package manager install command.")),
+      ])
+    }
+
     const updateDetails = [
       new Message(
         Icons.UPDATABLE,

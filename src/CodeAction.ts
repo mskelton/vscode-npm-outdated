@@ -23,13 +23,14 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument,
     range: Range
   ): Promise<CodeAction[]> {
-    // Get all diagnostics from this extension
+    // Get all diagnostics from this extension.
     const diagnostics = languages
       .getDiagnostics(document.uri)
       .filter(
         (diagnostic) =>
           typeof diagnostic.code === "object" &&
-          diagnostic.code.value === DIAGNOSTIC_ACTION
+          diagnostic.code.value === DIAGNOSTIC_ACTION &&
+          (!PackageRelatedDiagnostic.is(diagnostic) || diagnostic.isSelectable)
       ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.

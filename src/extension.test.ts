@@ -240,6 +240,19 @@ describe("package diagnostics", () => {
     expect(diagnostics).toHaveLength(0)
   })
 
+  it("valid dependency, waiting for run your package manager install", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: { dependencies: { "npm-outdated": "^1.0.1" } },
+      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics[0]?.message).toContain("run your package manager")
+    expect(decorations[0]).toContain(
+      "Now run your package manager install command."
+    )
+  })
+
   it("dependency name is invalid", async () => {
     const { decorations, diagnostics } = await vscodeSimulator({
       packageJson: { dependencies: { "invalid!": "^1.0.0" } },
@@ -616,7 +629,6 @@ describe("security advisories", () => {
 
   it("needs downgrade", async () => {
     const { decorations, diagnostics } = await vscodeSimulator({
-      cacheEnabled: true,
       packageJson: {
         dependencies: {
           "@types/jest": "1.0.0",

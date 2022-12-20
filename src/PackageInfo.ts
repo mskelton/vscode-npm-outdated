@@ -102,6 +102,16 @@ export class PackageInfo {
     )
   }
 
+  // If the latest version is already to be installed.
+  public async requiresInstallCommand(): Promise<boolean> {
+    const versionClear = this.getVersionClear()
+
+    return (
+      (await this.getVersionLatest()) === versionClear &&
+      (await this.getVersionInstalled()) !== versionClear
+    )
+  }
+
   // Get the package version installed.
   public async getVersionInstalled(): Promise<string | undefined> {
     const packagesInstalled = await getPackagesInstalled()
