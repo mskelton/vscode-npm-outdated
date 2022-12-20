@@ -6,6 +6,7 @@ import {
   Range,
   TextDocument,
   TextEditor,
+  TextEditorDecorationType,
   ThemableDecorationAttachmentRenderOptions,
   window,
 } from "vscode"
@@ -24,6 +25,16 @@ class Message {
   ) {}
 }
 
+// We need to store the styles that will be used.
+// This way we will support up to 5 different styles in a single line.
+const decorationTypes = new Map<number, TextEditorDecorationType>([
+  [0, window.createTextEditorDecorationType({})],
+  [1, window.createTextEditorDecorationType({})],
+  [2, window.createTextEditorDecorationType({})],
+  [3, window.createTextEditorDecorationType({})],
+  [4, window.createTextEditorDecorationType({})],
+])
+
 // We need to create some decoration levels as needed.
 // Each layer must have its own style implementation, so that the message order is respected.
 // @see https://github.com/microsoft/vscode/issues/169051
@@ -35,12 +46,12 @@ export class DocumentDecorationManager {
 
   public layers = new Map<number, DocumentDecorationLayer>()
 
-  public getLayer(layer: number): DocumentDecorationLayer {
-    if (!this.layers.has(layer)) {
-      this.layers.set(layer, new DocumentDecorationLayer())
+  public getLayer(position: number): DocumentDecorationLayer {
+    if (!this.layers.has(position)) {
+      this.layers.set(position, new DocumentDecorationLayer(position))
     }
 
-    return this.layers.get(layer)!
+    return this.layers.get(position)!
   }
 
   flushLayers(): void {
@@ -80,7 +91,11 @@ export class DocumentDecorationManager {
 class DocumentDecorationLayer {
   public lines = new Map<number, DecorationOptions>()
 
-  public type = window.createTextEditorDecorationType({})
+  public type: TextEditorDecorationType
+
+  constructor(position: number) {
+    this.type = decorationTypes.get(position)!
+  }
 }
 
 export class DocumentDecoration {
