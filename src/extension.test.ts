@@ -297,12 +297,24 @@ describe("code actions", () => {
   it("no package selected", async () => {
     const { actions } = await vscodeSimulator({
       packageJson: { dependencies: { "npm-outdated": "^1.0.1" } },
-      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesInstalled: { "npm-outdated": "1.0.1" },
       packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
       selectFirsts: 0,
     })
 
     expect(actions).toHaveLength(0)
+  })
+
+  it("no package selected, awaiting for installing packages", async () => {
+    const { actions } = await vscodeSimulator({
+      packageJson: { dependencies: { "npm-outdated": "^1.0.1" } },
+      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
+      selectFirsts: 0,
+    })
+
+    expect(actions[0]?.title).toBe("Start installing the package")
+    expect(actions).toHaveLength(1)
   })
 
   it("selected a specific package", async () => {
@@ -392,27 +404,31 @@ describe("code actions", () => {
     expect(actions).toHaveLength(2)
   })
 
-  it("selected all two packages", async () => {
+  it("selected all two packages, with waiting for install another", async () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
           "@types/jest": "^1.0.0",
+          "node-fetch": "^1.0.1",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
         "@types/jest": "1.0.0",
+        "node-fetch": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
         "@types/jest": ["1.0.0", "1.0.1"],
+        "node-fetch": ["1.0.0", "1.0.1"],
         "npm-outdated": ["1.0.0", "1.0.1"],
       },
-      selectFirsts: 2,
+      selectFirsts: 3,
     })
 
     expect(actions[0]?.title).toBe("Update 2 selected packages")
-    expect(actions).toHaveLength(1)
+    expect(actions[1]?.title).toBe("Start installing the package")
+    expect(actions).toHaveLength(2)
   })
 
   it("selected all two packages, but one is major update (protection enabled)", async () => {

@@ -23,26 +23,43 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument,
     range: Range
   ): Promise<CodeAction[]> {
+    const diagnosticsAll = languages.getDiagnostics(document.uri)
+
     // Get all diagnostics from this extension.
-    const diagnostics = languages
-      .getDiagnostics(document.uri)
-      .filter(
-        (diagnostic) =>
-          typeof diagnostic.code === "object" &&
-          diagnostic.code.value === DIAGNOSTIC_ACTION &&
-          (!PackageRelatedDiagnostic.is(diagnostic) || diagnostic.isSelectable)
-      ) as PackageRelatedDiagnostic[]
+    const diagnostics = diagnosticsAll.filter(
+      (diagnostic) =>
+        typeof diagnostic.code === "object" &&
+        diagnostic.code.value === DIAGNOSTIC_ACTION &&
+        (!PackageRelatedDiagnostic.is(diagnostic) || diagnostic.isSelectable)
+    ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.
     const diagnosticsSelected = diagnostics.filter(
       (diagnostic) => diagnostic.range.intersection(range) !== undefined
     )
 
+    // Checks if there are any packages waiting to be installed.
+    let requiresInstall = false
+
+    for (const diagnostic of diagnosticsAll) {
+      if (
+        PackageRelatedDiagnostic.is(diagnostic) &&
+        (await diagnostic.packageRelated.requiresInstallCommand())
+      ) {
+        requiresInstall = true
+        break
+      }
+    }
+
     if (!diagnosticsSelected.length) {
+      if (requiresInstall) {
+        return Promise.all([this.createInstallAction(document)])
+      }
+
       return Promise.resolve([])
     }
 
-    const diagnosticsPromises = []
+    const diagnosticsPromises: Promise<CodeAction>[] = []
 
     let diagnosticsSelectedFiltered = diagnosticsSelected
 
@@ -144,6 +161,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       }
     }
 
+    if (requiresInstall) {
+      diagnosticsPromises.push(this.createInstallAction(document))
+    }
+
     return Promise.all(diagnosticsPromises)
   }
 
@@ -221,6 +242,23 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     )
 
     await this.updatePackageVersion(await action, document, diagnostic)
+
+    return action
+  }
+
+  private async createInstallAction(
+    document: TextDocument
+  ): Promise<CodeAction> {
+    const action = new CodeAction(
+      l10n.t("Start installing the package"),
+      CodeActionKind.QuickFix
+    )
+
+    action.command = {
+      arguments: [document],
+      command: COMMAND_INSTALL_REQUEST,
+      title: "update",
+    }
 
     return action
   }
