@@ -139,7 +139,6 @@ describe("utils", () => {
     const fetchSuccess = await fetchLite(
       "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
       "post",
-      undefined,
       { "npm-outdated": ["2.0.3"] }
     )
 
@@ -150,9 +149,7 @@ describe("utils", () => {
     expect.assertions(1)
 
     const fetchSuccess = await fetchLite(
-      "https://registry.npmjs.org/node-fetch",
-      undefined,
-      { Accept: "application/vnd.npm.install-v1+json" }
+      "https://registry.npmjs.org/node-fetch"
     )
 
     expect(fetchSuccess).toBeInstanceOf(Object)

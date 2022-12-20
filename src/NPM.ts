@@ -35,17 +35,15 @@ export const getPackageVersions = async (
   // This avoids loading processes via `npm view`.
   // The process is cached if it is triggered quickly, within lifetime.
   const execPromise = new Promise<string[] | null>((resolve) =>
-    fetchLite<NPMRegistryPackage>(
-      `https://registry.npmjs.org/${name}`,
-      undefined,
-      { Accept: "application/vnd.npm.install-v1+json" } // Optimal version (~50% smaller response).
-    ).then((data) => {
-      if (data?.versions) {
-        return resolve(Object.keys(data.versions))
-      }
+    fetchLite<NPMRegistryPackage>(`https://registry.npmjs.org/${name}`).then(
+      (data) => {
+        if (data?.versions) {
+          return resolve(Object.keys(data.versions))
+        }
 
-      return resolve(null)
-    })
+        return resolve(null)
+      }
+    )
   )
 
   packagesCache.set(name, new Cache(execPromise))
@@ -152,7 +150,6 @@ export const getPackagesAdvisories = async (
     const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>(
       "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
       "post",
-      undefined,
       packages
     )
 

@@ -125,7 +125,6 @@ export const cacheEnabled = (): boolean => true
 export const fetchLite = <T>(
   paramUrl: string,
   method?: "get" | "post" | undefined,
-  paramHeaders?: Record<string, string> | undefined,
   body?: object | undefined
 ): Promise<T | undefined> => {
   return new Promise<T | undefined>((resolve) => {
@@ -135,28 +134,25 @@ export const fetchLite = <T>(
     const thisReq = https.request(
       { headers, hostname, method: method ?? "get", path },
       (response: IncomingMessage) => {
-        const respondeBuffers: Buffer[] = []
+        const responseBuffers: Buffer[] = []
 
-        response.on("data", (data: Buffer) => respondeBuffers.push(data))
+        response.on("data", (data: Buffer) => responseBuffers.push(data))
         // istanbul ignore next
         response.on("error", () => resolve(undefined))
-        response.on("end", () =>
-          zlib.gunzip(Buffer.concat(respondeBuffers), (_error, contents) => {
-            resolve(JSON.parse(contents.toString()))
-          })
-        )
+        response.on("end", () => {
+          return zlib.gunzip(
+            Buffer.concat(responseBuffers),
+            (_error, contents) => {
+              resolve(JSON.parse(contents.toString()))
+            }
+          )
+        })
       }
     )
 
     thisReq.setHeader("Content-Type", "application/json")
     thisReq.setHeader("Content-Encoding", "gzip")
     thisReq.setHeader("Accept-Encoding", "gzip")
-
-    if (paramHeaders) {
-      Object.entries(headers).forEach(([headerName, headerValue]) =>
-        thisReq.setHeader(headerName, headerValue)
-      )
-    }
 
     if (body !== undefined) {
       const bodyStringify = zlib.gzipSync(JSON.stringify(body))
