@@ -154,4 +154,12 @@ describe("utils", () => {
 
     expect(fetchSuccess).toBeInstanceOf(Object)
   })
+
+  it("fetchLite: invalid URL", async () => {
+    expect.assertions(1)
+
+    const fetchSuccess = await fetchLite("invalid")
+
+    expect(fetchSuccess).toBeUndefined()
+  })
 })

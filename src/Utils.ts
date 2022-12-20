@@ -161,7 +161,6 @@ export const fetchLite = <T>(
       thisReq.write(bodyStringify)
     }
 
-    // istanbul ignore next
     thisReq.on("error", () => resolve(undefined))
     thisReq.end()
   })
