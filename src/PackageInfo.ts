@@ -2,6 +2,7 @@ import {
   coerce,
   diff,
   gt,
+  gte,
   maxSatisfying,
   prerelease,
   ReleaseType,
@@ -98,7 +99,8 @@ export class PackageInfo {
     return Boolean(
       versionLatest &&
         versionInstalled &&
-        diff(versionLatest, versionInstalled) === "major"
+        diff(versionLatest, versionInstalled) === "major" &&
+        gte(versionLatest, versionInstalled)
     )
   }
 

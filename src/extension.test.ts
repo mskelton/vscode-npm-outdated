@@ -253,6 +253,17 @@ describe("package diagnostics", () => {
     )
   })
 
+  it("valid dependency, with major already installed must not show 'major' tooltip", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: { dependencies: { "npm-outdated": "^1.0.0" } },
+      packagesInstalled: { "npm-outdated": "2.0.0" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1", "2.0.0"] },
+    })
+
+    expect(diagnostics[0]?.message).toContain("available: 1.0.1")
+    expect(decorations[0]).not.toContain("(attention: major update!)")
+  })
+
   it("dependency name is invalid", async () => {
     const { decorations, diagnostics } = await vscodeSimulator({
       packageJson: { dependencies: { "invalid!": "^1.0.0" } },
