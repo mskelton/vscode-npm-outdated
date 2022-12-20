@@ -10,6 +10,10 @@ import { cacheEnabled, fetchLite } from "./Utils"
 
 type PackagesVersions = Map<string, Cache<Promise<string[] | null>>>
 
+interface NPMRegistryPackage {
+  versions?: Record<string, unknown>
+}
+
 // The `npm view` cache.
 const packagesCache: PackagesVersions = new Map()
 
@@ -27,22 +31,18 @@ export const getPackageVersions = async (
     }
   }
 
-  // Starts the `npm view` execution process.
+  // We'll use Registry NPM to get the versions directly from the source.
+  // This avoids loading processes via `npm view`.
   // The process is cached if it is triggered quickly, within lifetime.
-  // @todo Make compatible with other package managers.
   const execPromise = new Promise<string[] | null>((resolve) =>
-    exec(`npm view --json ${name} versions`, (error, stdout) => {
-      if (!error) {
-        try {
-          return resolve(JSON.parse(stdout))
-        } catch (e) {
-          /* empty */
-        }
+    fetchLite<NPMRegistryPackage>(
+      `https://registry.npmjs.org/${name}`,
+      undefined,
+      { Accept: "application/vnd.npm.install-v1+json" } // Optimal version (~50% smaller response).
+    ).then((data) => {
+      if (data?.versions) {
+        return resolve(Object.keys(data.versions))
       }
-
-      // In case of error or failure in processing the returned JSON,
-      // we remove it from the cache and resolve as null.
-      packagesCache.delete(name)
 
       return resolve(null)
     })
@@ -151,6 +151,8 @@ export const getPackagesAdvisories = async (
     // Query advisories through the NPM Registry.
     const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>(
       "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+      "post",
+      undefined,
       packages
     )
 

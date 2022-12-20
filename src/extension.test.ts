@@ -308,22 +308,22 @@ describe("code actions", () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "1.0.1"],
+        "@types/jest": ["1.0.0", "1.0.1"],
         "npm-outdated": ["1.0.0", "1.0.1"],
       },
       selectFirsts: 1,
     })
 
-    expect(actions[0]?.title).toBe('Update "@typescript/eslint" to 1.0.1')
+    expect(actions[0]?.title).toBe('Update "@types/jest" to 1.0.1')
     expect(actions[1]?.title).toBe("Update all 2 packages")
     expect(actions).toHaveLength(2)
   })
@@ -332,24 +332,22 @@ describe("code actions", () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "2.0.0"],
+        "@types/jest": ["1.0.0", "2.0.0"],
         "npm-outdated": ["1.0.0", "2.0.0"],
       },
       selectFirsts: 1,
     })
 
-    expect(actions[0]?.title).toBe(
-      'Update "@typescript/eslint" to 2.0.0 (major)'
-    )
+    expect(actions[0]?.title).toBe('Update "@types/jest" to 2.0.0 (major)')
     expect(actions[1]?.title).toBe("Update all 2 packages (major)")
     expect(actions).toHaveLength(2)
   })
@@ -361,22 +359,22 @@ describe("code actions", () => {
       },
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "2.0.0"],
+        "@types/jest": ["1.0.0", "2.0.0"],
         "npm-outdated": ["1.0.0", "2.0.0"],
       },
       selectFirsts: 1,
     })
 
-    expect(actions[0]?.title).toBe('Update "@typescript/eslint" to 2.0.0')
+    expect(actions[0]?.title).toBe('Update "@types/jest" to 2.0.0')
     expect(actions[1]?.title).toBe("Update all 2 packages")
     expect(actions).toHaveLength(2)
   })
@@ -385,16 +383,16 @@ describe("code actions", () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "1.0.1"],
+        "@types/jest": ["1.0.0", "1.0.1"],
         "npm-outdated": ["1.0.0", "1.0.1"],
       },
       selectFirsts: 2,
@@ -408,16 +406,16 @@ describe("code actions", () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "2.0.0"],
+        "@types/jest": ["1.0.0", "2.0.0"],
         "npm-outdated": ["1.0.0", "1.0.1"],
       },
       selectFirsts: 2,
@@ -434,16 +432,16 @@ describe("code actions", () => {
       },
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "2.0.0"],
+        "@types/jest": ["1.0.0", "2.0.0"],
         "npm-outdated": ["1.0.0", "1.0.1"],
       },
       selectFirsts: 2,
@@ -457,16 +455,16 @@ describe("code actions", () => {
     const { actions } = await vscodeSimulator({
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "^1.0.0",
+          "@types/jest": "^1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
       packagesInstalled: {
-        "@typescript/eslint": "1.0.0",
+        "@types/jest": "1.0.0",
         "npm-outdated": "1.0.0",
       },
       packagesRepository: {
-        "@typescript/eslint": ["1.0.0", "2.0.0"],
+        "@types/jest": ["1.0.0", "2.0.0"],
         "npm-outdated": ["1.0.0", "2.0.0"],
       },
       selectFirsts: 2,
@@ -591,7 +589,7 @@ describe("security advisories", () => {
       cacheEnabled: true,
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "1.0.0",
+          "@types/jest": "1.0.0",
           "npm-outdated": "^1.0.0",
         },
       },
@@ -621,7 +619,7 @@ describe("security advisories", () => {
       cacheEnabled: true,
       packageJson: {
         dependencies: {
-          "@typescript/eslint": "1.0.0",
+          "@types/jest": "1.0.0",
           "npm-outdated": "^1.0.1",
         },
       },

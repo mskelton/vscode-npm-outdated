@@ -156,7 +156,31 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
 
   UtilsMock.cacheEnabled = (): boolean => options.cacheEnabled === true
 
-  UtilsMock.fetchLite = (): unknown => options.packagesAdvisories
+  UtilsMock.fetchLite = (url: string): unknown => {
+    if (url.endsWith("/bulk")) {
+      return options.packagesAdvisories
+    }
+
+    if (options.packagesRepository) {
+      for (const packageName of Object.keys(options.packagesRepository)) {
+        if (
+          url.endsWith(`/${packageName}`) &&
+          packageName in options.packagesRepository
+        ) {
+          return Promise.resolve({
+            versions: Object.fromEntries(
+              options.packagesRepository[packageName]?.map((version) => [
+                version,
+                null,
+              ]) as []
+            ),
+          })
+        }
+      }
+    }
+
+    return Promise.resolve(undefined)
+  }
 
   ChildProcessMock.exec = (
     command: string,
@@ -177,24 +201,6 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
           ),
         })
       )
-    }
-
-    if (command.startsWith("npm view ")) {
-      const packageName = command.match(
-        /^npm view --json ((@[\w-]+\/)?[\w-]+) versions$/
-      )
-
-      if (
-        packageName &&
-        options.packagesRepository &&
-        packageName[1] &&
-        packageName[1] in options.packagesRepository
-      ) {
-        return callbackReal!(
-          null,
-          JSON.stringify(options.packagesRepository[packageName[1]])
-        )
-      }
     }
 
     if (typeof callbackReal === "function") {

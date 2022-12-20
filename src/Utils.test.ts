@@ -133,12 +133,26 @@ describe("utils", () => {
     expect(cacheEnabled()).toBe(true)
   })
 
-  it("fetchLite: access to NPM Registry", async () => {
+  it("fetchLite: access to NPM Registry (advisories)", async () => {
     expect.assertions(1)
 
     const fetchSuccess = await fetchLite(
       "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+      "post",
+      undefined,
       { "npm-outdated": ["2.0.3"] }
+    )
+
+    expect(fetchSuccess).toStrictEqual({})
+  })
+
+  it("fetchLite: access to NPM Registry (package)", async () => {
+    expect.assertions(1)
+
+    const fetchSuccess = await fetchLite(
+      "https://registry.npmjs.org/node-fetch",
+      undefined,
+      { Accept: "application/vnd.npm.install-v1+json" }
     )
 
     expect(fetchSuccess).toStrictEqual({})

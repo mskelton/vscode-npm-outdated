@@ -232,7 +232,7 @@ export class DocumentDecoration {
       // If the latest version is already installed, it informs that only a user-defined version will be bumped.
       updateDetails.push(
         new Message(
-          "(" + l10n.t("already installed, just formalization") + ")",
+          `(${l10n.t("already installed, just formalization")})`,
           ThemeLight.LABEL_FORMALIZATION,
           ThemeDark.LABEL_FORMALIZATION
         )
@@ -243,7 +243,7 @@ export class DocumentDecoration {
     if (await packageInfo.packageRelated.requiresVersionMajorUpdate()) {
       updateDetails.push(
         new Message(
-          "(" + l10n.t("attention: major update!") + ")",
+          `(${l10n.t("attention: major update!")})`,
           ThemeLight.LABEL_MAJOR,
           ThemeDark.LABEL_MAJOR
         )
@@ -255,7 +255,7 @@ export class DocumentDecoration {
     if (prerelease(versionLatest)) {
       updateDetails.push(
         new Message(
-          "<" + l10n.t("pre-release") + ">",
+          `<${l10n.t("pre-release")}>`,
           ThemeLight.LABEL_PRERELEASE,
           ThemeDark.LABEL_PRERELEASE
         )

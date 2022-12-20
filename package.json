@@ -33,6 +33,7 @@
     ],
     "rules": {
       "no-return-await": "warn",
+      "prefer-template": "warn",
       "curly": [
         "warn",
         "all"
@@ -133,7 +134,7 @@
         "npm-outdated.parallelProcessesLimit": {
           "order": 9100,
           "type": "number",
-          "default": 10,
+          "default": 20,
           "minimum": 0,
           "markdownDescription": "%npm-outdated.configuration.parallelProcessesLimit.description%"
         }

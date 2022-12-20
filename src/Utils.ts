@@ -124,14 +124,16 @@ export const cacheEnabled = (): boolean => true
 // Based on https://github.com/vasanthv/fetch-lite/blob/master/index.js
 export const fetchLite = <T>(
   paramUrl: string,
-  body: object
+  method?: "get" | "post" | undefined,
+  paramHeaders?: Record<string, string> | undefined,
+  body?: object | undefined
 ): Promise<T | undefined> => {
   return new Promise<T | undefined>((resolve) => {
     const { hostname, path } = url.parse(paramUrl)
     const headers = { "content-type": "application/json" }
 
     const thisReq = https.request(
-      { headers, hostname, method: "post", path },
+      { headers, hostname, method: method ?? "get", path },
       (response: IncomingMessage) => {
         const respondeBuffers: Buffer[] = []
 
@@ -146,13 +148,23 @@ export const fetchLite = <T>(
       }
     )
 
-    const bodyStringify = zlib.gzipSync(JSON.stringify(body))
-
     thisReq.setHeader("Content-Type", "application/json")
-    thisReq.setHeader("Content-Length", bodyStringify.length)
     thisReq.setHeader("Content-Encoding", "gzip")
     thisReq.setHeader("Accept-Encoding", "gzip")
-    thisReq.write(bodyStringify)
+
+    if (paramHeaders) {
+      Object.entries(headers).forEach(([headerName, headerValue]) =>
+        thisReq.setHeader(headerName, headerValue)
+      )
+    }
+
+    if (body !== undefined) {
+      const bodyStringify = zlib.gzipSync(JSON.stringify(body))
+
+      thisReq.setHeader("Content-Length", bodyStringify.length)
+      thisReq.write(bodyStringify)
+    }
+
     // istanbul ignore next
     thisReq.on("error", () => resolve(undefined))
     thisReq.end()
