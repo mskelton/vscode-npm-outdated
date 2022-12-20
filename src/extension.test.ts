@@ -291,6 +291,27 @@ describe("package diagnostics", () => {
     expect(decorations).toStrictEqual([])
     expect(decorations).toStrictEqual([])
   })
+
+  it("package dependes on auth, so npm view will be used (found)", async () => {
+    const { diagnostics } = await vscodeSimulator({
+      packageJson: { devDependencies: { "@private/npm-outdated": "^1.0.0" } },
+      packagesInstalled: { "@private/npm-outdated": "1.0.0" },
+      packagesRepository: { "@private/npm-outdated": ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics[0]?.message).toContain("Newer version")
+    expect(diagnostics[0]?.message).toContain("1.0.1")
+  })
+
+  it("package dependes on auth, so npm view will be used (not found)", async () => {
+    const { diagnostics } = await vscodeSimulator({
+      packageJson: { devDependencies: { "@private/jest": "^1.0.0" } },
+      packagesInstalled: { "@private/jest": "1.0.0" },
+      packagesRepository: { "@private/jest": ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics).toStrictEqual([])
+  })
 })
 
 describe("code actions", () => {

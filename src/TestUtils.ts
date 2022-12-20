@@ -165,7 +165,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
       for (const packageName of Object.keys(options.packagesRepository)) {
         if (
           url.endsWith(`/${packageName}`) &&
-          packageName in options.packagesRepository
+          packageName in options.packagesRepository &&
+          !packageName.startsWith("@private/")
         ) {
           return Promise.resolve({
             versions: Object.fromEntries(
@@ -204,6 +205,15 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     }
 
     if (typeof callbackReal === "function") {
+      if (command === "npm view --json @private/npm-outdated versions") {
+        callbackReal(
+          null,
+          JSON.stringify(options.packagesRepository!["@private/npm-outdated"])
+        )
+
+        return
+      }
+
       callbackReal("error", null)
     }
 

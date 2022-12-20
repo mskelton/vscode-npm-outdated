@@ -42,7 +42,20 @@ export const getPackageVersions = async (
         return resolve(Object.keys(data.versions))
       }
 
-      return resolve(null)
+      // Uses `npm view` as a fallback.
+      // This usually happens when the package needs authentication.
+      // In this case, we'll let `npm` handle it directly.
+      return exec(`npm view --json ${name} versions`, (error, stdout) => {
+        if (!error) {
+          try {
+            return resolve(JSON.parse(stdout))
+          } catch (e) {
+            /* empty */
+          }
+        }
+
+        return resolve(null)
+      })
     })
   )
 
