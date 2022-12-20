@@ -5,6 +5,7 @@ jest.mock("child_process", () => ({
 
 import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
 import { vscodeSimulator } from "./TestUtils"
+import { Icons } from "./Theme"
 
 describe("package diagnostics", () => {
   it("initialization without a package.json", async () => {
@@ -39,7 +40,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("pending installation")
-    expect(decorations).toContain("Install pending")
+    expect(decorations[0]).toContain("Install pending")
   })
 
   it("valid dependency, already installed, just formalization", async () => {
@@ -51,7 +52,7 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Newer version")
     expect(diagnostics[0]?.message).toContain("1.0.1")
-    expect(decorations).toContain("(already installed, just formalization)")
+    expect(decorations[0]).toContain("(already installed, just formalization)")
   })
 
   it("valid dependency, newer version available", async () => {
@@ -62,7 +63,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("Newer version")
-    expect(decorations).toContain("Update available:")
+    expect(decorations[0]).toContain("Update available:")
   })
 
   it("valid dependency, newer version available, avoid major dump", async () => {
@@ -74,7 +75,7 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Newer version")
     expect(diagnostics[0]?.message).toContain("1.0.1")
-    expect(decorations).toContain("Update available:")
+    expect(decorations[0]).toContain("Update available:")
   })
 
   it("valid dependency, newer version available, suggesting major dump", async () => {
@@ -86,7 +87,7 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Newer version")
     expect(diagnostics[0]?.message).toContain("2.0.0")
-    expect(decorations).toContain("(attention: major update!)")
+    expect(decorations[0]).toContain("(attention: major update!)")
   })
 
   it("valid dependency, newer version available, major dump protection disabled", async () => {
@@ -99,7 +100,7 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Newer version")
     expect(diagnostics[0]?.message).toContain("2.0.0")
-    expect(decorations).toContain("(attention: major update!)")
+    expect(decorations[0]).toContain("(attention: major update!)")
   })
 
   it("valid dependency, newer version available (using cache)", async () => {
@@ -111,7 +112,7 @@ describe("package diagnostics", () => {
       })
 
     expect(diagnostics1[0]?.message).toContain("Newer version")
-    expect(decorations1).toContain("Update available:")
+    expect(decorations1[0]).toContain("Update available:")
 
     const { decorations: decorations2, diagnostics: diagnostics2 } =
       await vscodeSimulator({
@@ -122,7 +123,7 @@ describe("package diagnostics", () => {
       })
 
     expect(diagnostics2[0]?.message).toContain("Newer version")
-    expect(decorations2).toContain("Update available:")
+    expect(decorations2[0]).toContain("Update available:")
   })
 
   it("valid dev dependency, newer version available", async () => {
@@ -134,7 +135,7 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Newer version")
     expect(diagnostics[0]?.message).toContain("1.0.1")
-    expect(decorations).toContain("Update available:")
+    expect(decorations[0]).toContain("Update available:")
   })
 
   it("valid dependency, package version not available", async () => {
@@ -144,7 +145,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("not available")
-    expect(decorations).toContain("(install pending)")
+    expect(decorations[0]).toContain("(install pending)")
   })
 
   it("valid dependency, latest pre-release", async () => {
@@ -155,7 +156,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("Pre-release version")
-    expect(decorations).toContain("🗘") // Because it was cleared.
+    expect(decorations[0]).toContain(Icons.CHECKED)
   })
 
   it("valid dependency, newer pre-release available", async () => {
@@ -168,7 +169,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("1.0.2-alpha")
-    expect(decorations).toContain("<pre-release>")
+    expect(decorations[0]).toContain("<pre-release>")
   })
 
   it("valid dependency, newer stable-after pre-release available", async () => {
@@ -181,7 +182,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("1.0.1")
-    expect(decorations).toContain("Update available:")
+    expect(decorations[0]).toContain("Update available:")
   })
 
   it("valid dependency, latest available version", async () => {
@@ -192,7 +193,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics).toHaveLength(0)
-    expect(decorations).toContain("🗘") // Because it is the latest available.
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("valid dependency, with partial version", async () => {
@@ -203,7 +204,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics).toHaveLength(0)
-    expect(decorations).toContain("🗘") // Because it is the latest available.
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("valid dependency, suggests minor or greater only", async () => {
@@ -215,7 +216,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics).toHaveLength(0)
-    expect(decorations).toContain("🗘") // Cleared.
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("valid dependency, but cannot get latest version (exception case)", async () => {
@@ -225,7 +226,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics).toHaveLength(0)
-    expect(decorations).toContain("🗘") // Cleared.
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("valid dependency, no diagnostic", async () => {
@@ -263,7 +264,7 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toContain("Invalid package version")
-    expect(decorations).toContain("🗘")
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("decorations disabled", async () => {
@@ -568,7 +569,7 @@ describe("code coverage", () => {
     )?.[1](document)
 
     expect(diagnostics).toHaveLength(1)
-    expect(decorations).toContain("🗘")
+    expect(decorations[0]).toStrictEqual([Icons.CHECKED])
   })
 
   it("decoration re-flush layers", async () => {
@@ -580,7 +581,7 @@ describe("code coverage", () => {
     })
 
     expect(diagnostics).toHaveLength(1)
-    expect(decorations).toContain("Update available:")
+    expect(decorations[0]).toContain("Update available:")
   })
 })
 
@@ -611,7 +612,8 @@ describe("security advisories", () => {
 
     expect(diagnostics).toHaveLength(2)
     expect(diagnostics[1]?.message).toContain("Security advisory:")
-    expect(decorations).toContain("Security advisory (HIGH/5.6):")
+    expect(decorations[0]).toHaveLength(1)
+    expect(decorations[1]).toContain("Security advisory (HIGH/5.6):")
   })
 
   it("needs downgrade", async () => {
@@ -640,6 +642,7 @@ describe("security advisories", () => {
 
     expect(diagnostics).toHaveLength(1)
     expect(diagnostics[0]?.message).toContain("downgrade")
-    expect(decorations).toContain("Security advisory (HIGH/5.6):")
+    expect(decorations[0]).toHaveLength(1)
+    expect(decorations[1]).toContain("Security advisory (HIGH/5.6):")
   })
 })

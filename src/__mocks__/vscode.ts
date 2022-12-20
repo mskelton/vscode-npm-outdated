@@ -45,7 +45,7 @@ export const languages = {
 }
 
 export const window = {
-  createTextEditorDecorationType: jest.fn(),
+  createTextEditorDecorationType: (): symbol => Symbol(),
 }
 
 export const Uri = {

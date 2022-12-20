@@ -7,6 +7,7 @@ import * as vscode from "vscode"
 import { Range } from "vscode"
 
 import { PackageJsonCodeActionProvider } from "./CodeAction"
+import { DocumentDecorationManager } from "./DocumentDecoration"
 import { activate } from "./extension"
 import { PackageAdvisory } from "./NPM"
 import { name as packageName } from "./plugin.json"
@@ -115,9 +116,9 @@ type ExecCallback = (error: string | null, stdout: string | null) => void
 export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   let actions: vscode.CodeAction[] = []
   let diagnostics: vscode.Diagnostic[] = []
+  let decorations: string[][] = []
 
   const windowsInformation: [string, string[]][] = []
-  const decorations: string[] = []
 
   const subscriptions: [string, (...args: ExplicitAny[]) => void][] = []
   const commands: [string, (...args: ExplicitAny[]) => void][] = []
@@ -135,15 +136,21 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
 
   const editor = {
     document,
-    setDecorations: (
-      _ignore: ExplicitAny,
-      editorDecorations: vscode.DecorationOptions[]
-    ): void => {
-      decorations.push(
-        ...editorDecorations.map((decoration) =>
-          String(decoration.renderOptions?.after?.contentText)
-        )
-      )
+    setDecorations: (): void => {
+      decorations = []
+
+      Array.from(
+        DocumentDecorationManager.fromDocument(document).layers.values()
+      ).forEach((layer) => {
+        layer.lines.forEach((line) => {
+          const lineIndex = line.range.start.line
+
+          decorations[lineIndex] ??= []
+          decorations[lineIndex]!.push(
+            String(line.renderOptions?.after?.contentText)
+          )
+        })
+      })
     },
   }
 
