@@ -33,7 +33,7 @@ jest.mock("./Utils", () => ({
 
 interface PluginConfigurations {
   cacheLifetime?: number
-  decorations?: boolean
+  decorations?: "fancy" | "simple" | "disabled"
   identifySecurityAdvisories?: boolean
   level?: ReleaseType
   majorUpdateProtection?: boolean
@@ -42,7 +42,7 @@ interface PluginConfigurations {
 
 const DefaultPluginConfigurations: PluginConfigurations = {
   cacheLifetime: 0,
-  decorations: true,
+  decorations: "fancy",
   identifySecurityAdvisories: true,
   level: "patch",
   majorUpdateProtection: true,

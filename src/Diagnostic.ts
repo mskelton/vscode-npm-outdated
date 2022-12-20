@@ -37,9 +37,9 @@ import {
 import { PackageInfo } from "./PackageInfo"
 import { name as packageName } from "./plugin.json"
 import {
+  getDecorationsMode,
   getParallelProcessesLimit,
   identifySecurityAdvisories,
-  isDecorationsEnabled,
 } from "./Settings"
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
@@ -228,9 +228,10 @@ export const generatePackagesDiagnostics = async (
   // Read dependencies from package.json to get the name of packages used.
   const packagesInfos = Object.values(await getDocumentPackages(document))
 
-  const documentDecorations = isDecorationsEnabled()
-    ? new DocumentDecoration(document)
-    : undefined
+  const documentDecorations =
+    getDecorationsMode() !== "disabled"
+      ? new DocumentDecoration(document)
+      : undefined
 
   const documentDiagnostics = new DocumentDiagnostics(
     document,

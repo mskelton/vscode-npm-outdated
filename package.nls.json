@@ -5,6 +5,9 @@
   "npm-outdated.configuration.majorUpdateProtection.description": "Avoid suggesting that a package be upgraded to a `major` version directly. The suggestion will only happen if the user-defined version is the latest `minor` version available.",
   "npm-outdated.configuration.identifySecurityAdvisories.description": "Identifies packages used with known security advisories.",
   "npm-outdated.configuration.decorations.description": "Displays decorations on the right side of packages containing more details about upgrade possibilities.",
+  "npm-outdated.configuration.decorations.fancy.description": "Details are colorful and much easier to identify.",
+  "npm-outdated.configuration.decorations.simple.description": "Details are displayed in a simpler, less flashy, but still informative way. Helps performance if you don't care about colors.",
+  "npm-outdated.configuration.decorations.disabled.description": "Details will not be displayed directly, but you will still see it when hovering over the package version in a tooltip.",
   "npm-outdated.configuration.cacheLifetime.description": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement.",
   "npm-outdated.configuration.parallelProcessesLimit.description": "Defines how much packages can be analyzed together. A high value processes faster but consumes much more CPU. Set `0` to disable this limit (but use with moderation)."
 }

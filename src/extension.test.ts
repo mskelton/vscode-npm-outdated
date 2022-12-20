@@ -280,15 +280,27 @@ describe("package diagnostics", () => {
     expect(decorations).toStrictEqual([])
   })
 
-  it("decorations disabled", async () => {
+  it("decorations simple", async () => {
     const { decorations } = await vscodeSimulator({
-      configurations: { decorations: false },
+      configurations: { decorations: "simple" },
       packageJson: { devDependencies: { "npm-outdated": "^1.0.0" } },
       packagesInstalled: { "npm-outdated": "1.0.0" },
       packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
     })
 
-    expect(decorations).toStrictEqual([])
+    expect(decorations[0]).toContain(
+      `${Icons.UPDATABLE} Update available: 1.0.1`
+    )
+  })
+
+  it("decorations disabled", async () => {
+    const { decorations } = await vscodeSimulator({
+      configurations: { decorations: "disabled" },
+      packageJson: { devDependencies: { "npm-outdated": "^1.0.0" } },
+      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
+    })
+
     expect(decorations).toStrictEqual([])
   })
 

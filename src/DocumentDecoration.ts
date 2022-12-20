@@ -14,6 +14,7 @@ import {
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { PackageAdvisory } from "./NPM"
 import { PackageInfo } from "./PackageInfo"
+import { getDecorationsMode } from "./Settings"
 import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme"
 import { lazyCallback } from "./Utils"
 
@@ -131,29 +132,47 @@ export class DocumentDecoration {
       decorationManager.flushLine(line)
     }
 
-    messages.forEach((message, messageIndex) => {
-      const decorationLayer = decorationManager.getLayer(messageIndex)
+    if (getDecorationsMode() === "simple") {
+      const decorationLayer = decorationManager.getLayer(0)
 
       decorationLayer.lines.set(line, {
         range: new Range(line, 4096, line, 4096),
         renderOptions: {
           after: {
-            contentText: message.message,
+            contentText: messages.map((message) => message.message).join(" "),
             ...ThemeLight.DEFAULT,
-            ...(messageIndex === 0
-              ? Margins.MARGIN_INITIAL
-              : Margins.MARGIN_THEN),
-            ...message.styleDefault,
+            ...Margins.MARGIN_INITIAL,
           },
           dark: {
-            after: {
-              ...ThemeDark.DEFAULT,
-              ...message.styleDark,
-            },
+            after: { ...ThemeDark.DEFAULT },
           },
         },
       })
-    })
+    } else {
+      messages.forEach((message, messageIndex) => {
+        const decorationLayer = decorationManager.getLayer(messageIndex)
+
+        decorationLayer.lines.set(line, {
+          range: new Range(line, 4096, line, 4096),
+          renderOptions: {
+            after: {
+              contentText: message.message,
+              ...ThemeLight.DEFAULT,
+              ...(messageIndex === 0
+                ? Margins.MARGIN_INITIAL
+                : Margins.MARGIN_THEN),
+              ...message.styleDefault,
+            },
+            dark: {
+              after: {
+                ...ThemeDark.DEFAULT,
+                ...message.styleDark,
+              },
+            },
+          },
+        })
+      })
+    }
 
     this.render()
   }

@@ -120,8 +120,18 @@
         },
         "npm-outdated.decorations": {
           "order": 3000,
-          "type": "boolean",
-          "default": true,
+          "type": "string",
+          "enum": [
+            "fancy",
+            "simple",
+            "disabled"
+          ],
+          "enumDescriptions": [
+            "%npm-outdated.configuration.decorations.fancy.description%",
+            "%npm-outdated.configuration.decorations.simple.description%",
+            "%npm-outdated.configuration.decorations.disabled.description%"
+          ],
+          "default": "fancy",
           "markdownDescription": "%npm-outdated.configuration.decorations.description%"
         },
         "npm-outdated.cacheLifetime": {
