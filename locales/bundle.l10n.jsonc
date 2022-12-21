@@ -34,7 +34,7 @@
   "No fix available yet.": "", // The flaw is not yet known to be resolved in a future release.
   "If possible, downgrade to version {0}.": "", // But it is possible to downgrade to a version where the flaw does not exist.
   "Details": "", // Link where you can learn more about the flaw.
-  "Start installing the package": "", //  Forces the display of the notification suggesting to update the package.
+  "Install packages": "", //  Forces the display of the notification suggesting to update the package.
 
   // DocumentDecoration.ts related.
   "Install pending": "", // The package was never installed, but the version entered by the user is the latest available.

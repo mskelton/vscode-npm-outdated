@@ -25,7 +25,7 @@
   "No fix available yet.": "Ainda não há uma correção disponível.",
   "If possible, downgrade to version {0}.": "Se possível, realize um downgrade para a versão {0}.",
   "Details": "Detalhes",
-  "Start installing the package": "Iniciar a instalação da dependência",
+  "Install packages": "Instalar dependências",
 
   "Install pending": "Instalação pendente",
   "Update available:": "Atualização disponível:",

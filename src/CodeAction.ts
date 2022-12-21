@@ -250,7 +250,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument
   ): Promise<CodeAction> {
     const action = new CodeAction(
-      l10n.t("Start installing the package"),
+      l10n.t("Install packages"),
       CodeActionKind.QuickFix
     )
 

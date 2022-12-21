@@ -357,7 +357,7 @@ describe("code actions", () => {
       selectFirsts: 0,
     })
 
-    expect(actions[0]?.title).toBe("Start installing the package")
+    expect(actions[0]?.title).toBe("Install packages")
     expect(actions).toHaveLength(1)
   })
 
@@ -471,7 +471,7 @@ describe("code actions", () => {
     })
 
     expect(actions[0]?.title).toBe("Update 2 selected packages")
-    expect(actions[1]?.title).toBe("Start installing the package")
+    expect(actions[1]?.title).toBe("Install packages")
     expect(actions).toHaveLength(2)
   })
 
