@@ -10,7 +10,7 @@ import {
 } from "vscode"
 
 import { COMMAND_INSTALL_REQUEST } from "./Command"
-import { PackageRelatedDiagnostic } from "./Diagnostic"
+import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic"
 import { name as packageName } from "./plugin.json"
 import { hasMajorUpdateProtection } from "./Settings"
 
@@ -30,7 +30,8 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       (diagnostic) =>
         typeof diagnostic.code === "object" &&
         diagnostic.code.value === DIAGNOSTIC_ACTION &&
-        (!PackageRelatedDiagnostic.is(diagnostic) || diagnostic.isSelectable)
+        (!PackageRelatedDiagnostic.is(diagnostic) ||
+          diagnostic.type === DiagnosticType.GENERAL)
     ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.
@@ -39,21 +40,27 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     )
 
     // Checks if there are any packages waiting to be installed.
-    let requiresInstall = false
+    let requiresInstallCount = 0
 
     for (const diagnostic of diagnosticsAll) {
       if (
         PackageRelatedDiagnostic.is(diagnostic) &&
-        (await diagnostic.packageRelated.requiresInstallCommand())
+        diagnostic.type === DiagnosticType.READY_TO_INSTALL &&
+        diagnostic.range.intersection(range) !== undefined
       ) {
-        requiresInstall = true
-        break
+        requiresInstallCount++
+
+        if (requiresInstallCount >= 2) {
+          break
+        }
       }
     }
 
     if (!diagnosticsSelected.length) {
-      if (requiresInstall) {
-        return Promise.all([this.createInstallAction(document)])
+      if (requiresInstallCount) {
+        return Promise.all([
+          this.createInstallAction(document, requiresInstallCount),
+        ])
       }
 
       return Promise.resolve([])
@@ -161,8 +168,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       }
     }
 
-    if (requiresInstall) {
-      diagnosticsPromises.push(this.createInstallAction(document))
+    if (requiresInstallCount) {
+      diagnosticsPromises.push(
+        this.createInstallAction(document, requiresInstallCount)
+      )
     }
 
     return Promise.all(diagnosticsPromises)
@@ -247,10 +256,13 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   }
 
   private async createInstallAction(
-    document: TextDocument
+    document: TextDocument,
+    requiresInstallCount: number
   ): Promise<CodeAction> {
     const action = new CodeAction(
-      l10n.t("Install packages"),
+      requiresInstallCount === 1
+        ? l10n.t("Install package")
+        : l10n.t("Install packages"),
       CodeActionKind.QuickFix
     )
 

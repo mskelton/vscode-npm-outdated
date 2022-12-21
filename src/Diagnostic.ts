@@ -108,6 +108,11 @@ export const diagnosticSubscribe = (
   )
 }
 
+export enum DiagnosticType {
+  GENERAL,
+  READY_TO_INSTALL,
+}
+
 export class PackageRelatedDiagnostic extends Diagnostic {
   constructor(
     range: Range,
@@ -115,7 +120,7 @@ export class PackageRelatedDiagnostic extends Diagnostic {
     severity: DiagnosticSeverity,
     document: TextDocument,
     public packageRelated: PackageInfo,
-    public isSelectable = true
+    public type = DiagnosticType.GENERAL
   ) {
     super(range, message, severity)
 
@@ -185,7 +190,7 @@ export const getPackageDiagnostic = async (
         DiagnosticSeverity.Information,
         document,
         packageInfo,
-        false
+        DiagnosticType.READY_TO_INSTALL
       )
     }
 

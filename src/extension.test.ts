@@ -183,6 +183,21 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("1.0.1")
     expect(decorations[0]).toContain("Update available:")
+    expect(decorations[0]).not.toContain("(attention: major update!)")
+  })
+
+  it("valid dependency, upgrading to major pre-release", async () => {
+    const { decorations } = await vscodeSimulator({
+      packageJson: { dependencies: { "npm-outdated": "^2.0.0-alpha" } },
+      packagesInstalled: { "npm-outdated": "1.0.0" },
+      packagesRepository: {
+        "npm-outdated": ["1.0.0", "2.0.0-alpha", "2.0.0"],
+      },
+    })
+
+    expect(decorations[0]).toContain("Update available:")
+    expect(decorations[0]).toContain("2.0.0")
+    expect(decorations[0]).toContain("(attention: major update!)")
   })
 
   it("valid dependency, latest available version", async () => {
@@ -349,12 +364,58 @@ describe("code actions", () => {
     expect(actions).toHaveLength(0)
   })
 
-  it("no package selected, awaiting for installing packages", async () => {
+  it("no package selected, must not have any action", async () => {
     const { actions } = await vscodeSimulator({
       packageJson: { dependencies: { "npm-outdated": "^1.0.1" } },
       packagesInstalled: { "npm-outdated": "1.0.0" },
       packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
       selectFirsts: 0,
+    })
+
+    expect(actions).toHaveLength(0)
+  })
+
+  it("selected a specific package, ready to install", async () => {
+    const { actions } = await vscodeSimulator({
+      packageJson: {
+        dependencies: {
+          "@types/jest": "^1.0.1",
+          "npm-outdated": "^1.0.0",
+        },
+      },
+      packagesInstalled: {
+        "@types/jest": "1.0.0",
+        "npm-outdated": "1.0.0",
+      },
+      packagesRepository: {
+        "@types/jest": ["1.0.0", "1.0.1"],
+        "npm-outdated": ["1.0.0", "1.0.1"],
+      },
+      selectFirsts: 2,
+    })
+
+    expect(actions[0]?.title).toBe('Update "npm-outdated" to 1.0.1')
+    expect(actions[1]?.title).toBe("Install package")
+    expect(actions).toHaveLength(2)
+  })
+
+  it("selected two packages, ready to install", async () => {
+    const { actions } = await vscodeSimulator({
+      packageJson: {
+        dependencies: {
+          "@types/jest": "^1.0.1",
+          "npm-outdated": "^1.0.1",
+        },
+      },
+      packagesInstalled: {
+        "@types/jest": "1.0.0",
+        "npm-outdated": "1.0.0",
+      },
+      packagesRepository: {
+        "@types/jest": ["1.0.0", "1.0.1"],
+        "npm-outdated": ["1.0.0", "1.0.1"],
+      },
+      selectFirsts: 2,
     })
 
     expect(actions[0]?.title).toBe("Install packages")
@@ -471,7 +532,7 @@ describe("code actions", () => {
     })
 
     expect(actions[0]?.title).toBe("Update 2 selected packages")
-    expect(actions[1]?.title).toBe("Install packages")
+    expect(actions[1]?.title).toBe("Install package")
     expect(actions).toHaveLength(2)
   })
 
