@@ -172,9 +172,10 @@ export const getPackageDiagnostic = async (
         packageInfo.name,
         versionLatest
       ),
-      DiagnosticSeverity.Warning,
+      DiagnosticSeverity.Information,
       document,
-      packageInfo
+      packageInfo,
+      DiagnosticType.READY_TO_INSTALL
     )
   }
 

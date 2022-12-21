@@ -3,6 +3,8 @@ jest.mock("child_process", () => ({
   ...jest.requireActual("child_process"),
 }))
 
+import { DiagnosticSeverity } from "vscode"
+
 import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
 import { vscodeSimulator } from "./TestUtils"
 import { Icons } from "./Theme"
@@ -34,13 +36,17 @@ describe("package diagnostics", () => {
   })
 
   it("valid dependency, pending installation", async () => {
-    const { decorations, diagnostics } = await vscodeSimulator({
+    const { actions, decorations, diagnostics } = await vscodeSimulator({
       packageJson: { dependencies: { "npm-outdated": "^1.0.0" } },
       packagesRepository: { "npm-outdated": ["1.0.0"] },
+      selectFirsts: 1,
     })
 
     expect(diagnostics[0]?.message).toContain("pending installation")
+    expect(diagnostics[0]?.severity).toBe(DiagnosticSeverity.Information)
     expect(decorations[0]).toContain("Install pending")
+    expect(actions[0]?.title).toBe("Install package")
+    expect(actions).toHaveLength(1)
   })
 
   it("valid dependency, already installed, just formalization", async () => {
