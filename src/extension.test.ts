@@ -42,9 +42,11 @@ describe("package diagnostics", () => {
       selectFirsts: 1,
     })
 
-    expect(diagnostics[0]?.message).toContain("pending installation")
+    expect(diagnostics[0]?.message).toContain("run your package manager")
     expect(diagnostics[0]?.severity).toBe(DiagnosticSeverity.Information)
-    expect(decorations[0]).toContain("Install pending")
+    expect(decorations[0]).toContain(
+      "Now run your package manager install command."
+    )
     expect(actions[0]?.title).toBe("Install package")
     expect(actions).toHaveLength(1)
   })
@@ -268,7 +270,9 @@ describe("package diagnostics", () => {
       packagesRepository: { "npm-outdated": ["1.0.0", "1.0.1"] },
     })
 
-    expect(diagnostics[0]?.message).toContain("run your package manager")
+    expect(diagnostics[0]?.message).toBe(
+      'Ready-to-install package "npm-outdated" at version 1.0.1. Just run your package manager install command.'
+    )
     expect(decorations[0]).toContain(
       "Now run your package manager install command."
     )
@@ -310,6 +314,15 @@ describe("package diagnostics", () => {
 
     expect(diagnostics[0]?.message).toContain("Invalid package version")
     expect(decorations).toStrictEqual([])
+  })
+
+  it("dependency version is incomplete/empty", async () => {
+    const { decorations } = await vscodeSimulator({
+      packageJson: { dependencies: { "npm-outdated": "" } },
+      packagesRepository: { "npm-outdated": ["1.0.0"] },
+    })
+
+    expect(decorations[0]).toContain("(install pending)")
   })
 
   it("decorations simple", async () => {

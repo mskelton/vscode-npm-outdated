@@ -208,22 +208,6 @@ export class DocumentDecoration {
     const packageVersionInstalled =
       await packageInfo.packageRelated.getVersionInstalled()
 
-    // It informs that the version has not yet been installed,
-    // but the user's version is in fact the last one available.
-    if (
-      !packageVersionInstalled &&
-      (await packageInfo.packageRelated.isVersionMaxed())
-    ) {
-      return this.setLine(line, [
-        new Message(
-          Icons.PENDING,
-          ThemeLight.ICON_AVAILABLE,
-          ThemeDark.ICON_AVAILABLE
-        ),
-        new Message(l10n.t("Install pending")),
-      ])
-    }
-
     if (await packageInfo.packageRelated.requiresInstallCommand()) {
       return this.setLine(line, [
         new Message(

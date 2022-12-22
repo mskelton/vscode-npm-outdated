@@ -19,7 +19,7 @@
   "Package \"{0}\" pending installation: {1}.": "Dependência \"{0}\" com instalação pendente: {1}",
   "Newer version of \"{0}\" is available: {1}.": "Versão mais nova disponível para a dependência \"{0}\": {1}",
   "Pre-release version of \"{0}\".": "Versão pre-release de \"{0}\".",
-  "Ready-to-install package. Just run your package manager install command.": "Pacote pronto para instalar. Basta executar o comando `install` do seu gerenciador de dependências.",
+  "Ready-to-install package \"{0}\" at version {1}. Just run your package manager install command.": "Pacote pronto para instalar. Basta executar o comando `install` do seu gerenciador de dependências.",
   "Security advisory: this package version has a known flaw level {0}/{1}.": "",
   "Please upgrade to version {0} or higher.": "Por favor, atualize para a versão {0} ou superior.",
   "No fix available yet.": "Ainda não há uma correção disponível.",
@@ -28,7 +28,6 @@
   "Install package": "Instalar dependência",
   "Install packages": "Instalar dependências",
 
-  "Install pending": "Instalação pendente",
   "Update available:": "Atualização disponível:",
   "Latest version:": "Versão mais recente:",
   "install pending": "instalação pendente",

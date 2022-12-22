@@ -44,20 +44,6 @@ export class PackageInfo {
     return this.versionRange.end.line
   }
 
-  // Check if the package is installed.
-  public async isInstalled(): Promise<boolean> {
-    const packagesInstalled = await getPackagesInstalled()
-
-    if (!packagesInstalled) {
-      return false
-    }
-
-    return (
-      this.name in packagesInstalled &&
-      packagesInstalled[this.name] !== undefined
-    )
-  }
-
   // Check if is a valid package name.
   // Eg. "typescript" instead of "type script".
   public isNameValid(): boolean {
@@ -129,7 +115,11 @@ export class PackageInfo {
     }
 
     const versionLatest = (await this.getVersionLatest())!
-    const versionNormalized = this.getVersionNormalized()!
+    const versionNormalized = this.getVersionNormalized()
+
+    if (!versionNormalized) {
+      return true
+    }
 
     // Check if the version difference is compatible with what was configured by the user.
     // If the difference is less than the minimum configured then there is no need for a diagnostic.

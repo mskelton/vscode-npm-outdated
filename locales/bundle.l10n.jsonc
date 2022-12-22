@@ -28,7 +28,7 @@
   "Package \"{0}\" pending installation: {1}.": "", // The package has been declared as a dependency, but no version has yet been installed.
   "Newer version of \"{0}\" is available: {1}.": "", // New version available which can be used by user.
   "Pre-release version of \"{0}\".": "", // The defined user version is a pre-release, and there is no better alternative yet.
-  "Ready-to-install package. Just run your package manager install command.": "", // User must run the `npm install` to install new packages based on version defined.
+  "Ready-to-install package \"{0}\" at version {1}. Just run your package manager install command.": "", // User must run the `npm install` to install new packages based on version defined.
   "Security advisory: this package version has a known flaw level {0}/{1}.": "", // Diagnostic warning when a security advisory exists.
   "Please upgrade to version {0} or higher.": "", // Suggested upgrade to a version above.
   "No fix available yet.": "", // The flaw is not yet known to be resolved in a future release.
@@ -38,7 +38,6 @@
   "Install packages": "", //  Forces the display of the notification suggesting to update the package (two or more packages to be installed).
 
   // DocumentDecoration.ts related.
-  "Install pending": "", // The package was never installed, but the version entered by the user is the latest available.
   "Update available:": "", // The package has already been installed and has a new version available.
   "Latest version:": "", // The package was never installed, and the user's version is not the latest available.
   "install pending": "", // The informed version has not yet been installed by the user.
