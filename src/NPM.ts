@@ -1,115 +1,193 @@
 import { exec } from "child_process"
-import { OutputChannel, TextDocument } from "vscode"
 
+import { prerelease } from "semver"
+import { workspace } from "vscode"
+
+import { Cache } from "./Cache"
+import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"
-import { isPromiseResolved } from "./Utils"
+import { cacheEnabled, fetchLite } from "./Utils"
 
-const CACHE_PACKAGES: NPMViewResultCacheInterface = {}
+type PackagesVersions = Map<string, Cache<Promise<string[] | null>>>
 
-interface NPMViewResultCacheInterface {
-  [packageName: string]: {
-    // Date.now() of last `npm view` run.
-    checkedAt: number
-
-    // The cached `npm view` result.
-    execPromise: Promise<string>
-  }
+interface NPMRegistryPackage {
+  versions?: Record<string, unknown>
 }
 
-// Response of `npm view` command.
-interface NPMViewResultInterface {
-  // Version based on dist-tags (more reliable).
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  "dist-tags.latest"?: string
+// The `npm view` cache.
+const packagesCache: PackagesVersions = new Map()
 
-  // Version based on package.json from the target package (dev-dependent, less reliable).
-  version: string
-}
+// Get all package versions through `npm view` command.
+export const getPackageVersions = async (
+  name: string
+): Promise<string[] | null> => {
+  // If the package query is in the cache (even in the process of being executed), return it.
+  // This ensures that we will not have duplicate execution process while it is within lifetime.
+  if (cacheEnabled()) {
+    const cachePackages = packagesCache.get(name)
 
-// Get the latest version of a package through NPM.
-export const getPackageLatestVersion = async (name: string) => {
-  if (CACHE_PACKAGES[name]?.checkedAt >= Date.now() - getCacheLifetime()) {
-    return CACHE_PACKAGES[name].execPromise
+    if (cachePackages?.isValid(getCacheLifetime())) {
+      return cachePackages.value
+    }
   }
 
-  const execPromise = new Promise<string>((resolve, reject) =>
-    exec(
-      `npm view --json ${name} dist-tags.latest version`,
-      (error, stdout) => {
-        if (error) {
-          return reject()
-        }
-
-        try {
-          const viewResult: NPMViewResultInterface = JSON.parse(stdout)
-
-          resolve(viewResult["dist-tags.latest"] ?? viewResult.version)
-        } catch (e) {
-          return reject()
-        }
+  // We'll use Registry NPM to get the versions directly from the source.
+  // This avoids loading processes via `npm view`.
+  // The process is cached if it is triggered quickly, within lifetime.
+  const execPromise = new Promise<string[] | null>((resolve) =>
+    fetchLite<NPMRegistryPackage>({
+      url: `https://registry.npmjs.org/${name}`,
+    }).then((data) => {
+      if (data?.versions) {
+        return resolve(Object.keys(data.versions))
       }
-    )
+
+      // Uses `npm view` as a fallback.
+      // This usually happens when the package needs authentication.
+      // In this case, we'll let `npm` handle it directly.
+      return exec(`npm view --json ${name} versions`, (error, stdout) => {
+        if (!error) {
+          try {
+            return resolve(JSON.parse(stdout))
+          } catch (e) {
+            /* empty */
+          }
+        }
+
+        return resolve(null)
+      })
+    })
   )
 
-  CACHE_PACKAGES[name] = {
-    checkedAt: Date.now(),
-    execPromise,
-  }
+  packagesCache.set(name, new Cache(execPromise))
 
   return execPromise
 }
 
-// Final response to the process of getting the latest version of a package,
-export interface PackageInterface {
-  // Package latest version.
-  latestVersion: string
-
-  // Package name.
-  name: string
+interface NPMListResponse {
+  dependencies?: Record<string, { version: string }>
 }
 
-// Analyzes the document dependencies and returns the latest versions.
-export const getPackagesLatestVersions = async (
-  document: TextDocument,
-  outputChannel: OutputChannel
-): Promise<Record<string, PackageInterface> | undefined> => {
-  try {
-    const packageJson = JSON.parse(document.getText())
+export let packagesInstalledCache:
+  | Cache<Promise<PackagesInstalled | undefined>>
+  | undefined
 
-    // Read dependencies from package.json to get the name of packages used.
-    // For now, the user-defined version is irrelevant.
-    const packageDependencies: PackageInterface = {
-        ...(packageJson.dependencies ?? {}),
-        ...(packageJson.devDependencies ?? {}),
-      },
-      packagesNames = Object.keys(packageDependencies)
+export type PackagesInstalled = Record<string, string | undefined>
 
-    if (!packagesNames.length) {
-      return
+// Returns packages installed by the user and their respective versions.
+export const getPackagesInstalled = (): Promise<
+  PackagesInstalled | undefined
+> => {
+  if (cacheEnabled() && packagesInstalledCache?.isValid(60 * 60 * 1000)) {
+    return packagesInstalledCache.value
+  }
+
+  const execPromise = new Promise<PackagesInstalled | undefined>((resolve) => {
+    const cwd = workspace.workspaceFolders?.[0]?.uri.fsPath
+
+    return exec("npm ls --json --depth=0", { cwd }, (_error, stdout) => {
+      if (stdout) {
+        try {
+          const execResult = JSON.parse(stdout) as NPMListResponse
+
+          if (execResult.dependencies) {
+            // The `npm ls` command returns a lot of information.
+            // We only need the name of the installed package and its version.
+            const packageEntries = Object.entries(execResult.dependencies).map(
+              ([packageName, packageInfo]) => [packageName, packageInfo.version]
+            )
+
+            return resolve(Object.fromEntries(packageEntries))
+          }
+        } catch (e) {
+          /* empty */
+        }
+      }
+
+      return resolve(undefined)
+    })
+  })
+
+  packagesInstalledCache = new Cache(execPromise)
+
+  return execPromise
+}
+
+export interface PackageAdvisory {
+  cvss: { score: number }
+  severity: string
+  title: string
+  url: string
+  vulnerable_versions: string
+}
+
+export type PackagesAdvisories = Map<string, PackageAdvisory[]>
+
+const packagesAdvisoriesCache = new Map<string, Cache<PackageAdvisory[]>>()
+
+// Returns packages with known security advisories.
+export const getPackagesAdvisories = async (
+  packagesInfos: PackageInfo[]
+): Promise<PackagesAdvisories | undefined> => {
+  const packages: Record<string, string[]> = {}
+
+  for (const packageInfo of packagesInfos) {
+    if (packageInfo.name) {
+      // If already cached, so we keep the latest results.
+      // As it is already stored, then we ignore this package from the next fetch.
+      if (
+        !packageInfo.isNameValid() ||
+        packageInfo.isVersionComplex() ||
+        packagesAdvisoriesCache
+          .get(packageInfo.name)
+          ?.isValid(getCacheLifetime())
+      ) {
+        continue
+      }
+
+      // We need to push all versions to the NPM Registry.
+      // Thus, we can check in real time when the package version is modified by the user.
+      const packageVersions = await getPackageVersions(packageInfo.name)
+
+      // Add to be requested.
+      if (packageVersions) {
+        packages[packageInfo.name] = packageVersions.filter(
+          (packageVersion) => prerelease(packageVersion) === null
+        )
+      }
+    }
+  }
+
+  if (Object.keys(packages).length) {
+    // Query advisories through the NPM Registry.
+    const responseAdvisories = await fetchLite<PackagesAdvisories | undefined>({
+      body: packages,
+      method: "post",
+      url: "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+    })
+
+    // Fills the packages with their respective advisories.
+    if (responseAdvisories) {
+      Object.entries(responseAdvisories).forEach(
+        ([packageName, packageAdvisories]) =>
+          packagesAdvisoriesCache.set(
+            packageName,
+            new Cache(packageAdvisories as PackageAdvisory[])
+          )
+      )
     }
 
-    outputChannel.appendLine(
-      `Reading packages latest versions of ${packagesNames.length} packages.`
-    )
-
-    // Obtains, through NPM, the latest available version of each installed package.
-    // As a result of each promise, we will have the package name and its latest version.
-    const packagesPromises = packagesNames.map(
-      (name) =>
-        new Promise<PackageInterface>((resolve, reject) =>
-          getPackageLatestVersion(name)
-            .then((latestVersion) => resolve({ latestVersion, name }))
-            .catch(reject)
-        )
-    )
-
-    // As a result, we will have an object whose key is the package name and the value is the package additional data (including the latest version).
-    return Object.fromEntries(
-      (await Promise.allSettled(packagesPromises))
-        .filter(isPromiseResolved)
-        .map((result) => [result.value.name, result.value])
-    )
-  } catch (e) {
-    return
+    // Autocomplete packages without any advisories.
+    Object.keys(packages).forEach((packageName) => {
+      if (!packagesAdvisoriesCache.has(packageName)) {
+        packagesAdvisoriesCache.set(packageName, new Cache([]))
+      }
+    })
   }
+
+  return new Map(
+    Array.from(packagesAdvisoriesCache.entries()).map(
+      ([packageName, packageAdvisory]) => [packageName, packageAdvisory.value]
+    )
+  )
 }

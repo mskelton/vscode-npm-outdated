@@ -1,63 +1,70 @@
 import { exec } from "child_process"
 import { dirname } from "path"
 
-import { commands, OutputChannel, Uri, window } from "vscode"
+import { commands, l10n, OutputChannel, TextDocument, window } from "vscode"
 
-export const COMMAND_INSTALL = "npm-outdated.install"
-export const COMMAND_NOTIFY = "npm-outdated.notify"
+import { name as packageName } from "./plugin.json"
 
-export const packageNotify = async (uri: Uri) => {
+export const COMMAND_INSTALL = `${packageName}.install`
+export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`
+
+export const packageInstallRequest = async (
+  document: TextDocument
+): Promise<void> => {
+  // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
-    uri
+    document.uri
   )
 
-  const action = `Run "${packageManager} install"`
+  const action = l10n.t("Do it for me!")
   const result = await window.showInformationMessage(
-    `Run your package manager install command to finish updating packages.`,
+    l10n.t(
+      "Save your package.json and run your package manager install command to finish updating packages."
+    ),
     action
   )
 
   if (result === action) {
+    await document.save()
+
     commands.executeCommand(
       COMMAND_INSTALL,
       `${packageManager} install`,
-      dirname(uri.fsPath)
+      dirname(document.uri.fsPath)
     )
   }
 }
 
-export const packageInstall = async (
+export const packageInstall = (
   outputChannel: OutputChannel,
   command: string,
   cwd: string
-) => {
+): void => {
   outputChannel.clear()
   outputChannel.show()
-  outputChannel.append(`Updating selected packages...\n\n---\n`)
+  outputChannel.append(`${l10n.t("Installing selected packages...")}\n\n---\n`)
 
   const process = exec(command, { cwd })
-  const handleData = (data: string) => outputChannel.append(data)
+  const handleData = (data: string): void => outputChannel.append(data)
 
   let hasError = false
 
-  process.stdout?.on?.("data", handleData)
-  process.stderr?.on?.("data", (error: string) => {
+  process.stdout?.on("data", handleData)
+  process.stderr?.on("data", (error: string) => {
     hasError = true
 
     handleData(error)
   })
 
   process.on("close", () => {
-    outputChannel.append("\n---\n\nDone.\n\n")
+    outputChannel.append(`\n---\n\n${l10n.t("Done.")}\n\n`)
 
     if (!hasError) {
-      outputChannel.hide()
-
-      window.showInformationMessage("Packages updated successfully!")
+      window.showInformationMessage(l10n.t("Packages installed successfully!"))
     } else {
       window.showErrorMessage(
-        "Failed to update packages. Check the output console."
+        l10n.t("Failed to install packages. Check the output console.")
       )
     }
   })

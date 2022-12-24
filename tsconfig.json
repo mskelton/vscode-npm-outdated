@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "ES2020",
+    "module": "CommonJS",
+    "target": "ES2022",
     "outDir": "out",
-    "lib": ["ES2020"],
-    "sourceMap": true,
+    "lib": ["ES2022"],
     "rootDir": "src",
+    "sourceMap": true,
     "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true
   }
 }

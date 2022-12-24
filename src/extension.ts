@@ -10,44 +10,31 @@ import {
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import {
   COMMAND_INSTALL,
-  COMMAND_NOTIFY,
+  COMMAND_INSTALL_REQUEST,
   packageInstall,
-  packageNotify,
+  packageInstallRequest,
 } from "./Command"
-import { diagnosticSubscribe, reportDiagnostics } from "./Diagnostic"
-import { getDocumentPackages } from "./Document"
-import { getPackagesLatestVersions } from "./NPM"
+import { diagnosticSubscribe, generatePackagesDiagnostics } from "./Diagnostic"
+import { lazyCallback } from "./Utils"
 
-export function activate(context: ExtensionContext) {
-  const diagnostics = languages.createDiagnosticCollection("json")
+export function activate(context: ExtensionContext): void {
+  const diagnostics = languages.createDiagnosticCollection()
 
-  context.subscriptions.push(diagnostics)
+  diagnosticSubscribe(
+    context,
+    diagnostics,
+    lazyCallback(async (document: TextDocument) => {
+      await generatePackagesDiagnostics(document, diagnostics)
+    })
+  )
 
   const outputChannel = window.createOutputChannel("npm Outdated")
 
-  diagnosticSubscribe(context, diagnostics, async (document: TextDocument) => {
-    const packagesLatestVersions = await getPackagesLatestVersions(
-      document,
-      outputChannel
-    )
-
-    if (!packagesLatestVersions) {
-      return
-    }
-
-    const documentPackages = await getDocumentPackages(document)
-
-    diagnostics.clear()
-    diagnostics.set(
-      document.uri,
-      reportDiagnostics(packagesLatestVersions, documentPackages)
-    )
-  })
-
   context.subscriptions.push(
+    diagnostics,
     outputChannel,
 
-    commands.registerCommand(COMMAND_NOTIFY, packageNotify),
+    commands.registerCommand(COMMAND_INSTALL_REQUEST, packageInstallRequest),
     commands.registerCommand(
       COMMAND_INSTALL,
       packageInstall.bind(null, outputChannel)

@@ -1,10 +1,11 @@
 {
   "name": "npm-outdated",
   "displayName": "npm Outdated",
-  "description": "Displays a diagnostic message in package.json files for packages with newer versions available.",
+  "description": "%npm-outdated.description%",
   "version": "0.0.0-semantically-released",
   "publisher": "mskelton",
   "author": "Mark Skelton",
+  "l10n": "./locales",
   "repository": {
     "type": "git",
     "url": "https://github.com/mskelton/vscode-npm-outdated.git"
@@ -20,18 +21,39 @@
     "vscode"
   ],
   "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    },
     "extends": [
       "@mskelton",
-      "@mskelton/eslint-config/typescript"
-    ]
+      "@mskelton/eslint-config/typescript",
+      "plugin:@typescript-eslint/strict",
+      "plugin:promise/recommended",
+      "plugin:jest/all"
+    ],
+    "rules": {
+      "no-return-await": "warn",
+      "prefer-template": "warn",
+      "curly": [
+        "warn",
+        "all"
+      ],
+      "@typescript-eslint/explicit-function-return-type": "warn",
+      "jest/unbound-method": "off",
+      "jest/prefer-expect-assertions": "off",
+      "jest/prefer-spy-on": "off"
+    }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "compile": "tsc",
     "watch": "tsc -watch",
     "lint": "eslint src --ext ts",
     "format:check": "prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "icon": "assets/icon.png",
   "engines": {
@@ -47,13 +69,19 @@
   "main": "./out/extension.js",
   "devDependencies": {
     "@mskelton/eslint-config": "^7.1.0",
-    "@types/node": "^18.11.13",
+    "@types/jest": "^29.2.4",
+    "@types/node": "^18.11.17",
     "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^5.46.0",
-    "@typescript-eslint/parser": "^5.46.0",
-    "eslint": "^8.29.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "esbuild": "^0.16.10",
+    "eslint": "^8.30.0",
+    "eslint-plugin-jest": "^27.1.7",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.3.1",
     "prettier": "^2.8.1",
     "semantic-release-vsce": "^5.5.1",
+    "ts-jest": "^29.0.3",
     "typescript": "^4.9.4"
   },
   "dependencies": {
@@ -68,7 +96,7 @@
       "title": "npm Outdated",
       "properties": {
         "npm-outdated.level": {
-          "order": 0,
+          "order": 1000,
           "type": "string",
           "default": "patch",
           "enum": [
@@ -76,14 +104,54 @@
             "minor",
             "patch"
           ],
-          "markdownDescription": "Minimum semver bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details."
+          "enumDescriptions": [
+            "%npm-outdated.configuration.level.major.description%",
+            "%npm-outdated.configuration.level.minor.description%",
+            "%npm-outdated.configuration.level.patch.description%"
+          ],
+          "markdownDescription": "%npm-outdated.configuration.level.description%"
+        },
+        "npm-outdated.majorUpdateProtection": {
+          "order": 2000,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%npm-outdated.configuration.majorUpdateProtection.description%"
+        },
+        "npm-outdated.identifySecurityAdvisories": {
+          "order": 2500,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "%npm-outdated.configuration.identifySecurityAdvisories.description%"
+        },
+        "npm-outdated.decorations": {
+          "order": 3000,
+          "type": "string",
+          "enum": [
+            "fancy",
+            "simple",
+            "disabled"
+          ],
+          "enumDescriptions": [
+            "%npm-outdated.configuration.decorations.fancy.description%",
+            "%npm-outdated.configuration.decorations.simple.description%",
+            "%npm-outdated.configuration.decorations.disabled.description%"
+          ],
+          "default": "fancy",
+          "markdownDescription": "%npm-outdated.configuration.decorations.description%"
         },
         "npm-outdated.cacheLifetime": {
-          "order": 1000,
+          "order": 9000,
           "type": "number",
           "default": 60,
           "minimum": 1,
-          "markdownDescription": "Time in minutes in which the versions of packages already analyzed will be kept internally. Performance improvement."
+          "markdownDescription": "%npm-outdated.configuration.cacheLifetime.description%"
+        },
+        "npm-outdated.parallelProcessesLimit": {
+          "order": 9100,
+          "type": "number",
+          "default": 20,
+          "minimum": 0,
+          "markdownDescription": "%npm-outdated.configuration.parallelProcessesLimit.description%"
         }
       }
     }
