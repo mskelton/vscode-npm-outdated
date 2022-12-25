@@ -1,4 +1,7 @@
 import { cacheEnabled, fetchLite, lazyCallback, promiseLimit } from "./Utils"
+
+const TIMER_MULTIPLER = 3
+
 describe("utils", () => {
   it("lazy callback: immediate call", async () => {
     expect.assertions(1)
@@ -11,10 +14,10 @@ describe("utils", () => {
 
     // Must run immediately:
     lazy(() => {
-      expect(Date.now() - now).toBeLessThan(25)
+      expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
   })
 
   it("lazy callback: avoid first call", async () => {
@@ -22,7 +25,7 @@ describe("utils", () => {
 
     const lazy = lazyCallback((callNumber: () => void) => {
       callNumber()
-    }, 25)
+    }, 25 * TIMER_MULTIPLER)
 
     const now = Date.now()
 
@@ -31,10 +34,10 @@ describe("utils", () => {
 
     // Must run after 25ms:
     lazy(() => {
-      expect(Date.now() - now).toBeGreaterThanOrEqual(25)
+      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
   })
 
   it("lazy callback: wait first call", async () => {
@@ -42,16 +45,16 @@ describe("utils", () => {
 
     const lazy = lazyCallback((callNumber: () => void) => {
       callNumber()
-    }, 25)
+    }, 25 * TIMER_MULTIPLER)
 
     const now = Date.now()
 
     // Must run after 25ms:
     lazy(() => {
-      expect(Date.now() - now).toBeGreaterThanOrEqual(25)
+      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
   })
 
   it("lazy callback: avoid second call", async () => {
@@ -62,13 +65,13 @@ describe("utils", () => {
         callNumber()
       },
       0,
-      25
+      25 * TIMER_MULTIPLER
     )
 
     const now = Date.now()
 
     // Must run immediately:
-    lazy(() => expect(Date.now() - now).toBeLessThan(25))
+    lazy(() => expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLER))
 
     // Must be skipped: too fast call.
     lazy(() => {
@@ -79,11 +82,11 @@ describe("utils", () => {
     lazy(() => {
       const nowDiff = Date.now() - now
 
-      expect(nowDiff).toBeGreaterThanOrEqual(25)
-      expect(nowDiff).toBeLessThan(50)
+      expect(nowDiff).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
+      expect(nowDiff).toBeLessThan(50 * TIMER_MULTIPLER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
   })
 
   it("promise limit: prevent multiple simultaneous processes", async () => {
@@ -92,7 +95,7 @@ describe("utils", () => {
     const processesLimit = promiseLimit(2)
 
     const delay = (): Promise<unknown> =>
-      new Promise((resolve) => setTimeout(resolve, 25))
+      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLER))
 
     const now = Date.now()
 
@@ -105,7 +108,7 @@ describe("utils", () => {
     ])
 
     // The total time should be 50ms.
-    expect(Date.now() - now).toBeGreaterThanOrEqual(50)
+    expect(Date.now() - now).toBeGreaterThanOrEqual(50 * TIMER_MULTIPLER)
   })
 
   it("promise limit: run all processes simultaneous (no limit)", async () => {
@@ -114,7 +117,7 @@ describe("utils", () => {
     const processesLimit = promiseLimit(0)
 
     const delay = (): Promise<unknown> =>
-      new Promise((resolve) => setTimeout(resolve, 25))
+      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLER))
 
     const now = Date.now()
 
@@ -126,7 +129,7 @@ describe("utils", () => {
     ])
 
     // The total time should be lower than 50ms.
-    expect(Date.now() - now).toBeLessThan(50)
+    expect(Date.now() - now).toBeLessThan(50 * TIMER_MULTIPLER)
   })
 
   it("cache enabled (mock function-only)", () => {
