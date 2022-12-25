@@ -1,7 +1,7 @@
 {
   "name": "npm-outdated",
   "displayName": "npm Outdated",
-  "description": "%npm-outdated.description%",
+  "description": "Displays a message in package.json files for packages with newer versions available.",
   "version": "0.0.0-semantically-released",
   "publisher": "mskelton",
   "author": "Mark Skelton",
@@ -80,7 +80,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "jest": "^29.3.1",
     "prettier": "^2.8.1",
-    "semantic-release-vsce": "^5.5.1",
+    "semantic-release-vsce": "^5.5.2",
     "ts-jest": "^29.0.3",
     "typescript": "^4.9.4"
   },
