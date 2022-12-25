@@ -1,6 +1,4 @@
 {
-  "npm-outdated.description": "Exibe uma mensagem nos arquivos package.json para dependências com novas versões disponíveis.",
-
   "npm-outdated.configuration.level.description": "Diferença mínima *semver* necessária para que uma dependência seja exibida como desatualizada. Veja a [documentação Semver](https://docs.npmjs.com/cli/v6/using-npm/semver) (*em inglês*) para mais detalhes.",
   "npm-outdated.configuration.level.major.description": "Somente exibirá um aviso de atualização quando houver uma atualização para versão major (ex. de 1.0.0 para 2.0.0).",
   "npm-outdated.configuration.level.minor.description": "Somente exibirá um aviso de atualização quando houver uma atualização para versão minor (ex. de 1.0.0 para 1.1.0).",

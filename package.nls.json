@@ -1,6 +1,4 @@
 {
-  "npm-outdated.description": "Displays a message in package.json files for packages with newer versions available.",
-
   "npm-outdated.configuration.level.description": "Minimum *semver* bump required for a package to display as outdated. See npm's [Semver docs](https://docs.npmjs.com/cli/v6/using-npm/semver) for more details.",
   "npm-outdated.configuration.level.major.description": "It will only display an update notice when there is a major version update (eg from 1.0.0 to 2.0.0).",
   "npm-outdated.configuration.level.minor.description": "It will only display an update notice when there is a minor version update (eg from 1.0.0 to 1.1.0).",
