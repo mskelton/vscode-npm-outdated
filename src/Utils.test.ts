@@ -1,6 +1,6 @@
 import { cacheEnabled, fetchLite, lazyCallback, promiseLimit } from "./Utils"
 
-const TIMER_MULTIPLER = 3
+const TIMER_MULTIPLIER = 3
 
 describe("utils", () => {
   it("lazy callback: immediate call", async () => {
@@ -14,10 +14,10 @@ describe("utils", () => {
 
     // Must run immediately:
     lazy(() => {
-      expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLER)
+      expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLIER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLIER))
   })
 
   it("lazy callback: avoid first call", async () => {
@@ -25,7 +25,7 @@ describe("utils", () => {
 
     const lazy = lazyCallback((callNumber: () => void) => {
       callNumber()
-    }, 25 * TIMER_MULTIPLER)
+    }, 25 * TIMER_MULTIPLIER)
 
     const now = Date.now()
 
@@ -34,10 +34,10 @@ describe("utils", () => {
 
     // Must run after 25ms:
     lazy(() => {
-      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
+      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLIER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLIER))
   })
 
   it("lazy callback: wait first call", async () => {
@@ -45,16 +45,16 @@ describe("utils", () => {
 
     const lazy = lazyCallback((callNumber: () => void) => {
       callNumber()
-    }, 25 * TIMER_MULTIPLER)
+    }, 25 * TIMER_MULTIPLIER)
 
     const now = Date.now()
 
     // Must run after 25ms:
     lazy(() => {
-      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
+      expect(Date.now() - now).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLIER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLIER))
   })
 
   it("lazy callback: avoid second call", async () => {
@@ -65,13 +65,13 @@ describe("utils", () => {
         callNumber()
       },
       0,
-      25 * TIMER_MULTIPLER
+      25 * TIMER_MULTIPLIER
     )
 
     const now = Date.now()
 
     // Must run immediately:
-    lazy(() => expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLER))
+    lazy(() => expect(Date.now() - now).toBeLessThan(25 * TIMER_MULTIPLIER))
 
     // Must be skipped: too fast call.
     lazy(() => {
@@ -82,11 +82,11 @@ describe("utils", () => {
     lazy(() => {
       const nowDiff = Date.now() - now
 
-      expect(nowDiff).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLER)
-      expect(nowDiff).toBeLessThan(50 * TIMER_MULTIPLER)
+      expect(nowDiff).toBeGreaterThanOrEqual(25 * TIMER_MULTIPLIER)
+      expect(nowDiff).toBeLessThan(50 * TIMER_MULTIPLIER)
     })
 
-    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLER))
+    await new Promise((resolve) => setTimeout(resolve, 50 * TIMER_MULTIPLIER))
   })
 
   it("promise limit: prevent multiple simultaneous processes", async () => {
@@ -95,7 +95,7 @@ describe("utils", () => {
     const processesLimit = promiseLimit(2)
 
     const delay = (): Promise<unknown> =>
-      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLER))
+      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLIER))
 
     const now = Date.now()
 
@@ -108,7 +108,7 @@ describe("utils", () => {
     ])
 
     // The total time should be 50ms.
-    expect(Date.now() - now).toBeGreaterThanOrEqual(50 * TIMER_MULTIPLER)
+    expect(Date.now() - now).toBeGreaterThanOrEqual(50 * TIMER_MULTIPLIER)
   })
 
   it("promise limit: run all processes simultaneous (no limit)", async () => {
@@ -117,7 +117,7 @@ describe("utils", () => {
     const processesLimit = promiseLimit(0)
 
     const delay = (): Promise<unknown> =>
-      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLER))
+      new Promise((resolve) => setTimeout(resolve, 25 * TIMER_MULTIPLIER))
 
     const now = Date.now()
 
@@ -129,7 +129,7 @@ describe("utils", () => {
     ])
 
     // The total time should be lower than 50ms.
-    expect(Date.now() - now).toBeLessThan(50 * TIMER_MULTIPLER)
+    expect(Date.now() - now).toBeLessThan(50 * TIMER_MULTIPLIER)
   })
 
   it("cache enabled (mock function-only)", () => {

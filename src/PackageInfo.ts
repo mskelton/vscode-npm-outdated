@@ -17,6 +17,12 @@ const PACKAGE_NAME_REGEXP =
 
 const PACKAGE_VERSION_COMPLEX_REGEXP = /\s|\|\|/
 
+const PACKAGE_VERSION_PATH_REGEXP = /^(?:\.\.?|~)?\//
+
+const PACKAGE_VERSION_PROTOCOL_REGEX = /^[\w+]+:/
+
+const PACKAGE_VERSION_GITHUB_REGEX = /^[a-zA-Z0-9][\w-]*[a-zA-Z0-9]\//
+
 const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   major: 2,
   minor: 1,
@@ -54,6 +60,16 @@ export class PackageInfo {
   // Eg. "^13 || ^14.5 || 15.6 - 15.7 || >=16.4 <17"
   public isVersionComplex(): boolean {
     return PACKAGE_VERSION_COMPLEX_REGEXP.test(this.version)
+  }
+
+  // Check if a valid version, but not a semver.
+  // Anyway, it will be ignored, but not marked as invalid.
+  public isVersionIgnorable(): boolean {
+    return (
+      PACKAGE_VERSION_PATH_REGEXP.test(this.version) ||
+      PACKAGE_VERSION_PROTOCOL_REGEX.test(this.version) ||
+      PACKAGE_VERSION_GITHUB_REGEX.test(this.version)
+    )
   }
 
   // If the version specified by the user is a valid range.

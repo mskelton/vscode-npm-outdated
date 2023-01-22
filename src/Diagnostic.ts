@@ -245,7 +245,7 @@ export const generatePackagesDiagnostics = async (
         return
       }
 
-      if (packageInfo.isVersionComplex()) {
+      if (packageInfo.isVersionComplex() || packageInfo.isVersionIgnorable()) {
         return
       }
 

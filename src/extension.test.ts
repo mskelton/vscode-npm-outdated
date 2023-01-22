@@ -1,3 +1,4 @@
+// eslint-disable-next-line jest/no-untyped-mock-factory
 jest.mock("child_process", () => ({
   __esModule: true,
   ...jest.requireActual("child_process"),
@@ -794,5 +795,53 @@ describe("security advisories", () => {
     expect(diagnostics[0]?.message).toContain("downgrade")
     expect(decorations[0]).toHaveLength(1)
     expect(decorations[1]).toContain("Security advisory (HIGH/5.6):")
+  })
+
+  it("ignore directory-versions", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: {
+        dependencies: {
+          "npm-outdated-2": "../src",
+          "npm-outdated-3": "./src",
+          "npm-outdated-4": "~/src",
+          "npm-outdated-5": "/src",
+        },
+      },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations).toHaveLength(0)
+  })
+
+  it("ignore protocol versions", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: {
+        dependencies: {
+          "npm-outdated-1": "file:/src",
+          "npm-outdated-2": "http://...",
+          "npm-outdated-3": "https://...",
+          "npm-outdated-4": "git://...",
+          "npm-outdated-5": "git+ssh://...",
+        },
+      },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations).toHaveLength(0)
+  })
+
+  it("ignore github packages", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: {
+        dependencies: {
+          "npm-outdated-1": "mskelton/vscode-npm-outdated",
+          "npm-outdated-2": "mskelton/vscode-npm-outdated#1234567890",
+          "npm-outdated-3": "mskelton/vscode-npm-outdated#feature/branch",
+        },
+      },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations).toHaveLength(0)
   })
 })

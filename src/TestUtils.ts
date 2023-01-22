@@ -14,6 +14,7 @@ import { name as packageName } from "./plugin.json"
 
 import * as Utils from "./Utils"
 
+// eslint-disable-next-line jest/no-untyped-mock-factory
 jest.mock("./Utils", () => ({
   __esModule: true,
 
