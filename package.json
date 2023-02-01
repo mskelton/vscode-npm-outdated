@@ -20,35 +20,11 @@
     "vscode-extension",
     "vscode"
   ],
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    },
-    "extends": [
-      "@mskelton",
-      "@mskelton/eslint-config/typescript",
-      "plugin:@typescript-eslint/strict",
-      "plugin:promise/recommended",
-      "plugin:jest/all"
-    ],
-    "rules": {
-      "no-return-await": "warn",
-      "prefer-template": "warn",
-      "curly": [
-        "warn",
-        "all"
-      ],
-      "@typescript-eslint/explicit-function-return-type": "warn",
-      "jest/unbound-method": "off",
-      "jest/prefer-expect-assertions": "off",
-      "jest/prefer-spy-on": "off"
-    }
-  },
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "compile": "tsc",
-    "watch": "tsc -watch",
+    "watch": "tsc --watch",
     "lint": "eslint src --ext ts",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
@@ -69,6 +45,7 @@
   "main": "./out/extension.js",
   "devDependencies": {
     "@mskelton/eslint-config": "^7.1.0",
+    "@mskelton/tsconfig": "^2.0.0",
     "@types/jest": "^29.2.6",
     "@types/node": "^18.11.18",
     "@types/vscode": "^1.74.0",

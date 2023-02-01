@@ -1,17 +1,13 @@
 import * as ChildProcess from "child_process"
 import { sep } from "path"
-
 import { ReleaseType } from "semver"
 import * as vscode from "vscode"
-
 import { Range } from "vscode"
-
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { DocumentDecorationManager } from "./DocumentDecoration"
 import { activate } from "./extension"
 import { PackageAdvisory } from "./NPM"
-import { name as packageName } from "./plugin.json"
-
+import { pluginName } from "./plugin.js"
 import * as Utils from "./Utils"
 
 // eslint-disable-next-line jest/no-untyped-mock-factory
@@ -171,7 +167,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
         ) {
           return Promise.resolve({
             versions: Object.fromEntries(
-              options.packagesRepository[packageName]?.map((version) => [
+              options.packagesRepository[packageName].map((version) => [
                 version,
                 null,
               ]) as []
@@ -307,7 +303,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   vscodeMock.workspace.getConfiguration = (): unknown => ({
     get: jest.fn(
       <T extends keyof PluginConfigurations>(name: `${string}.${T}`) => {
-        const nameWithoutPrefix = name.slice(packageName.length + 1) as T
+        const nameWithoutPrefix = name.slice(pluginName.length + 1) as T
 
         return options.configurations &&
           nameWithoutPrefix in options.configurations

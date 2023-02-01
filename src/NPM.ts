@@ -1,8 +1,6 @@
 import { exec } from "child_process"
-
 import { prerelease } from "semver"
 import { workspace } from "vscode"
-
 import { Cache } from "./Cache"
 import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"

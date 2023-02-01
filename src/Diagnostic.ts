@@ -35,7 +35,7 @@ import {
   packagesInstalledCache,
 } from "./NPM"
 import { PackageInfo } from "./PackageInfo"
-import { name as packageName } from "./plugin.json"
+import { pluginName } from "./plugin.js"
 import {
   getDecorationsMode,
   getParallelProcessesLimit,
@@ -384,7 +384,7 @@ const detectAdvisoryDiagnostics = async (
       }
     }
 
-    advisoryMessages.push(`(${packageName})`)
+    advisoryMessages.push(`(${pluginName})`)
 
     // And adds a new diagnostic.
     const diagnostic = new Diagnostic(

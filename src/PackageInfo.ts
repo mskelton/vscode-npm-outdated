@@ -9,7 +9,6 @@ import {
   valid,
   validRange,
 } from "semver"
-
 import { Range } from "vscode"
 
 const PACKAGE_NAME_REGEXP =
