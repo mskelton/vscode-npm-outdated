@@ -1,6 +1,5 @@
 import { Diagnostic, DiagnosticCollection, TextDocument } from "vscode"
-
-import { lazyCallback } from "./Utils"
+import { lazyCallback } from "./Utils.js"
 
 // This class assists in managing diagnostics for the document.
 export class DocumentDiagnostics {

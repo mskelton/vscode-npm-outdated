@@ -1,6 +1,12 @@
 import { exec } from "node:child_process"
 import { dirname } from "node:path"
-import { commands, l10n, OutputChannel, TextDocument, window } from "vscode"
+import {
+  commands,
+  l10n,
+  type OutputChannel,
+  type TextDocument,
+  window,
+} from "vscode"
 import { pluginName } from "./plugin.js"
 
 export const COMMAND_INSTALL = `${pluginName}.install`

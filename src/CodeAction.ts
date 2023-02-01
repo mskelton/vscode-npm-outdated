@@ -8,11 +8,10 @@ import {
   TextDocument,
   WorkspaceEdit,
 } from "vscode"
-
-import { COMMAND_INSTALL_REQUEST } from "./Command"
-import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic"
+import { COMMAND_INSTALL_REQUEST } from "./Command.js"
+import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic.js"
 import { pluginName } from "./plugin.js"
-import { hasMajorUpdateProtection } from "./Settings"
+import { hasMajorUpdateProtection } from "./Settings.js"
 
 export const DIAGNOSTIC_ACTION = pluginName
 

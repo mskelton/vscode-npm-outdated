@@ -1,4 +1,5 @@
-import { cacheEnabled, fetchLite, lazyCallback, promiseLimit } from "./Utils"
+import { describe, expect, it } from "@jest/globals"
+import { cacheEnabled, fetchLite, lazyCallback, promiseLimit } from "./Utils.js"
 
 const TIMER_MULTIPLIER = 3
 

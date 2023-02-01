@@ -1,7 +1,6 @@
 import { commands, DocumentSymbol, Range, TextDocument } from "vscode"
-
-import { PackageInfo } from "./PackageInfo"
-import { waitUntil } from "./Utils"
+import { PackageInfo } from "./PackageInfo.js"
+import { waitUntil } from "./Utils.js"
 
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.

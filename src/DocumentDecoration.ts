@@ -1,5 +1,4 @@
 import { prerelease } from "semver"
-
 import {
   DecorationOptions,
   l10n,
@@ -10,13 +9,12 @@ import {
   ThemableDecorationAttachmentRenderOptions,
   window,
 } from "vscode"
-
-import { PackageRelatedDiagnostic } from "./Diagnostic"
-import { PackageAdvisory } from "./NPM"
-import { PackageInfo } from "./PackageInfo"
-import { getDecorationsMode } from "./Settings"
-import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme"
-import { lazyCallback } from "./Utils"
+import { PackageRelatedDiagnostic } from "./Diagnostic.js"
+import { PackageAdvisory } from "./NPM.js"
+import { PackageInfo } from "./PackageInfo.js"
+import { getDecorationsMode } from "./Settings.js"
+import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme.js"
+import { lazyCallback } from "./Utils.js"
 
 class Message {
   constructor(

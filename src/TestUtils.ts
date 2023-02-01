@@ -1,32 +1,15 @@
-import * as ChildProcess from "child_process"
-import { sep } from "path"
+import { jest } from "@jest/globals"
+import ChildProcess from "node:child_process"
+import { sep } from "node:path"
 import { ReleaseType } from "semver"
 import * as vscode from "vscode"
 import { Range } from "vscode"
-import { PackageJsonCodeActionProvider } from "./CodeAction"
-import { DocumentDecorationManager } from "./DocumentDecoration"
-import { activate } from "./extension"
-import { PackageAdvisory } from "./NPM"
+import { PackageJsonCodeActionProvider } from "./CodeAction.js"
+import { DocumentDecorationManager } from "./DocumentDecoration.js"
+import { activate } from "./extension.js"
+import { PackageAdvisory } from "./NPM.js"
 import { pluginName } from "./plugin.js"
-import * as Utils from "./Utils"
-
-// eslint-disable-next-line jest/no-untyped-mock-factory
-jest.mock("./Utils", () => ({
-  __esModule: true,
-
-  lazyCallback: <T extends () => void>(callback: T): T => callback,
-
-  promiseLimit:
-    () =>
-    <T extends () => void>(callback: T): unknown =>
-      callback(),
-
-  waitUntil: (callback: () => void): Promise<true> => {
-    callback()
-
-    return Promise.resolve(true)
-  },
-}))
+import * as Utils from "./Utils.js"
 
 interface PluginConfigurations {
   cacheLifetime?: number
@@ -89,8 +72,7 @@ const ChildProcessMock = ChildProcess as {
 }
 
 const UtilsMock = Utils as {
-  cacheEnabled: typeof import("./Utils").cacheEnabled
-
+  cacheEnabled(): boolean
   fetchLite: unknown
 }
 

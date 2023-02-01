@@ -1,4 +1,4 @@
-import { sep } from "path"
+import { sep } from "node:path"
 import {
   intersects,
   maxSatisfying,
@@ -6,7 +6,6 @@ import {
   prerelease,
   satisfies,
 } from "semver"
-
 import {
   Diagnostic,
   DiagnosticCollection,
@@ -21,28 +20,27 @@ import {
   window,
   workspace,
 } from "vscode"
-
-import { DIAGNOSTIC_ACTION } from "./CodeAction"
-import { getDocumentPackages } from "./Document"
+import { DIAGNOSTIC_ACTION } from "./CodeAction.js"
+import { getDocumentPackages } from "./Document.js"
 import {
   DocumentDecoration,
   DocumentDecorationManager,
-} from "./DocumentDecoration"
-import { DocumentDiagnostics } from "./DocumentDiagnostics"
+} from "./DocumentDecoration.js"
+import { DocumentDiagnostics } from "./DocumentDiagnostics.js"
 import {
   getPackagesAdvisories,
   PackagesAdvisories,
   packagesInstalledCache,
-} from "./NPM"
-import { PackageInfo } from "./PackageInfo"
+} from "./NPM.js"
+import { PackageInfo } from "./PackageInfo.js"
 import { pluginName } from "./plugin.js"
 import {
   getDecorationsMode,
   getParallelProcessesLimit,
   identifySecurityAdvisories,
-} from "./Settings"
-import { Icons } from "./Theme"
-import { promiseLimit } from "./Utils"
+} from "./Settings.js"
+import { Icons } from "./Theme.js"
+import { promiseLimit } from "./Utils.js"
 
 const PACKAGE_JSON_PATH = `${sep}package.json`
 

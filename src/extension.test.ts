@@ -1,14 +1,27 @@
-// eslint-disable-next-line jest/no-untyped-mock-factory
-jest.mock("child_process", () => ({
-  __esModule: true,
-  ...jest.requireActual("child_process"),
+import { describe, expect, it, jest } from "@jest/globals"
+import { Icons } from "./Theme.js"
+import { createVscode } from "./vscode.mock.js"
+
+jest.unstable_mockModule("vscode", () => createVscode(), { virtual: true })
+
+jest.unstable_mockModule("./Utils.js", () => ({
+  lazyCallback: <T extends () => void>(callback: T): T => callback,
+  promiseLimit:
+    () =>
+    <T extends () => void>(callback: T): unknown =>
+      callback(),
+  waitUntil: (callback: () => void): Promise<true> => {
+    callback()
+
+    return Promise.resolve(true)
+  },
 }))
 
-import { DiagnosticSeverity } from "vscode"
-
-import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
-import { vscodeSimulator } from "./TestUtils"
-import { Icons } from "./Theme"
+const { DiagnosticSeverity } = await import("vscode")
+const { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } = await import(
+  "./Command.js"
+)
+const { vscodeSimulator } = await import("./TestUtils.js")
 
 describe("package diagnostics", () => {
   it("initialization without a package.json", async () => {

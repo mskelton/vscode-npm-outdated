@@ -32,8 +32,8 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   /** ignore */ prerelease: -1,
 }
 
-import { getPackagesInstalled, getPackageVersions } from "./NPM"
-import { getLevel, hasMajorUpdateProtection } from "./Settings"
+import { getPackagesInstalled, getPackageVersions } from "./NPM.js"
+import { getLevel, hasMajorUpdateProtection } from "./Settings.js"
 
 // The package info, based on user-document.
 export class PackageInfo {
