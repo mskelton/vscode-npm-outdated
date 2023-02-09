@@ -11,6 +11,19 @@ import { PackageAdvisory } from "./NPM.js"
 import { pluginName } from "./plugin.js"
 import * as Utils from "./Utils.js"
 
+vi.mock("./Utils.js", () => ({
+  lazyCallback: <T extends () => void>(callback: T): T => callback,
+  promiseLimit:
+    () =>
+    <T extends () => void>(callback: T): unknown =>
+      callback(),
+  waitUntil: (callback: () => void): Promise<true> => {
+    callback()
+
+    return Promise.resolve(true)
+  },
+}))
+
 interface PluginConfigurations {
   cacheLifetime?: number
   decorations?: "fancy" | "simple" | "disabled"

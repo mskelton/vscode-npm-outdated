@@ -101,19 +101,6 @@ vi.mock("vscode", () => {
   }
 })
 
-vi.mock("./Utils.js", () => ({
-  lazyCallback: <T extends () => void>(callback: T): T => callback,
-  promiseLimit:
-    () =>
-    <T extends () => void>(callback: T): unknown =>
-      callback(),
-  waitUntil: (callback: () => void): Promise<true> => {
-    callback()
-
-    return Promise.resolve(true)
-  },
-}))
-
 describe("package diagnostics", () => {
   it("initialization without a package.json", async () => {
     const { decorations, diagnostics } = await vscodeSimulator()
