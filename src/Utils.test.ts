@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals"
+import { describe, expect, it } from "vitest"
 import { cacheEnabled, fetchLite, lazyCallback, promiseLimit } from "./Utils.js"
 
 const TIMER_MULTIPLIER = 3

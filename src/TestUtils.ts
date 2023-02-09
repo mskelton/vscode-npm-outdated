@@ -1,7 +1,7 @@
-import { jest } from "@jest/globals"
 import ChildProcess from "node:child_process"
 import { sep } from "node:path"
 import { ReleaseType } from "semver"
+import { vi } from "vitest"
 import * as vscode from "vscode"
 import { Range } from "vscode"
 import { PackageJsonCodeActionProvider } from "./CodeAction.js"
@@ -265,10 +265,10 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
       return items[0]
     }
 
-  vscodeMock.window.createOutputChannel = jest.fn(() => ({
-    append: jest.fn(),
-    clear: jest.fn(),
-    show: jest.fn(),
+  vscodeMock.window.createOutputChannel = vi.fn(() => ({
+    append: vi.fn(),
+    clear: vi.fn(),
+    show: vi.fn(),
   }))
 
   vscodeMock.workspace.onDidChangeTextDocument = (handle: () => void): number =>
@@ -283,7 +283,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   })
 
   vscodeMock.workspace.getConfiguration = (): unknown => ({
-    get: jest.fn(
+    get: vi.fn(
       <T extends keyof PluginConfigurations>(name: `${string}.${T}`) => {
         const nameWithoutPrefix = name.slice(pluginName.length + 1) as T
 
@@ -295,9 +295,9 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     ),
   })
 
-  vscodeMock.languages.createDiagnosticCollection = jest.fn(() => ({
-    clear: jest.fn(),
-    delete: jest.fn(),
+  vscodeMock.languages.createDiagnosticCollection = vi.fn(() => ({
+    clear: vi.fn(),
+    delete: vi.fn(),
     set: (_uri: vscode.Uri, diags: vscode.Diagnostic[]): vscode.Diagnostic[] =>
       (diagnostics = diags),
   }))
@@ -313,7 +313,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     }
   }
 
-  const context = { subscriptions: { push: jest.fn() } }
+  const context = { subscriptions: { push: vi.fn() } }
 
   activate(context as unknown as vscode.ExtensionContext)
 

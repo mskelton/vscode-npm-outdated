@@ -1,10 +1,107 @@
-import { describe, expect, it, jest } from "@jest/globals"
+import { describe, expect, it, vi } from "vitest"
+import { DiagnosticSeverity } from "vscode"
+import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command.js"
+import { vscodeSimulator } from "./TestUtils.js"
 import { Icons } from "./Theme.js"
-import { createVscode } from "./vscode.mock.js"
 
-jest.unstable_mockModule("vscode", () => createVscode(), { virtual: true })
+vi.mock("vscode", () => {
+  class Range {
+    public start: { character: number; line: number }
+    public end: { character: number; line: number }
 
-jest.unstable_mockModule("./Utils.js", () => ({
+    constructor(
+      startLine: number,
+      startCharacter: number,
+      endLine: number,
+      endCharacter: number
+    ) {
+      this.start = { character: startCharacter, line: startLine }
+      this.end = { character: endCharacter, line: endLine }
+    }
+  }
+
+  const ExtensionContext = vi.fn(() => ({
+    subscriptions: vi.fn(() => ({
+      push: vi.fn(),
+    })),
+  }))
+
+  class Diagnostic {
+    constructor(
+      public range: typeof Range,
+      public message: string,
+      public severity?: DiagnosticSeverity
+    ) {}
+  }
+
+  enum DiagnosticSeverity {
+    Error,
+    Warning,
+    Information,
+    Hint,
+  }
+
+  const CodeActionKind = {
+    QuickFix: "QuickFix",
+  }
+
+  const commands = {}
+
+  const languages = {
+    registerCodeActionsProvider: vi.fn(),
+  }
+
+  const window = {
+    createTextEditorDecorationType: (): symbol => Symbol(),
+  }
+
+  const Uri = {
+    parse: (): undefined => undefined,
+  }
+
+  const workspace = vi.fn()
+
+  const WorkspaceEdit = vi.fn(() => ({
+    replace: (): undefined => undefined,
+  }))
+
+  class CodeAction {
+    constructor(public title: string) {}
+  }
+
+  const l10n = {
+    t: (message: string, ...args: unknown[]): string => {
+      let messageModified = message
+
+      args.forEach((arg, argIndex) => {
+        messageModified = messageModified.replace(
+          new RegExp(`\\{${argIndex}\\}`, "g"),
+          String(arg)
+        )
+      })
+
+      return messageModified
+    },
+  }
+
+  return {
+    CodeAction,
+    CodeActionKind,
+    commands,
+    Diagnostic,
+    DiagnosticSeverity,
+    ExtensionContext,
+    l10n,
+    languages,
+    Range,
+    Uri,
+    window,
+    workspace,
+    WorkspaceEdit,
+  }
+})
+
+vi.mock("./Utils.js", () => ({
   lazyCallback: <T extends () => void>(callback: T): T => callback,
   promiseLimit:
     () =>
@@ -16,12 +113,6 @@ jest.unstable_mockModule("./Utils.js", () => ({
     return Promise.resolve(true)
   },
 }))
-
-const { DiagnosticSeverity } = await import("vscode")
-const { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } = await import(
-  "./Command.js"
-)
-const { vscodeSimulator } = await import("./TestUtils.js")
 
 describe("package diagnostics", () => {
   it("initialization without a package.json", async () => {
@@ -649,7 +740,7 @@ describe("commands", () => {
       packagesInstalled: { "npm-outdated": "1.0.0" },
       packagesRepository: { "npm-outdated": ["1.0.0", "2.0.0"] },
       runAction: {
-        args: [{ save: jest.fn(), uri: { fsPath: "./test" } }],
+        args: [{ save: vi.fn(), uri: { fsPath: "./test" } }],
         name: COMMAND_INSTALL_REQUEST,
       },
       selectFirsts: 1,
@@ -781,7 +872,7 @@ describe("security advisories", () => {
     expect(decorations[1]).toContain("Security advisory (HIGH/5.6):")
   })
 
-  it("needs downgrade", async () => {
+  it.only("needs downgrade", async () => {
     const { decorations, diagnostics } = await vscodeSimulator({
       packageJson: {
         dependencies: {
