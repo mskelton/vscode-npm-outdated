@@ -103,8 +103,6 @@ const dependenciesAsChildren = (
   })
 }
 
-type ExecCallback = (error: string | null, stdout: string | null) => void
-
 // Simulates launching diagnostics in a virtual packages.json file.
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
