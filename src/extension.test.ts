@@ -859,7 +859,7 @@ describe("security advisories", () => {
     expect(decorations[1]).toContain("Security advisory (HIGH/5.6):")
   })
 
-  it.only("needs downgrade", async () => {
+  it("needs downgrade", async () => {
     const { decorations, diagnostics } = await vscodeSimulator({
       packageJson: {
         dependencies: {

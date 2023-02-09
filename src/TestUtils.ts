@@ -1,4 +1,4 @@
-import ChildProcess from "node:child_process"
+import { exec } from "node:child_process"
 import { sep } from "node:path"
 import { ReleaseType } from "semver"
 import { vi } from "vitest"
@@ -10,6 +10,12 @@ import { activate } from "./extension.js"
 import { PackageAdvisory } from "./NPM.js"
 import { pluginName } from "./plugin.js"
 import * as Utils from "./Utils.js"
+
+const execMock = vi.mocked(exec)
+
+vi.mock("node:child_process", () => ({
+  exec: vi.fn(),
+}))
 
 vi.mock("./Utils.js", () => ({
   lazyCallback: <T extends () => void>(callback: T): T => callback,
@@ -78,10 +84,6 @@ const vscodeMock = vscode as {
   Range: ExplicitAny
   window: ExplicitAny
   workspace: ExplicitAny
-}
-
-const ChildProcessMock = ChildProcess as {
-  exec: ExplicitAny
 }
 
 const UtilsMock = Utils as {
@@ -175,12 +177,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     return Promise.resolve(undefined)
   }
 
-  ChildProcessMock.exec = (
-    command: string,
-    execOptions: ExecCallback | undefined,
-    callback?: ExecCallback
-  ): unknown => {
-    const callbackReal = callback ?? execOptions
+  execMock.mockImplementation((command, execOptions, callback) => {
+    const callbackReal = (callback ?? execOptions) as any
 
     if (command === "npm ls --json --depth=0" && options.packagesInstalled) {
       return callbackReal!(
@@ -220,7 +218,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
           callback("test"),
       },
     }
-  }
+  })
 
   vscodeMock.commands.executeCommand = (
     command: string
