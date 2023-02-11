@@ -4,11 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: pnpm install
+      - uses: mskelton/setup-pnpm@v1
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm test
@@ -17,11 +13,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: pnpm install
+      - uses: mskelton/setup-pnpm@v1
       - run: pnpm semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
