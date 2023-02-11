@@ -1,4 +1,4 @@
-import { IncomingMessage } from "http"
+import { IncomingMessage } from "node:http"
 import https from "node:https"
 import url from "node:url"
 import zlib from "node:zlib"
