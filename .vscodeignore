@@ -11,8 +11,4 @@ locales/bundle.l10n.jsonc
 .prettierignore
 .gitignore
 
-jest.config.js
 tsconfig.json
-
-out/**
-!out/extension.js

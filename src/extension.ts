@@ -6,16 +6,18 @@ import {
   TextDocument,
   window,
 } from "vscode"
-
-import { PackageJsonCodeActionProvider } from "./CodeAction"
+import { PackageJsonCodeActionProvider } from "./CodeAction.js"
 import {
   COMMAND_INSTALL,
   COMMAND_INSTALL_REQUEST,
   packageInstall,
   packageInstallRequest,
-} from "./Command"
-import { diagnosticSubscribe, generatePackagesDiagnostics } from "./Diagnostic"
-import { lazyCallback } from "./Utils"
+} from "./Command.js"
+import {
+  diagnosticSubscribe,
+  generatePackagesDiagnostics,
+} from "./Diagnostic.js"
+import { lazyCallback } from "./Utils.js"
 
 export function activate(context: ExtensionContext): void {
   const diagnostics = languages.createDiagnosticCollection()

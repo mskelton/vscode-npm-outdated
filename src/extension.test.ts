@@ -1,14 +1,105 @@
-// eslint-disable-next-line jest/no-untyped-mock-factory
-jest.mock("child_process", () => ({
-  __esModule: true,
-  ...jest.requireActual("child_process"),
-}))
-
+import { describe, expect, it, vi } from "vitest"
 import { DiagnosticSeverity } from "vscode"
+import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command.js"
+import { vscodeSimulator } from "./TestUtils.js"
+import { Icons } from "./Theme.js"
 
-import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
-import { vscodeSimulator } from "./TestUtils"
-import { Icons } from "./Theme"
+vi.mock("vscode", () => {
+  class Range {
+    public start: { character: number; line: number }
+    public end: { character: number; line: number }
+
+    constructor(
+      startLine: number,
+      startCharacter: number,
+      endLine: number,
+      endCharacter: number
+    ) {
+      this.start = { character: startCharacter, line: startLine }
+      this.end = { character: endCharacter, line: endLine }
+    }
+  }
+
+  const ExtensionContext = vi.fn(() => ({
+    subscriptions: vi.fn(() => ({
+      push: vi.fn(),
+    })),
+  }))
+
+  class Diagnostic {
+    constructor(
+      public range: typeof Range,
+      public message: string,
+      public severity?: DiagnosticSeverity
+    ) {}
+  }
+
+  enum DiagnosticSeverity {
+    Error,
+    Warning,
+    Information,
+    Hint,
+  }
+
+  const CodeActionKind = {
+    QuickFix: "QuickFix",
+  }
+
+  const commands = {}
+
+  const languages = {
+    registerCodeActionsProvider: vi.fn(),
+  }
+
+  const window = {
+    createTextEditorDecorationType: (): symbol => Symbol(),
+  }
+
+  const Uri = {
+    parse: (): undefined => undefined,
+  }
+
+  const workspace = vi.fn()
+
+  const WorkspaceEdit = vi.fn(() => ({
+    replace: (): undefined => undefined,
+  }))
+
+  class CodeAction {
+    constructor(public title: string) {}
+  }
+
+  const l10n = {
+    t: (message: string, ...args: unknown[]): string => {
+      let messageModified = message
+
+      args.forEach((arg, argIndex) => {
+        messageModified = messageModified.replace(
+          new RegExp(`\\{${argIndex}\\}`, "g"),
+          String(arg)
+        )
+      })
+
+      return messageModified
+    },
+  }
+
+  return {
+    CodeAction,
+    CodeActionKind,
+    commands,
+    Diagnostic,
+    DiagnosticSeverity,
+    ExtensionContext,
+    l10n,
+    languages,
+    Range,
+    Uri,
+    window,
+    workspace,
+    WorkspaceEdit,
+  }
+})
 
 describe("package diagnostics", () => {
   it("initialization without a package.json", async () => {
@@ -636,7 +727,7 @@ describe("commands", () => {
       packagesInstalled: { "npm-outdated": "1.0.0" },
       packagesRepository: { "npm-outdated": ["1.0.0", "2.0.0"] },
       runAction: {
-        args: [{ save: jest.fn(), uri: { fsPath: "./test" } }],
+        args: [{ save: vi.fn(), uri: { fsPath: "./test" } }],
         name: COMMAND_INSTALL_REQUEST,
       },
       selectFirsts: 1,

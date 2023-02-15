@@ -8,13 +8,12 @@ import {
   TextDocument,
   WorkspaceEdit,
 } from "vscode"
+import { COMMAND_INSTALL_REQUEST } from "./Command.js"
+import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic.js"
+import { pluginName } from "./plugin.js"
+import { hasMajorUpdateProtection } from "./Settings.js"
 
-import { COMMAND_INSTALL_REQUEST } from "./Command"
-import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic"
-import { name as packageName } from "./plugin.json"
-import { hasMajorUpdateProtection } from "./Settings"
-
-export const DIAGNOSTIC_ACTION = packageName
+export const DIAGNOSTIC_ACTION = pluginName
 
 const VERSION_PREFIX_REGEXP = /^\s*(\^|~|=|>=|<=)/
 

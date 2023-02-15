@@ -1,0 +1,16 @@
+{
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "extends": [
+    "@mskelton",
+    "@mskelton/eslint-config/typescript",
+    "plugin:@typescript-eslint/strict",
+    "plugin:promise/recommended"
+  ],
+  "rules": {
+    "no-return-await": "warn",
+    "prefer-template": "warn",
+    "curly": ["warn", "all"]
+  }
+}

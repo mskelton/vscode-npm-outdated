@@ -1,12 +1,10 @@
-import { exec } from "child_process"
-import { dirname } from "path"
-
+import { exec } from "node:child_process"
+import { dirname } from "node:path"
 import { commands, l10n, OutputChannel, TextDocument, window } from "vscode"
+import { pluginName } from "./plugin.js"
 
-import { name as packageName } from "./plugin.json"
-
-export const COMMAND_INSTALL = `${packageName}.install`
-export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`
+export const COMMAND_INSTALL = `${pluginName}.install`
+export const COMMAND_INSTALL_REQUEST = `${pluginName}.installRequest`
 
 export const packageInstallRequest = async (
   document: TextDocument

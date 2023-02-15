@@ -1,30 +1,28 @@
-import * as ChildProcess from "child_process"
-import { sep } from "path"
-
+import { exec } from "node:child_process"
+import { sep } from "node:path"
 import { ReleaseType } from "semver"
+import { vi } from "vitest"
 import * as vscode from "vscode"
-
 import { Range } from "vscode"
+import { PackageJsonCodeActionProvider } from "./CodeAction.js"
+import { DocumentDecorationManager } from "./DocumentDecoration.js"
+import { activate } from "./extension.js"
+import { PackageAdvisory } from "./NPM.js"
+import { pluginName } from "./plugin.js"
+import * as Utils from "./Utils.js"
 
-import { PackageJsonCodeActionProvider } from "./CodeAction"
-import { DocumentDecorationManager } from "./DocumentDecoration"
-import { activate } from "./extension"
-import { PackageAdvisory } from "./NPM"
-import { name as packageName } from "./plugin.json"
+const execMock = vi.mocked(exec)
 
-import * as Utils from "./Utils"
+vi.mock("node:child_process", () => ({
+  exec: vi.fn(),
+}))
 
-// eslint-disable-next-line jest/no-untyped-mock-factory
-jest.mock("./Utils", () => ({
-  __esModule: true,
-
+vi.mock("./Utils.js", () => ({
   lazyCallback: <T extends () => void>(callback: T): T => callback,
-
   promiseLimit:
     () =>
     <T extends () => void>(callback: T): unknown =>
       callback(),
-
   waitUntil: (callback: () => void): Promise<true> => {
     callback()
 
@@ -88,13 +86,8 @@ const vscodeMock = vscode as {
   workspace: ExplicitAny
 }
 
-const ChildProcessMock = ChildProcess as {
-  exec: ExplicitAny
-}
-
 const UtilsMock = Utils as {
-  cacheEnabled: typeof import("./Utils").cacheEnabled
-
+  cacheEnabled(): boolean
   fetchLite: unknown
 }
 
@@ -109,8 +102,6 @@ const dependenciesAsChildren = (
     } as vscode.DocumentSymbol
   })
 }
-
-type ExecCallback = (error: string | null, stdout: string | null) => void
 
 // Simulates launching diagnostics in a virtual packages.json file.
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -171,7 +162,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
         ) {
           return Promise.resolve({
             versions: Object.fromEntries(
-              options.packagesRepository[packageName]?.map((version) => [
+              options.packagesRepository[packageName].map((version) => [
                 version,
                 null,
               ]) as []
@@ -184,12 +175,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     return Promise.resolve(undefined)
   }
 
-  ChildProcessMock.exec = (
-    command: string,
-    execOptions: ExecCallback | undefined,
-    callback?: ExecCallback
-  ): unknown => {
-    const callbackReal = callback ?? execOptions
+  execMock.mockImplementation((command, execOptions, callback) => {
+    const callbackReal = (callback ?? execOptions) as any
 
     if (command === "npm ls --json --depth=0" && options.packagesInstalled) {
       return callbackReal!(
@@ -229,7 +216,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
           callback("test"),
       },
     }
-  }
+  })
 
   vscodeMock.commands.executeCommand = (
     command: string
@@ -287,10 +274,10 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
       return items[0]
     }
 
-  vscodeMock.window.createOutputChannel = jest.fn(() => ({
-    append: jest.fn(),
-    clear: jest.fn(),
-    show: jest.fn(),
+  vscodeMock.window.createOutputChannel = vi.fn(() => ({
+    append: vi.fn(),
+    clear: vi.fn(),
+    show: vi.fn(),
   }))
 
   vscodeMock.workspace.onDidChangeTextDocument = (handle: () => void): number =>
@@ -305,9 +292,9 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   })
 
   vscodeMock.workspace.getConfiguration = (): unknown => ({
-    get: jest.fn(
+    get: vi.fn(
       <T extends keyof PluginConfigurations>(name: `${string}.${T}`) => {
-        const nameWithoutPrefix = name.slice(packageName.length + 1) as T
+        const nameWithoutPrefix = name.slice(pluginName.length + 1) as T
 
         return options.configurations &&
           nameWithoutPrefix in options.configurations
@@ -317,9 +304,9 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     ),
   })
 
-  vscodeMock.languages.createDiagnosticCollection = jest.fn(() => ({
-    clear: jest.fn(),
-    delete: jest.fn(),
+  vscodeMock.languages.createDiagnosticCollection = vi.fn(() => ({
+    clear: vi.fn(),
+    delete: vi.fn(),
     set: (_uri: vscode.Uri, diags: vscode.Diagnostic[]): vscode.Diagnostic[] =>
       (diagnostics = diags),
   }))
@@ -335,7 +322,7 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     }
   }
 
-  const context = { subscriptions: { push: jest.fn() } }
+  const context = { subscriptions: { push: vi.fn() } }
 
   activate(context as unknown as vscode.ExtensionContext)
 

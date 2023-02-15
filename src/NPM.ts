@@ -1,12 +1,10 @@
-import { exec } from "child_process"
-
+import { exec } from "node:child_process"
 import { prerelease } from "semver"
 import { workspace } from "vscode"
-
-import { Cache } from "./Cache"
-import { PackageInfo } from "./PackageInfo"
-import { getCacheLifetime } from "./Settings"
-import { cacheEnabled, fetchLite } from "./Utils"
+import { Cache } from "./Cache.js"
+import { PackageInfo } from "./PackageInfo.js"
+import { getCacheLifetime } from "./Settings.js"
+import { cacheEnabled, fetchLite } from "./Utils.js"
 
 type PackagesVersions = Map<string, Cache<Promise<string[] | null>>>
 

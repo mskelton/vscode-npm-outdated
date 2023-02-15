@@ -1,8 +1,7 @@
-import url = require("node:url")
-import https = require("node:https")
-import zlib = require("node:zlib")
-
-import { IncomingMessage } from "http"
+import { IncomingMessage } from "node:http"
+import https from "node:https"
+import url from "node:url"
+import zlib from "node:zlib"
 
 // This function allows to call a "lazy" callback.
 // The first execution can be delayed when the "wait" parameter is different from zero, otherwise it will be immediate.
