@@ -31,7 +31,7 @@ import {
   getPackagesAdvisories,
   PackagesAdvisories,
   packagesInstalledCache,
-} from "./NPM"
+} from "./PackageManager"
 import { PackageInfo } from "./PackageInfo"
 import { name as packageName } from "./plugin.json"
 import {

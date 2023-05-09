@@ -10,7 +10,7 @@ import {
   validRange,
 } from "semver"
 import { Range } from "vscode"
-import { getPackagesInstalled, getPackageVersions } from "./NPM"
+import { getPackagesInstalled, getPackageVersions } from "./PackageManager"
 import { getLevel, hasMajorUpdateProtection } from "./Settings"
 
 const PACKAGE_NAME_REGEXP =

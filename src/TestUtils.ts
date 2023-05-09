@@ -6,7 +6,7 @@ import { Range } from "vscode"
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { DocumentDecorationManager } from "./DocumentDecoration"
 import { activate } from "./extension"
-import { PackageAdvisory } from "./NPM"
+import { PackageAdvisory } from "./PackageManager"
 import { name as packageName } from "./plugin.json"
 import * as Utils from "./Utils"
 

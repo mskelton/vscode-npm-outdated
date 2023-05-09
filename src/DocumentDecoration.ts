@@ -10,8 +10,8 @@ import {
   window,
 } from "vscode"
 import { PackageRelatedDiagnostic } from "./Diagnostic"
-import { PackageAdvisory } from "./NPM"
 import { PackageInfo } from "./PackageInfo"
+import { PackageAdvisory } from "./PackageManager"
 import { getDecorationsMode } from "./Settings"
 import { Icons, Margins, ThemeDark, ThemeLight } from "./Theme"
 import { lazyCallback } from "./Utils"
