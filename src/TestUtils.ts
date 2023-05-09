@@ -1,17 +1,13 @@
-import * as ChildProcess from "child_process"
-import { sep } from "path"
-
+import * as ChildProcess from "node:child_process"
+import { sep } from "node:path"
 import { ReleaseType } from "semver"
 import * as vscode from "vscode"
-
 import { Range } from "vscode"
-
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { DocumentDecorationManager } from "./DocumentDecoration"
 import { activate } from "./extension"
 import { PackageAdvisory } from "./NPM"
 import { name as packageName } from "./plugin.json"
-
 import * as Utils from "./Utils"
 
 // eslint-disable-next-line jest/no-untyped-mock-factory
@@ -34,7 +30,7 @@ jest.mock("./Utils", () => ({
 
 interface PluginConfigurations {
   cacheLifetime?: number
-  decorations?: "fancy" | "simple" | "disabled"
+  decorations?: "disabled" | "fancy" | "simple"
   identifySecurityAdvisories?: boolean
   level?: ReleaseType
   majorUpdateProtection?: boolean

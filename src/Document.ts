@@ -1,5 +1,4 @@
 import { commands, DocumentSymbol, Range, TextDocument } from "vscode"
-
 import { PackageInfo } from "./PackageInfo"
 import { waitUntil } from "./Utils"
 

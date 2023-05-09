@@ -8,7 +8,6 @@ import {
   TextDocument,
   WorkspaceEdit,
 } from "vscode"
-
 import { COMMAND_INSTALL_REQUEST } from "./Command"
 import { DiagnosticType, PackageRelatedDiagnostic } from "./Diagnostic"
 import { name as packageName } from "./plugin.json"

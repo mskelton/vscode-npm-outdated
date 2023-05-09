@@ -9,8 +9,9 @@ import {
   valid,
   validRange,
 } from "semver"
-
 import { Range } from "vscode"
+import { getPackagesInstalled, getPackageVersions } from "./NPM"
+import { getLevel, hasMajorUpdateProtection } from "./Settings"
 
 const PACKAGE_NAME_REGEXP =
   /^(?:@[a-z0-9-][a-z0-9-._]*\/)?[a-z0-9-][a-z0-9-._]*$/
@@ -32,9 +33,6 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
   /** ignore */ prepatch: -1,
   /** ignore */ prerelease: -1,
 }
-
-import { getPackagesInstalled, getPackageVersions } from "./NPM"
-import { getLevel, hasMajorUpdateProtection } from "./Settings"
 
 // The package info, based on user-document.
 export class PackageInfo {

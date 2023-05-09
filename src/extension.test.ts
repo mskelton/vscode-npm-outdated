@@ -1,11 +1,10 @@
 // eslint-disable-next-line jest/no-untyped-mock-factory
-jest.mock("child_process", () => ({
+jest.mock("node:child_process", () => ({
   __esModule: true,
-  ...jest.requireActual("child_process"),
+  ...jest.requireActual("node:child_process"),
 }))
 
 import { DiagnosticSeverity } from "vscode"
-
 import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
 import { vscodeSimulator } from "./TestUtils"
 import { Icons } from "./Theme"

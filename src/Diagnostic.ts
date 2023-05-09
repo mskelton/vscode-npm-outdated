@@ -1,4 +1,4 @@
-import { sep } from "path"
+import { sep } from "node:path"
 import {
   intersects,
   maxSatisfying,
@@ -6,7 +6,6 @@ import {
   prerelease,
   satisfies,
 } from "semver"
-
 import {
   Diagnostic,
   DiagnosticCollection,
@@ -21,7 +20,6 @@ import {
   window,
   workspace,
 } from "vscode"
-
 import { DIAGNOSTIC_ACTION } from "./CodeAction"
 import { getDocumentPackages } from "./Document"
 import {

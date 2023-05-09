@@ -1,6 +1,5 @@
 import { ReleaseType } from "semver"
 import { workspace } from "vscode"
-
 import { name as packageName } from "./plugin.json"
 
 // Minimum semver bump required for a package to display as outdated.
@@ -24,7 +23,7 @@ export const identifySecurityAdvisories = (): boolean =>
 
 // Displays decorations on the right side of packages.
 // Default: true.
-export const getDecorationsMode = (): "fancy" | "simple" | "disabled" =>
+export const getDecorationsMode = (): "disabled" | "fancy" | "simple" =>
   workspace.getConfiguration().get(`${packageName}.decorations`)!
 
 // Time in minutes in which the versions of packages already analyzed will be kept internally.

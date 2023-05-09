@@ -1,5 +1,4 @@
 import { prerelease } from "semver"
-
 import {
   DecorationOptions,
   l10n,
@@ -10,7 +9,6 @@ import {
   ThemableDecorationAttachmentRenderOptions,
   window,
 } from "vscode"
-
 import { PackageRelatedDiagnostic } from "./Diagnostic"
 import { PackageAdvisory } from "./NPM"
 import { PackageInfo } from "./PackageInfo"

@@ -6,7 +6,6 @@ import {
   TextDocument,
   window,
 } from "vscode"
-
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import {
   COMMAND_INSTALL,
