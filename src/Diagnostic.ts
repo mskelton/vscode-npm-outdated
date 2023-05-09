@@ -42,10 +42,8 @@ import {
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
 
-const PACKAGE_JSON_PATH = `${sep}package.json`
-
 const isPackageJsonDocument = (document: TextDocument): boolean =>
-  document.fileName.endsWith(PACKAGE_JSON_PATH)
+  document.fileName.endsWith(`${sep}package.json`)
 
 export const diagnosticSubscribe = (
   context: ExtensionContext,
@@ -84,7 +82,7 @@ export const diagnosticSubscribe = (
   // Our interest here is to know about package-lock.json.
   context.subscriptions.push(
     workspace
-      .createFileSystemWatcher("**/package-lock.json")
+      .createFileSystemWatcher("**/{package-lock.json,pnpm-lock.yaml}")
       .onDidChange(() => {
         packagesInstalledCache?.invalidate()
 

@@ -698,7 +698,7 @@ describe("code coverage", () => {
     expect(decorations).toStrictEqual([])
   })
 
-  it("simulate packages-lock.json change", async () => {
+  it("simulate packages-lock.json or pnpm-lock.yaml change", async () => {
     const { decorations, diagnostics, subscriptions } = await vscodeSimulator()
 
     subscriptions.find(
