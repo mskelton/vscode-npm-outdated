@@ -27,12 +27,14 @@ import {
   DocumentDecorationManager,
 } from "./DocumentDecoration"
 import { DocumentDiagnostics } from "./DocumentDiagnostics"
+import { PackageInfo } from "./PackageInfo"
 import {
+  getPackageManager,
   getPackagesAdvisories,
+  PackageManager,
   PackagesAdvisories,
   packagesInstalledCache,
 } from "./PackageManager"
-import { PackageInfo } from "./PackageInfo"
 import { name as packageName } from "./plugin.json"
 import {
   getDecorationsMode,
@@ -214,6 +216,11 @@ export const generatePackagesDiagnostics = async (
   document: TextDocument,
   diagnosticsCollection: DiagnosticCollection
 ): Promise<void> => {
+  // Soft-disable extension if none Package Manager installed is detected.
+  if ((await getPackageManager()) === PackageManager.NONE) {
+    return
+  }
+
   // Read dependencies from package.json to get the name of packages used.
   const packagesInfos = Object.values(await getDocumentPackages(document))
 

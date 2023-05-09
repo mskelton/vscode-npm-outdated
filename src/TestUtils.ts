@@ -1,4 +1,5 @@
 import * as ChildProcess from "node:child_process"
+import * as FS from "node:fs"
 import { sep } from "node:path"
 import { ReleaseType } from "semver"
 import * as vscode from "vscode"
@@ -6,7 +7,7 @@ import { Range } from "vscode"
 import { PackageJsonCodeActionProvider } from "./CodeAction"
 import { DocumentDecorationManager } from "./DocumentDecoration"
 import { activate } from "./extension"
-import { PackageAdvisory } from "./PackageManager"
+import { PackageAdvisory, PackageManager } from "./PackageManager"
 import { name as packageName } from "./plugin.json"
 import * as Utils from "./Utils"
 
@@ -60,6 +61,8 @@ interface SimulatorOptions {
 
   packageJson?: "" | PackageJson
 
+  packageManager?: PackageManager
+
   packagesAdvisories?: Record<string, PackageAdvisory[]>
 
   packagesInstalled?: Record<string, string>
@@ -86,6 +89,10 @@ const vscodeMock = vscode as {
 
 const ChildProcessMock = ChildProcess as {
   exec: ExplicitAny
+}
+
+const FSMock = FS as {
+  existsSync: ExplicitAny
 }
 
 const UtilsMock = Utils as {
@@ -120,6 +127,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   const subscriptions: [string, (...args: ExplicitAny[]) => void][] = []
   const commands: [string, (...args: ExplicitAny[]) => void][] = []
 
+  const packageManager = options.packageManager ?? PackageManager.NPM
+
   const document = {
     fileName: `${sep}tests${sep}package.json`,
     lineAt: (line: number) => ({
@@ -149,6 +158,14 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
         })
       })
     },
+  }
+
+  FSMock.existsSync = (file: string): boolean => {
+    if (file.endsWith("/.pnpm") && packageManager === PackageManager.PNPM) {
+      return true
+    }
+
+    return false
   }
 
   UtilsMock.cacheEnabled = (): boolean => options.cacheEnabled === true
@@ -185,10 +202,14 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     execOptions: ExecCallback | undefined,
     callback?: ExecCallback
   ): unknown => {
-    const callbackReal = callback ?? execOptions
+    const callbackReal = (callback ?? execOptions)!
 
-    if (command === "npm ls --json --depth=0" && options.packagesInstalled) {
-      return callbackReal!(
+    if (
+      command === "npm ls --json --depth=0" &&
+      options.packagesInstalled &&
+      packageManager === PackageManager.NPM
+    ) {
+      return callbackReal(
         null,
         JSON.stringify({
           dependencies: Object.fromEntries(
@@ -199,6 +220,36 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
           ),
         })
       )
+    }
+
+    if (
+      command === "pnpm ls --json --depth=0" &&
+      options.packagesInstalled &&
+      packageManager === PackageManager.PNPM
+    ) {
+      return callbackReal(
+        null,
+        JSON.stringify([
+          {
+            dependencies: Object.fromEntries(
+              Object.entries(options.packagesInstalled).map(
+                ([name, version]) => [name, { version }]
+              )
+            ),
+          },
+        ])
+      )
+    }
+
+    if (command === "npm --version" && packageManager === PackageManager.NPM) {
+      return callbackReal(null, "1.0.0\n")
+    }
+
+    if (
+      command === "pnpm --version" &&
+      packageManager === PackageManager.PNPM
+    ) {
+      return callbackReal(null, "1.0.0\n")
     }
 
     if (typeof callbackReal === "function") {

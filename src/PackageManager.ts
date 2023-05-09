@@ -1,12 +1,21 @@
 import { exec } from "node:child_process"
+import { existsSync } from "node:fs"
 import { prerelease } from "semver"
-import { workspace } from "vscode"
 import { Cache } from "./Cache"
 import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"
 import { cacheEnabled, fetchLite } from "./Utils"
+import { getWorkspacePath } from "./Workspace"
+
+const PACKAGE_VERSION_REGEXP = /^\d+\.\d+\.\d+$/
 
 type PackagesVersions = Map<string, Cache<Promise<string[] | null>>>
+
+export const enum PackageManager {
+  NPM,
+  PNPM,
+  NONE,
+}
 
 interface NPMRegistryPackage {
   versions?: Record<string, unknown>
@@ -62,8 +71,11 @@ export const getPackageVersions = async (
   return execPromise
 }
 
+type NPMDependencies = Record<string, { version: string }>
+
 interface NPMListResponse {
-  dependencies?: Record<string, { version: string }>
+  dependencies?: NPMDependencies
+  devDependencies?: NPMDependencies
 }
 
 export let packagesInstalledCache:
@@ -72,16 +84,122 @@ export let packagesInstalledCache:
 
 export type PackagesInstalled = Record<string, string | undefined>
 
+const packageManagerExecCache = new Cache<Record<string, boolean>>({})
+
+// Return if asked Package Manager is installed.
+const supportsPackageManager = async (
+  cmd: "npm" | "pnpm"
+): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (
+      cacheEnabled() &&
+      packageManagerExecCache.isValid(getCacheLifetime()) &&
+      cmd in packageManagerExecCache.value
+    ) {
+      resolve(packageManagerExecCache.value[cmd]!)
+      return
+    }
+
+    const cwd = getWorkspacePath()
+
+    exec(`${cmd} --version`, { cwd }, (_error, stdout) => {
+      const isInstalled =
+        !_error && PACKAGE_VERSION_REGEXP.test(stdout.trimEnd())
+
+      packageManagerExecCache.value[cmd] = isInstalled
+
+      resolve(isInstalled)
+    })
+  })
+}
+
+const packageManagerCache = new Cache<PackageManager | undefined>(undefined)
+
+// Return the current Package Manager.
+export const getPackageManager = async (): Promise<PackageManager> => {
+  if (
+    cacheEnabled() &&
+    packageManagerCache.value &&
+    packageManagerCache.isValid(getCacheLifetime())
+  ) {
+    return packageManagerCache.value!
+  }
+
+  const cwd = getWorkspacePath()
+
+  // Using PNPM with already installed node_modules/ directory.
+  if (
+    existsSync(`${cwd}/node_modules/.pnpm`) &&
+    (await supportsPackageManager("pnpm"))
+  ) {
+    packageManagerCache.value = PackageManager.PNPM
+  }
+  // Not installed node_modules/ but pnpm-lock.yaml is present.
+  else if (
+    existsSync(`${cwd}/pnpm-lock.yaml`) &&
+    (await supportsPackageManager("pnpm"))
+  ) {
+    packageManagerCache.value = PackageManager.PNPM
+  }
+  // In last case, check for NPM.
+  else if (await supportsPackageManager("npm")) {
+    packageManagerCache.value = PackageManager.NPM
+  }
+  // None available Package Manager supported.
+  else {
+    packageManagerCache.value = PackageManager.NONE
+  }
+
+  return packageManagerCache.value
+}
+
 // Returns packages installed by the user and their respective versions.
-export const getPackagesInstalled = (): Promise<
+export const getPackagesInstalled = async (): Promise<
   PackagesInstalled | undefined
 > => {
   if (cacheEnabled() && packagesInstalledCache?.isValid(60 * 60 * 1000)) {
     return packagesInstalledCache.value
   }
 
+  const packageManager = await getPackageManager()
+
   const execPromise = new Promise<PackagesInstalled | undefined>((resolve) => {
-    const cwd = workspace.workspaceFolders?.[0]?.uri.fsPath
+    const cwd = getWorkspacePath()
+
+    if (packageManager === PackageManager.PNPM) {
+      return exec("pnpm ls --json --depth=0", { cwd }, (_error, stdout) => {
+        if (stdout) {
+          try {
+            const execResult = JSON.parse(stdout) as [NPMListResponse]
+
+            if (Array.isArray(execResult)) {
+              const [execResultInner] = execResult
+              const dependencies: NPMDependencies = {
+                ...(execResultInner.dependencies ?? {}),
+                ...(execResultInner.devDependencies ?? {}),
+              }
+
+              if (Object.keys(dependencies).length) {
+                // The `npm ls` command returns a lot of information.
+                // We only need the name of the installed package and its version.
+                const packageEntries = Object.entries(dependencies).map(
+                  ([packageName, packageInfo]) => [
+                    packageName,
+                    packageInfo.version,
+                  ]
+                )
+
+                return resolve(Object.fromEntries(packageEntries))
+              }
+            }
+          } catch (e) {
+            /* empty */
+          }
+        }
+
+        return resolve(undefined)
+      })
+    }
 
     return exec("npm ls --json --depth=0", { cwd }, (_error, stdout) => {
       if (stdout) {

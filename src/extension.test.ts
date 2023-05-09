@@ -4,8 +4,15 @@ jest.mock("node:child_process", () => ({
   ...jest.requireActual("node:child_process"),
 }))
 
+// eslint-disable-next-line jest/no-untyped-mock-factory
+jest.mock("node:fs", () => ({
+  __esModule: true,
+  ...jest.requireActual("node:fs"),
+}))
+
 import { DiagnosticSeverity } from "vscode"
 import { COMMAND_INSTALL, COMMAND_INSTALL_REQUEST } from "./Command"
+import { PackageManager } from "./PackageManager"
 import { vscodeSimulator } from "./TestUtils"
 import { Icons } from "./Theme"
 
@@ -842,5 +849,39 @@ describe("security advisories", () => {
 
     expect(diagnostics).toHaveLength(0)
     expect(decorations).toHaveLength(0)
+  })
+
+  it("detect installed modules: none", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: { dependencies: { jest: "^1.0.1" } },
+      packageManager: PackageManager.NONE,
+      packagesRepository: { jest: ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations).toHaveLength(0)
+  })
+
+  it("detect installed modules: npm", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: { dependencies: { jest: "^1.0.1" } },
+      packagesInstalled: { jest: "1.0.1" },
+      packagesRepository: { jest: ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations[0]).toContain(Icons.CHECKED)
+  })
+
+  it("detect installed modules: pnpm", async () => {
+    const { decorations, diagnostics } = await vscodeSimulator({
+      packageJson: { dependencies: { jest: "^1.0.1" } },
+      packageManager: PackageManager.PNPM,
+      packagesInstalled: { jest: "1.0.1" },
+      packagesRepository: { jest: ["1.0.0", "1.0.1"] },
+    })
+
+    expect(diagnostics).toHaveLength(0)
+    expect(decorations[0]).toContain(Icons.CHECKED)
   })
 })
