@@ -33,7 +33,7 @@ import {
   getPackagesAdvisories,
   PackageManager,
   PackagesAdvisories,
-  packagesInstalledCache,
+  packagesInstalledCaches,
 } from "./PackageManager"
 import { name as packageName } from "./plugin.json"
 import {
@@ -43,6 +43,7 @@ import {
 } from "./Settings"
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
+import { getWorkspacePath } from "./Workspace"
 
 const isPackageJsonDocument = (document: TextDocument): boolean =>
   document.fileName.endsWith(`${sep}package.json`)
@@ -85,8 +86,8 @@ export const diagnosticSubscribe = (
   context.subscriptions.push(
     workspace
       .createFileSystemWatcher("**/{package-lock.json,pnpm-lock.yaml}")
-      .onDidChange(() => {
-        packagesInstalledCache?.invalidate()
+      .onDidChange((uri: Uri) => {
+        packagesInstalledCaches.get(getWorkspacePath(uri))?.invalidate()
 
         window.visibleTextEditors.forEach((editor) =>
           handleChange(editor.document)
@@ -217,7 +218,7 @@ export const generatePackagesDiagnostics = async (
   diagnosticsCollection: DiagnosticCollection
 ): Promise<void> => {
   // Soft-disable extension if none Package Manager installed is detected.
-  if ((await getPackageManager()) === PackageManager.NONE) {
+  if ((await getPackageManager(document)) === PackageManager.NONE) {
     return
   }
 

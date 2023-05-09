@@ -1,4 +1,4 @@
-import { workspace } from "vscode"
+import { Uri, workspace } from "vscode"
 
-export const getWorkspacePath = (): string | undefined =>
-  workspace.workspaceFolders?.[0]?.uri.fsPath
+export const getWorkspacePath = (uri: Uri): string =>
+  workspace.getWorkspaceFolder(uri)!.uri.fsPath

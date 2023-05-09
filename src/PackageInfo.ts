@@ -9,7 +9,7 @@ import {
   valid,
   validRange,
 } from "semver"
-import { Range } from "vscode"
+import { Range, TextDocument } from "vscode"
 import { getPackagesInstalled, getPackageVersions } from "./PackageManager"
 import { getLevel, hasMajorUpdateProtection } from "./Settings"
 
@@ -37,6 +37,7 @@ const PACKAGE_DIFF_LEVELS: Record<ReleaseType, number> = {
 // The package info, based on user-document.
 export class PackageInfo {
   constructor(
+    public document: TextDocument,
     public name: string,
     public range: Range,
     public version: string,
@@ -116,7 +117,7 @@ export class PackageInfo {
 
   // Get the package version installed.
   public async getVersionInstalled(): Promise<string | undefined> {
-    const packagesInstalled = await getPackagesInstalled()
+    const packagesInstalled = await getPackagesInstalled(this.document)
 
     return packagesInstalled?.[this.name]
   }

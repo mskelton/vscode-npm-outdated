@@ -1,6 +1,7 @@
 import { exec } from "node:child_process"
 import { existsSync } from "node:fs"
 import { prerelease } from "semver"
+import { TextDocument } from "vscode"
 import { Cache } from "./Cache"
 import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"
@@ -78,16 +79,13 @@ interface NPMListResponse {
   devDependencies?: NPMDependencies
 }
 
-export let packagesInstalledCache:
-  | Cache<Promise<PackagesInstalled | undefined>>
-  | undefined
-
 export type PackagesInstalled = Record<string, string | undefined>
 
 const packageManagerExecCache = new Cache<Record<string, boolean>>({})
 
 // Return if asked Package Manager is installed.
 const supportsPackageManager = async (
+  document: TextDocument,
   cmd: "npm" | "pnpm"
 ): Promise<boolean> => {
   return new Promise((resolve) => {
@@ -100,11 +98,11 @@ const supportsPackageManager = async (
       return
     }
 
-    const cwd = getWorkspacePath()
+    const cwd = getWorkspacePath(document.uri)
 
-    exec(`${cmd} --version`, { cwd }, (_error, stdout) => {
+    exec(`${cmd} --version`, { cwd }, (error, stdout) => {
       const isInstalled =
-        !_error && PACKAGE_VERSION_REGEXP.test(stdout.trimEnd())
+        !error && PACKAGE_VERSION_REGEXP.test(stdout.trimEnd())
 
       packageManagerExecCache.value[cmd] = isInstalled
 
@@ -113,59 +111,80 @@ const supportsPackageManager = async (
   })
 }
 
-const packageManagerCache = new Cache<PackageManager | undefined>(undefined)
+const packageManagerCaches = new Map<
+  string,
+  Cache<PackageManager | undefined>
+>()
 
 // Return the current Package Manager.
-export const getPackageManager = async (): Promise<PackageManager> => {
-  if (
-    cacheEnabled() &&
-    packageManagerCache.value &&
-    packageManagerCache.isValid(getCacheLifetime())
-  ) {
-    return packageManagerCache.value!
+export const getPackageManager = async (
+  document: TextDocument
+): Promise<PackageManager> => {
+  const cwd = getWorkspacePath(document.uri)
+
+  if (cacheEnabled()) {
+    const packageManagerCache = packageManagerCaches.get(cwd)
+
+    if (
+      packageManagerCache?.value &&
+      packageManagerCache.isValid(getCacheLifetime())
+    ) {
+      return packageManagerCache.value!
+    }
   }
 
-  const cwd = getWorkspacePath()
+  let packageManager: PackageManager
 
   // Using PNPM with already installed node_modules/ directory.
   if (
     existsSync(`${cwd}/node_modules/.pnpm`) &&
-    (await supportsPackageManager("pnpm"))
+    (await supportsPackageManager(document, "pnpm"))
   ) {
-    packageManagerCache.value = PackageManager.PNPM
+    packageManager = PackageManager.PNPM
   }
   // Not installed node_modules/ but pnpm-lock.yaml is present.
   else if (
     existsSync(`${cwd}/pnpm-lock.yaml`) &&
-    (await supportsPackageManager("pnpm"))
+    (await supportsPackageManager(document, "pnpm"))
   ) {
-    packageManagerCache.value = PackageManager.PNPM
+    packageManager = PackageManager.PNPM
   }
   // In last case, check for NPM.
-  else if (await supportsPackageManager("npm")) {
-    packageManagerCache.value = PackageManager.NPM
+  else if (await supportsPackageManager(document, "npm")) {
+    packageManager = PackageManager.NPM
   }
   // None available Package Manager supported.
   else {
-    packageManagerCache.value = PackageManager.NONE
+    packageManager = PackageManager.NONE
   }
 
-  return packageManagerCache.value
+  packageManagerCaches.set(cwd, new Cache(packageManager))
+
+  return packageManager
 }
 
+export const packagesInstalledCaches = new Map<
+  string,
+  Cache<Promise<PackagesInstalled | undefined>>
+>()
+
 // Returns packages installed by the user and their respective versions.
-export const getPackagesInstalled = async (): Promise<
-  PackagesInstalled | undefined
-> => {
-  if (cacheEnabled() && packagesInstalledCache?.isValid(60 * 60 * 1000)) {
-    return packagesInstalledCache.value
+export const getPackagesInstalled = async (
+  document: TextDocument
+): Promise<PackagesInstalled | undefined> => {
+  const cwd = getWorkspacePath(document.uri)
+
+  if (cacheEnabled()) {
+    const cache = packagesInstalledCaches.get(cwd)
+
+    if (cache?.isValid(60 * 60 * 1000)) {
+      return cache.value
+    }
   }
 
-  const packageManager = await getPackageManager()
+  const packageManager = await getPackageManager(document)
 
   const execPromise = new Promise<PackagesInstalled | undefined>((resolve) => {
-    const cwd = getWorkspacePath()
-
     if (packageManager === PackageManager.PNPM) {
       return exec("pnpm ls --json --depth=0", { cwd }, (_error, stdout) => {
         if (stdout) {
@@ -224,7 +243,7 @@ export const getPackagesInstalled = async (): Promise<
     })
   })
 
-  packagesInstalledCache = new Cache(execPromise)
+  packagesInstalledCaches.set(cwd, new Cache(execPromise))
 
   return execPromise
 }

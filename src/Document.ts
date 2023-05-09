@@ -5,6 +5,7 @@ import { waitUntil } from "./Utils"
 // Process packages of a certain dependency type (eg from "dependencies" and "devDependencies").
 // Returns existing packages, their versions and the package range.
 const mapDependencyRange = (
+  document: TextDocument,
   documentSymbol: DocumentSymbol | undefined
 ): PackageInfo[] => {
   if (!documentSymbol || documentSymbol.children.length === 0) {
@@ -14,6 +15,7 @@ const mapDependencyRange = (
   return documentSymbol.children.map(
     (child) =>
       new PackageInfo(
+        document,
         child.name,
         child.range,
         child.detail,
@@ -53,8 +55,8 @@ export const getDocumentPackages = async (
 
   return Object.fromEntries(
     [
-      ...mapDependencyRange(symbolDependencies),
-      ...mapDependencyRange(symbolDevDependencies),
+      ...mapDependencyRange(document, symbolDependencies),
+      ...mapDependencyRange(document, symbolDevDependencies),
     ].map((documentPackage) => [documentPackage.name, documentPackage])
   )
 }
