@@ -163,6 +163,27 @@ export const getPackageManager = async (
   return packageManager
 }
 
+const getPackagesInstalledEntries = (
+  packages: NPMListResponse
+): PackagesInstalled | null => {
+  const dependencies: NPMDependencies = {
+    ...(packages.dependencies ?? {}),
+    ...(packages.devDependencies ?? {}),
+  }
+
+  if (Object.keys(dependencies).length) {
+    // The `npm ls` command returns a lot of information.
+    // We only need the name of the installed package and its version.
+    const packageEntries = Object.entries(dependencies).map(
+      ([packageName, packageInfo]) => [packageName, packageInfo.version]
+    )
+
+    return Object.fromEntries(packageEntries)
+  }
+
+  return null
+}
+
 export const packagesInstalledCaches = new Map<
   string,
   Cache<Promise<PackagesInstalled | undefined>>
@@ -192,23 +213,12 @@ export const getPackagesInstalled = async (
             const execResult = JSON.parse(stdout) as [NPMListResponse]
 
             if (Array.isArray(execResult)) {
-              const [execResultInner] = execResult
-              const dependencies: NPMDependencies = {
-                ...(execResultInner.dependencies ?? {}),
-                ...(execResultInner.devDependencies ?? {}),
-              }
+              const packagesInstalled = getPackagesInstalledEntries(
+                execResult[0]
+              )
 
-              if (Object.keys(dependencies).length) {
-                // The `npm ls` command returns a lot of information.
-                // We only need the name of the installed package and its version.
-                const packageEntries = Object.entries(dependencies).map(
-                  ([packageName, packageInfo]) => [
-                    packageName,
-                    packageInfo.version,
-                  ]
-                )
-
-                return resolve(Object.fromEntries(packageEntries))
+              if (packagesInstalled !== null) {
+                return resolve(packagesInstalled)
               }
             }
           } catch (e) {
@@ -223,16 +233,12 @@ export const getPackagesInstalled = async (
     return exec("npm ls --json --depth=0", { cwd }, (_error, stdout) => {
       if (stdout) {
         try {
-          const execResult = JSON.parse(stdout) as NPMListResponse
+          const packagesInstalled = getPackagesInstalledEntries(
+            JSON.parse(stdout)
+          )
 
-          if (execResult.dependencies) {
-            // The `npm ls` command returns a lot of information.
-            // We only need the name of the installed package and its version.
-            const packageEntries = Object.entries(execResult.dependencies).map(
-              ([packageName, packageInfo]) => [packageName, packageInfo.version]
-            )
-
-            return resolve(Object.fromEntries(packageEntries))
+          if (packagesInstalled !== null) {
+            return resolve(packagesInstalled)
           }
         } catch (e) {
           /* empty */
