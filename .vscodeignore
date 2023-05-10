@@ -14,6 +14,7 @@ locales/bundle.l10n.jsonc
 
 jest.config.js
 tsconfig.json
+pnpm-lock.yaml
 
 out/**
 !out/extension.js
