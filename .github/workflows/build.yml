@@ -13,7 +13,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm test
-      - run: pnpm compile -- --noEmit
+      - run: pnpm compile --noEmit
   release:
     needs: test
     runs-on: ubuntu-latest

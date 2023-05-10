@@ -349,6 +349,8 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
   vscodeMock.workspace.createFileSystemWatcher = (): unknown => ({
     onDidChange: (handle: () => void): number =>
       subscriptions.push(["onDidChange", handle]),
+    onDidCreate: () => null,
+    onDidDelete: () => null,
   })
 
   vscodeMock.workspace.getConfiguration = (): unknown => ({

@@ -77,6 +77,7 @@ type NPMDependencies = Record<string, { version: string }>
 interface NPMListResponse {
   dependencies?: NPMDependencies
   devDependencies?: NPMDependencies
+  peerDependencies?: NPMDependencies
 }
 
 export type PackagesInstalled = Record<string, string | undefined>
