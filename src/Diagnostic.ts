@@ -32,6 +32,7 @@ import {
   getPackageManager,
   getPackagesAdvisories,
   PackageManager,
+  packageManagerCaches,
   PackagesAdvisories,
   packagesInstalledCaches,
 } from "./PackageManager"
@@ -82,18 +83,23 @@ export const diagnosticSubscribe = (
   )
 
   // Trigger when any file in the workspace is modified.
-  // Our interest here is to know about package-lock.json.
-  context.subscriptions.push(
-    workspace
-      .createFileSystemWatcher("**/{package-lock.json,pnpm-lock.yaml}")
-      .onDidChange((uri: Uri) => {
-        packagesInstalledCaches.get(getWorkspacePath(uri))?.invalidate()
-
-        window.visibleTextEditors.forEach((editor) =>
-          handleChange(editor.document)
-        )
-      })
+  // Our interest here is to know about package-lock.json or pnpm-lock.yaml.
+  const lockerWatcher = workspace.createFileSystemWatcher(
+    "**/{package-lock.json,pnpm-lock.yaml}"
   )
+
+  const lockerUpdated = (uri: Uri) => {
+    const workspacePath = getWorkspacePath(uri)
+
+    packageManagerCaches.get(workspacePath)?.invalidate()
+    packagesInstalledCaches.get(workspacePath)?.invalidate()
+
+    window.visibleTextEditors.forEach((editor) => handleChange(editor.document))
+  }
+
+  context.subscriptions.push(lockerWatcher.onDidCreate(lockerUpdated))
+  context.subscriptions.push(lockerWatcher.onDidChange(lockerUpdated))
+  context.subscriptions.push(lockerWatcher.onDidDelete(lockerUpdated))
 
   // Trigger when the active document is closed, removing the current document from the diagnostic collection.
   context.subscriptions.push(

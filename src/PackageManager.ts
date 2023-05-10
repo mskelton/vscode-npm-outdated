@@ -111,7 +111,7 @@ const supportsPackageManager = async (
   })
 }
 
-const packageManagerCaches = new Map<
+export const packageManagerCaches = new Map<
   string,
   Cache<PackageManager | undefined>
 >()
