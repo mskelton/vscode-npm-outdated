@@ -60,7 +60,8 @@
     "prettier": "^2.8.8",
     "semantic-release-vsce": "^5.5.9",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "eslint-plugin-sort": "^2.10.0"
   },
   "dependencies": {
     "semver": "^7.5.0"

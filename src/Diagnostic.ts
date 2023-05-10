@@ -88,7 +88,7 @@ export const diagnosticSubscribe = (
     "**/{package-lock.json,pnpm-lock.yaml}"
   )
 
-  const lockerUpdated = (uri: Uri) => {
+  const lockerUpdated = (uri: Uri): void => {
     const workspacePath = getWorkspacePath(uri)
 
     packageManagerCaches.get(workspacePath)?.invalidate()
