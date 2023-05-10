@@ -10,6 +10,7 @@ locales/bundle.l10n.jsonc
 .eslintignore
 .prettierignore
 .gitignore
+.swcrc
 
 jest.config.js
 tsconfig.json
