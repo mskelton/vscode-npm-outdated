@@ -84,10 +84,6 @@ export const diagnosticSubscribe = (
 
   // Trigger when any file in the workspace is modified.
   // Our interest here is to know about package-lock.json or pnpm-lock.yaml.
-  const lockerWatcher = workspace.createFileSystemWatcher(
-    "**/{package-lock.json,pnpm-lock.yaml}"
-  )
-
   const lockerUpdated = (uri: Uri): void => {
     const workspacePath = getWorkspacePath(uri)
 
@@ -97,9 +93,21 @@ export const diagnosticSubscribe = (
     window.visibleTextEditors.forEach((editor) => handleChange(editor.document))
   }
 
+  const lockerWatcher = workspace.createFileSystemWatcher(
+    "**/{package-lock.json,pnpm-lock.yaml}"
+  )
+
   context.subscriptions.push(lockerWatcher.onDidCreate(lockerUpdated))
   context.subscriptions.push(lockerWatcher.onDidChange(lockerUpdated))
   context.subscriptions.push(lockerWatcher.onDidDelete(lockerUpdated))
+
+  const nodeModulesWatcher = workspace.createFileSystemWatcher(
+    "**/node_modules/**/*"
+  )
+
+  context.subscriptions.push(nodeModulesWatcher.onDidCreate(lockerUpdated))
+  context.subscriptions.push(nodeModulesWatcher.onDidChange(lockerUpdated))
+  context.subscriptions.push(nodeModulesWatcher.onDidDelete(lockerUpdated))
 
   // Trigger when the active document is closed, removing the current document from the diagnostic collection.
   context.subscriptions.push(
