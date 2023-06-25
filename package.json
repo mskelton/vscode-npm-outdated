@@ -33,7 +33,7 @@
   },
   "icon": "assets/icon.png",
   "engines": {
-    "vscode": "^1.78.1"
+    "vscode": "^1.79.1"
   },
   "categories": [
     "Linters",

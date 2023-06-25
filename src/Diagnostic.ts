@@ -83,7 +83,7 @@ export const diagnosticSubscribe = (
   )
 
   // Trigger when any file in the workspace is modified.
-  // Our interest here is to know about package-lock.json or pnpm-lock.yaml.
+  // Our interest here is to know about the package.json itself, package-lock.json or pnpm-lock.yaml.
   const lockerUpdated = (uri: Uri): void => {
     const workspacePath = getWorkspacePath(uri)
 
@@ -94,7 +94,7 @@ export const diagnosticSubscribe = (
   }
 
   const lockerWatcher = workspace.createFileSystemWatcher(
-    "**/{package-lock.json,pnpm-lock.yaml}"
+    "**/{package.json,package-lock.json,pnpm-lock.yaml}"
   )
 
   context.subscriptions.push(lockerWatcher.onDidCreate(lockerUpdated))
