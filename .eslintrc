@@ -4,7 +4,7 @@
   },
   "extends": [
     "@mskelton",
-    "@mskelton/eslint-config/typescript",
+    "@mskelton/eslint-config",
     "plugin:@typescript-eslint/strict",
     "plugin:promise/recommended",
     "plugin:jest/all"
