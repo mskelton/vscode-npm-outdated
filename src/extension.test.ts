@@ -710,7 +710,7 @@ describe("code coverage", () => {
 
     subscriptions.find(
       (subscription) => subscription[0] === "onDidChange",
-    )?.[1]()
+    )?.[1]({ fsPath: "/repo/package.json" })
 
     expect(diagnostics).toHaveLength(0)
     expect(decorations).toStrictEqual([])

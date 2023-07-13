@@ -1,12 +1,12 @@
 import { exec } from "node:child_process"
 import { existsSync } from "node:fs"
+import { dirname } from "node:path"
 import { prerelease } from "semver"
 import { TextDocument } from "vscode"
 import { Cache } from "./Cache"
 import { PackageInfo } from "./PackageInfo"
 import { getCacheLifetime } from "./Settings"
 import { cacheEnabled, fetchLite } from "./Utils"
-import { getWorkspacePath } from "./Workspace"
 
 const PACKAGE_VERSION_REGEXP = /^\d+\.\d+\.\d+$/
 
@@ -99,7 +99,7 @@ const supportsPackageManager = async (
       return
     }
 
-    const cwd = getWorkspacePath(document.uri)
+    const cwd = dirname(document.uri.fsPath)
 
     exec(`${cmd} --version`, { cwd }, (error, stdout) => {
       const isInstalled =
@@ -121,7 +121,7 @@ export const packageManagerCaches = new Map<
 export const getPackageManager = async (
   document: TextDocument,
 ): Promise<PackageManager> => {
-  const cwd = getWorkspacePath(document.uri)
+  const cwd = dirname(document.uri.fsPath)
 
   if (cacheEnabled()) {
     const packageManagerCache = packageManagerCaches.get(cwd)
@@ -194,7 +194,7 @@ export const packagesInstalledCaches = new Map<
 export const getPackagesInstalled = async (
   document: TextDocument,
 ): Promise<PackagesInstalled | undefined> => {
-  const cwd = getWorkspacePath(document.uri)
+  const cwd = dirname(document.uri.fsPath)
 
   if (cacheEnabled()) {
     const cache = packagesInstalledCaches.get(cwd)

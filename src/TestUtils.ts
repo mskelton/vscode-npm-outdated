@@ -366,10 +366,6 @@ export const vscodeSimulator = async (options: SimulatorOptions = {}) => {
     ),
   })
 
-  vscodeMock.workspace.getWorkspaceFolder = (): unknown => ({
-    uri: { fsPath: "<root>/" },
-  })
-
   vscodeMock.languages.createDiagnosticCollection = jest.fn(() => ({
     clear: jest.fn(),
     delete: jest.fn(),

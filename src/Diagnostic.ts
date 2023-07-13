@@ -1,4 +1,4 @@
-import { sep } from "node:path"
+import { dirname, sep } from "node:path"
 import {
   intersects,
   maxSatisfying,
@@ -44,7 +44,6 @@ import {
 } from "./Settings"
 import { Icons } from "./Theme"
 import { promiseLimit } from "./Utils"
-import { getWorkspacePath } from "./Workspace"
 
 const isPackageJsonDocument = (document: TextDocument): boolean =>
   document.fileName.endsWith(`${sep}package.json`)
@@ -85,7 +84,7 @@ export const diagnosticSubscribe = (
   // Trigger when any file in the workspace is modified.
   // Our interest here is to know about the package.json itself, package-lock.json or pnpm-lock.yaml.
   const lockerUpdated = (uri: Uri): void => {
-    const workspacePath = getWorkspacePath(uri)
+    const workspacePath = dirname(uri.fsPath)
 
     packageManagerCaches.get(workspacePath)?.invalidate()
     packagesInstalledCaches.get(workspacePath)?.invalidate()
