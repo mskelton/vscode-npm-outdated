@@ -41,7 +41,7 @@ export class PackageInfo {
     public name: string,
     public range: Range,
     public version: string,
-    public versionRange: Range // The package version range only.
+    public versionRange: Range, // The package version range only.
   ) {}
 
   // Get the package line on `packages.json` document.
@@ -101,7 +101,7 @@ export class PackageInfo {
       versionLatest &&
         versionInstalled &&
         diff(versionLatest, versionInstalled) === "major" &&
-        gte(versionLatest, versionInstalled)
+        gte(versionLatest, versionInstalled),
     )
   }
 
@@ -144,7 +144,7 @@ export class PackageInfo {
 
     return Boolean(
       packageDiff &&
-        PACKAGE_DIFF_LEVELS[packageDiff] >= PACKAGE_DIFF_LEVELS[getLevel()]
+        PACKAGE_DIFF_LEVELS[packageDiff] >= PACKAGE_DIFF_LEVELS[getLevel()],
     )
   }
 
@@ -204,7 +204,7 @@ export class PackageInfo {
     if (isPrerelease) {
       const versionNonPrerelease = maxSatisfying(
         packageVersions,
-        `^${coerce(versionClean)}`
+        `^${coerce(versionClean)}`,
       )
 
       if (versionNonPrerelease && gt(versionNonPrerelease, versionClean)) {
@@ -217,7 +217,7 @@ export class PackageInfo {
       `^${versionClean}`,
       {
         includePrerelease: isPrerelease,
-      }
+      },
     )
 
     // If the user-defined version is exactly the same version available within the range given by the user,

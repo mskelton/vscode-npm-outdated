@@ -52,7 +52,7 @@ const isPackageJsonDocument = (document: TextDocument): boolean =>
 export const diagnosticSubscribe = (
   context: ExtensionContext,
   diagnostics: DiagnosticCollection,
-  onChange: (document: TextDocument) => void
+  onChange: (document: TextDocument) => void,
 ): void => {
   // Handles the active editor change, but only continues with package.json files.
   const handleChange = (document: TextDocument): void => {
@@ -72,14 +72,14 @@ export const diagnosticSubscribe = (
       if (editor) {
         handleChange(editor.document)
       }
-    })
+    }),
   )
 
   // Trigger when the active document text is modified.
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((editor: TextDocumentChangeEvent) =>
-      handleChange(editor.document)
-    )
+      handleChange(editor.document),
+    ),
   )
 
   // Trigger when any file in the workspace is modified.
@@ -94,7 +94,7 @@ export const diagnosticSubscribe = (
   }
 
   const lockerWatcher = workspace.createFileSystemWatcher(
-    "**/{package.json,package-lock.json,pnpm-lock.yaml}"
+    "**/{package.json,package-lock.json,pnpm-lock.yaml}",
   )
 
   context.subscriptions.push(lockerWatcher.onDidCreate(lockerUpdated))
@@ -102,7 +102,7 @@ export const diagnosticSubscribe = (
   context.subscriptions.push(lockerWatcher.onDidDelete(lockerUpdated))
 
   const nodeModulesWatcher = workspace.createFileSystemWatcher(
-    "**/node_modules/**/*"
+    "**/node_modules/**/*",
   )
 
   context.subscriptions.push(nodeModulesWatcher.onDidCreate(lockerUpdated))
@@ -117,7 +117,7 @@ export const diagnosticSubscribe = (
 
         DocumentDecorationManager.flushDocument(document)
       }
-    })
+    }),
   )
 }
 
@@ -133,7 +133,7 @@ export class PackageRelatedDiagnostic extends Diagnostic {
     severity: DiagnosticSeverity,
     document: TextDocument,
     public packageRelated: PackageInfo,
-    public type = DiagnosticType.GENERAL
+    public type = DiagnosticType.GENERAL,
   ) {
     super(range, message, severity)
 
@@ -141,7 +141,7 @@ export class PackageRelatedDiagnostic extends Diagnostic {
   }
 
   public static is(
-    diagnostic: PackageRelatedDiagnostic | Diagnostic
+    diagnostic: PackageRelatedDiagnostic | Diagnostic,
   ): diagnostic is PackageRelatedDiagnostic {
     return "packageRelated" in diagnostic
   }
@@ -149,13 +149,13 @@ export class PackageRelatedDiagnostic extends Diagnostic {
 
 export const getPackageDiagnostic = async (
   document: TextDocument,
-  packageInfo: PackageInfo
+  packageInfo: PackageInfo,
 ): Promise<PackageRelatedDiagnostic | Diagnostic | undefined> => {
   if (!packageInfo.isVersionValidRange()) {
     return new Diagnostic(
       packageInfo.versionRange,
       l10n.t("Invalid package version."),
-      DiagnosticSeverity.Error
+      DiagnosticSeverity.Error,
     )
   }
 
@@ -173,7 +173,7 @@ export const getPackageDiagnostic = async (
       l10n.t("Package version not available."),
       DiagnosticSeverity.Error,
       document,
-      packageInfo
+      packageInfo,
     )
   }
 
@@ -186,12 +186,12 @@ export const getPackageDiagnostic = async (
         l10n.t(
           'Ready-to-install package "{0}" at version {1}. Just run your package manager install command.',
           packageInfo.name,
-          versionLatest
+          versionLatest,
         ),
         DiagnosticSeverity.Information,
         document,
         packageInfo,
-        DiagnosticType.READY_TO_INSTALL
+        DiagnosticType.READY_TO_INSTALL,
       )
     }
 
@@ -204,11 +204,11 @@ export const getPackageDiagnostic = async (
       l10n.t(
         'Newer version of "{0}" is available: {1}.',
         packageInfo.name,
-        versionLatest
+        versionLatest,
       ),
       DiagnosticSeverity.Warning,
       document,
-      packageInfo
+      packageInfo,
     )
   }
 
@@ -218,7 +218,7 @@ export const getPackageDiagnostic = async (
     return new Diagnostic(
       packageInfo.versionRange,
       l10n.t('Pre-release version of "{0}".', packageInfo.name),
-      DiagnosticSeverity.Information
+      DiagnosticSeverity.Information,
     )
   }
 
@@ -229,7 +229,7 @@ export const getPackageDiagnostic = async (
 // Analyzes the document dependencies and returns the diagnostics.
 export const generatePackagesDiagnostics = async (
   document: TextDocument,
-  diagnosticsCollection: DiagnosticCollection
+  diagnosticsCollection: DiagnosticCollection,
 ): Promise<void> => {
   // Soft-disable extension if none Package Manager installed is detected.
   if ((await getPackageManager(document)) === PackageManager.NONE) {
@@ -246,7 +246,7 @@ export const generatePackagesDiagnostics = async (
 
   const documentDiagnostics = new DocumentDiagnostics(
     document,
-    diagnosticsCollection
+    diagnosticsCollection,
   )
 
   if (!documentDecorations) {
@@ -272,7 +272,7 @@ export const generatePackagesDiagnostics = async (
 
         const packageDiagnostic = await getPackageDiagnostic(
           document,
-          packageInfo
+          packageInfo,
         )
 
         if (packageDiagnostic !== undefined) {
@@ -281,7 +281,7 @@ export const generatePackagesDiagnostics = async (
           if (PackageRelatedDiagnostic.is(packageDiagnostic)) {
             return documentDecorations?.setUpdateMessage(
               packageInfo.getLine(),
-              packageDiagnostic
+              packageDiagnostic,
             )
           }
 
@@ -292,7 +292,7 @@ export const generatePackagesDiagnostics = async (
 
         documentDecorations?.setCheckedMessage(packageInfo.getLine())
       })
-    })
+    }),
   )
 
   if (identifySecurityAdvisories()) {
@@ -306,9 +306,9 @@ export const generatePackagesDiagnostics = async (
             packagesAdvisories,
             packageInfo,
             documentDecorations,
-            documentDiagnostics
-          )
-        )
+            documentDiagnostics,
+          ),
+        ),
       )
     }
   }
@@ -321,7 +321,7 @@ const detectAdvisoryDiagnostics = async (
   packagesAdvisories: PackagesAdvisories,
   packageInfo: PackageInfo,
   documentDecorations: DocumentDecoration | undefined,
-  documentDiagnostics: DocumentDiagnostics
+  documentDiagnostics: DocumentDiagnostics,
 ): Promise<void> => {
   const packageAdvisories = packagesAdvisories.get(packageInfo.name)
 
@@ -336,7 +336,7 @@ const detectAdvisoryDiagnostics = async (
   }
 
   const packageAdvisory = packageAdvisories.find((packageAdvisory) =>
-    intersects(packageAdvisory.vulnerable_versions, versionNormalized)
+    intersects(packageAdvisory.vulnerable_versions, versionNormalized),
   )
 
   if (packageAdvisory) {
@@ -348,7 +348,7 @@ const detectAdvisoryDiagnostics = async (
       l10n.t(
         "Security advisory: this package version has a known flaw of level {0}/{1}.",
         packageAdvisory.severity.toUpperCase(),
-        packageAdvisory.cvss.score.toFixed(1)
+        packageAdvisory.cvss.score.toFixed(1),
       ),
     ]
 
@@ -366,21 +366,21 @@ const detectAdvisoryDiagnostics = async (
         }
 
         return true
-      }
+      },
     )
 
     // Gets the closest possible future version that does not have the problem.
     const versionFutureNotAffected = minSatisfying(
       versionsNotAffected,
-      `>${versionNormalized}`
+      `>${versionNormalized}`,
     )
 
     if (versionFutureNotAffected) {
       advisoryMessages.push(
         l10n.t(
           "Please upgrade to version {0} or higher.",
-          versionFutureNotAffected
-        )
+          versionFutureNotAffected,
+        ),
       )
     } else {
       advisoryMessages.push(l10n.t("No fix available yet."))
@@ -389,15 +389,15 @@ const detectAdvisoryDiagnostics = async (
       // Gets the largest available version in which a flaw does not exist.
       const versionPastNotAffected = maxSatisfying(
         versionsNotAffected,
-        `<${versionNormalized}`
+        `<${versionNormalized}`,
       )
 
       if (versionPastNotAffected) {
         advisoryMessages.push(
           l10n.t(
             "If possible, downgrade to version {0}.",
-            versionPastNotAffected
-          )
+            versionPastNotAffected,
+          ),
         )
       }
     }
@@ -408,7 +408,7 @@ const detectAdvisoryDiagnostics = async (
     const diagnostic = new Diagnostic(
       packageInfo.versionRange,
       advisoryMessages.join(" "),
-      DiagnosticSeverity.Error
+      DiagnosticSeverity.Error,
     )
 
     diagnostic.code = {

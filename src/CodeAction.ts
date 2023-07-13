@@ -20,7 +20,7 @@ const VERSION_PREFIX_REGEXP = /^\s*(\^|~|=|>=|<=)/
 export class PackageJsonCodeActionProvider implements CodeActionProvider {
   async provideCodeActions(
     document: TextDocument,
-    range: Range
+    range: Range,
   ): Promise<CodeAction[]> {
     const diagnosticsAll = languages.getDiagnostics(document.uri)
 
@@ -30,12 +30,12 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         typeof diagnostic.code === "object" &&
         diagnostic.code.value === DIAGNOSTIC_ACTION &&
         (!PackageRelatedDiagnostic.is(diagnostic) ||
-          diagnostic.type === DiagnosticType.GENERAL)
+          diagnostic.type === DiagnosticType.GENERAL),
     ) as PackageRelatedDiagnostic[]
 
     // Checks if an CodeAction comes through a diagnostic.
     const diagnosticsSelected = diagnostics.filter(
-      (diagnostic) => diagnostic.range.intersection(range) !== undefined
+      (diagnostic) => diagnostic.range.intersection(range) !== undefined,
     )
 
     // Checks if there are any packages waiting to be installed.
@@ -73,7 +73,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     // Else, it will be suggested to update all <number of> packages within range.
     if (diagnosticsSelected.length === 1) {
       diagnosticsPromises.push(
-        this.createUpdateSingleAction(document, diagnosticsSelected[0]!)
+        this.createUpdateSingleAction(document, diagnosticsSelected[0]!),
       )
     } else {
       let updateWarning = ""
@@ -94,7 +94,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
           if (diagnosticsSelectedMajors.length < diagnosticsSelected.length) {
             updateWarning = ` (${l10n.t("excluding major")})`
             diagnosticsSelectedFiltered = diagnosticsSelectedFiltered.filter(
-              (diagnostic) => !diagnosticsSelectedMajors.includes(diagnostic)
+              (diagnostic) => !diagnosticsSelectedMajors.includes(diagnostic),
             )
           } else {
             updateWarning = ` (${l10n.t("major")})`
@@ -106,8 +106,8 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
         diagnosticsPromises.push(
           this.createUpdateSingleAction(
             document,
-            diagnosticsSelectedFiltered[0]!
-          )
+            diagnosticsSelectedFiltered[0]!,
+          ),
         )
       } else {
         diagnosticsPromises.push(
@@ -116,9 +116,9 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
             diagnosticsSelectedFiltered,
             `${l10n.t(
               "Update {0} selected packages",
-              diagnosticsSelectedFiltered.length
-            )}${updateWarning}`
-          )
+              diagnosticsSelectedFiltered.length,
+            )}${updateWarning}`,
+          ),
         )
       }
     }
@@ -145,7 +145,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
           if (diagnosticsMajors.length < diagnostics.length) {
             updateWarning = ` (${l10n.t("excluding major")})`
             diagnosticsFiltered = diagnosticsFiltered.filter(
-              (diagnostic) => !diagnosticsMajors.includes(diagnostic)
+              (diagnostic) => !diagnosticsMajors.includes(diagnostic),
             )
           } else {
             updateWarning = ` (${l10n.t("major")})`
@@ -160,16 +160,16 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
             diagnosticsFiltered,
             `${l10n.t(
               "Update all {0} packages",
-              diagnosticsFiltered.length
-            )}${updateWarning}`
-          )
+              diagnosticsFiltered.length,
+            )}${updateWarning}`,
+          ),
         )
       }
     }
 
     if (requiresInstallCount) {
       diagnosticsPromises.push(
-        this.createInstallAction(document, requiresInstallCount)
+        this.createInstallAction(document, requiresInstallCount),
       )
     }
 
@@ -180,7 +180,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     document: TextDocument,
     message: string,
     diagnostics: PackageRelatedDiagnostic[],
-    isPreferred?: boolean
+    isPreferred?: boolean,
   ): Promise<CodeAction> {
     const edit = new WorkspaceEdit()
     const action = new CodeAction(message, CodeActionKind.QuickFix)
@@ -214,14 +214,14 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   private async createUpdateManyAction(
     doc: TextDocument,
     diagnostics: PackageRelatedDiagnostic[],
-    message: string
+    message: string,
   ): Promise<CodeAction> {
     const action = await this.createAction(doc, message, diagnostics)
 
     await Promise.all(
       diagnostics.map((diagnostic) =>
-        this.updatePackageVersion(action, doc, diagnostic)
-      )
+        this.updatePackageVersion(action, doc, diagnostic),
+      ),
     )
 
     return action
@@ -229,7 +229,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
   private async createUpdateSingleAction(
     document: TextDocument,
-    diagnostic: PackageRelatedDiagnostic
+    diagnostic: PackageRelatedDiagnostic,
   ): Promise<CodeAction> {
     const versionLatest = await diagnostic.packageRelated.getVersionLatest()
     const updateWarning =
@@ -243,10 +243,10 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
       `${l10n.t(
         'Update "{0}" to {1}',
         diagnostic.packageRelated.name,
-        versionLatest!
+        versionLatest!,
       )}${updateWarning}`,
       [diagnostic],
-      true
+      true,
     )
 
     await this.updatePackageVersion(await action, document, diagnostic)
@@ -256,13 +256,13 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
 
   private async createInstallAction(
     document: TextDocument,
-    requiresInstallCount: number
+    requiresInstallCount: number,
   ): Promise<CodeAction> {
     const action = new CodeAction(
       requiresInstallCount === 1
         ? l10n.t("Install package")
         : l10n.t("Install packages"),
-      CodeActionKind.QuickFix
+      CodeActionKind.QuickFix,
     )
 
     action.command = {
@@ -277,12 +277,12 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
   private async updatePackageVersion(
     action: CodeAction,
     document: TextDocument,
-    diagnostic: PackageRelatedDiagnostic
+    diagnostic: PackageRelatedDiagnostic,
   ): Promise<void> {
     const line = document.lineAt(diagnostic.range.start.line),
       version = line.text.slice(
         diagnostic.range.start.character,
-        diagnostic.range.end.character
+        diagnostic.range.end.character,
       ),
       versionPrefix = version.match(VERSION_PREFIX_REGEXP)?.[1] ?? "",
       versionUpdated = await diagnostic.packageRelated.getVersionLatest()
@@ -290,7 +290,7 @@ export class PackageJsonCodeActionProvider implements CodeActionProvider {
     action.edit?.replace(
       document.uri,
       diagnostic.range,
-      versionPrefix + versionUpdated
+      versionPrefix + versionUpdated,
     )
   }
 }

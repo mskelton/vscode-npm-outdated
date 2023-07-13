@@ -30,7 +30,7 @@ export const getDecorationsMode = (): "disabled" | "fancy" | "simple" =>
 // Default: 60 minutes.
 export const getCacheLifetime = (): number =>
   Number(
-    workspace.getConfiguration().get<number>(`${packageName}.cacheLifetime`)
+    workspace.getConfiguration().get<number>(`${packageName}.cacheLifetime`),
   ) *
   60 *
   1000

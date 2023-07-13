@@ -12,7 +12,7 @@ export class DocumentDiagnostics {
 
   constructor(
     private document: TextDocument,
-    private diagnosticsCollection: DiagnosticCollection
+    private diagnosticsCollection: DiagnosticCollection,
   ) {}
 
   public push(diagnostic: Diagnostic): void {

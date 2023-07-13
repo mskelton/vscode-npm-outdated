@@ -14,6 +14,7 @@
     "prefer-template": "warn",
     "curly": ["warn", "all"],
     "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-non-null-assertion": "off",
     "jest/unbound-method": "off",
     "jest/prefer-expect-assertions": "off",
     "jest/prefer-spy-on": "off"

@@ -52,7 +52,7 @@ describe("package diagnostics", () => {
     expect(diagnostics[0]?.message).toContain("run your package manager")
     expect(diagnostics[0]?.severity).toBe(DiagnosticSeverity.Information)
     expect(decorations[0]).toContain(
-      "Now run your package manager install command."
+      "Now run your package manager install command.",
     )
     expect(actions[0]?.title).toBe("Install package")
     expect(actions).toHaveLength(1)
@@ -278,10 +278,10 @@ describe("package diagnostics", () => {
     })
 
     expect(diagnostics[0]?.message).toBe(
-      'Ready-to-install package "npm-outdated" at version 1.0.1. Just run your package manager install command.'
+      'Ready-to-install package "npm-outdated" at version 1.0.1. Just run your package manager install command.',
     )
     expect(decorations[0]).toContain(
-      "Now run your package manager install command."
+      "Now run your package manager install command.",
     )
   })
 
@@ -341,7 +341,7 @@ describe("package diagnostics", () => {
     })
 
     expect(decorations[0]).toContain(
-      `${Icons.UPDATABLE} Update available: 1.0.1`
+      `${Icons.UPDATABLE} Update available: 1.0.1`,
     )
   })
 
@@ -689,7 +689,7 @@ describe("code coverage", () => {
       await vscodeSimulator()
 
     subscriptions.find(
-      (subscription) => subscription[0] === "onDidChangeActiveTextEditor"
+      (subscription) => subscription[0] === "onDidChangeActiveTextEditor",
     )?.[1]({ document })
 
     expect(diagnostics).toHaveLength(0)
@@ -709,7 +709,7 @@ describe("code coverage", () => {
     const { decorations, diagnostics, subscriptions } = await vscodeSimulator()
 
     subscriptions.find(
-      (subscription) => subscription[0] === "onDidChange"
+      (subscription) => subscription[0] === "onDidChange",
     )?.[1]()
 
     expect(diagnostics).toHaveLength(0)
@@ -723,7 +723,7 @@ describe("code coverage", () => {
       })
 
     subscriptions.find(
-      (subscription) => subscription[0] === "onDidCloseTextDocument"
+      (subscription) => subscription[0] === "onDidCloseTextDocument",
     )?.[1](document)
 
     expect(diagnostics).toHaveLength(1)

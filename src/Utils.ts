@@ -11,7 +11,7 @@ import { IncomingMessage } from "node:http"
 export const lazyCallback = <T, A>(
   callback: (...args: A[]) => T,
   wait = 0,
-  delay = 0
+  delay = 0,
 ): ((...args: A[]) => Promise<void>) => {
   // Defines whether there is a process currently running.
   let isRunning = false
@@ -72,7 +72,7 @@ export const lazyCallback = <T, A>(
 // @see https://stackoverflow.com/a/64947598/755393
 export const waitUntil = (
   condition: () => Promise<boolean>,
-  retryDelay = 0
+  retryDelay = 0,
 ): Promise<void> => {
   return new Promise((resolve) => {
     const interval = setInterval(async () => {
@@ -92,7 +92,7 @@ type OptionalPromise<T> = T | Promise<T>
 // As soon as one promise ends, another one can be processed.
 // If the concurrency number is zero then they will be processed immediately.
 export const promiseLimit = (
-  concurrency: number
+  concurrency: number,
 ): (<T>(func: () => T) => OptionalPromise<T>) => {
   // If concurrency is zero, all promises are executed immediately.
   if (concurrency === 0) {
@@ -150,10 +150,10 @@ export const fetchLite = <T>(options: FetchLite): Promise<T | undefined> => {
             Buffer.concat(responseBuffers),
             (_error, contents) => {
               resolve(JSON.parse(contents.toString()))
-            }
+            },
           )
         })
-      }
+      },
     )
 
     thisReq.setHeader("Content-Type", "application/json")

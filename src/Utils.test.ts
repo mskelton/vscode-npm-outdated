@@ -65,7 +65,7 @@ describe("utils", () => {
         callNumber()
       },
       0,
-      25 * TIMER_MULTIPLIER
+      25 * TIMER_MULTIPLIER,
     )
 
     const now = Date.now()

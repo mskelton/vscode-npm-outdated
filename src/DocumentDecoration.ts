@@ -20,7 +20,7 @@ class Message {
   constructor(
     public message: string,
     public styleDefault?: ThemableDecorationAttachmentRenderOptions,
-    public styleDark?: ThemableDecorationAttachmentRenderOptions
+    public styleDark?: ThemableDecorationAttachmentRenderOptions,
   ) {}
 }
 
@@ -64,7 +64,7 @@ export class DocumentDecorationManager {
   // Returns the decoration layers of a document.
   // If the document has never been used, then instantiate and return.
   public static fromDocument(
-    document: TextDocument
+    document: TextDocument,
   ): DocumentDecorationManager {
     if (!this.documents.has(document)) {
       this.documents.set(document, new DocumentDecorationManager())
@@ -106,21 +106,21 @@ export class DocumentDecoration {
     DocumentDecorationManager.fromDocument(this.document).layers.forEach(
       (layer) => {
         this.editors.forEach((editor) =>
-          editor.setDecorations(layer.type, [...layer.lines.values()])
+          editor.setDecorations(layer.type, [...layer.lines.values()]),
         )
-      }
+      },
     )
   }, 100)
 
   constructor(private document: TextDocument) {
     this.editors = window.visibleTextEditors.filter(
-      (editor) => editor.document === document
+      (editor) => editor.document === document,
     )
   }
 
   private setLine(line: number, messages: Message[]): void {
     const decorationManager = DocumentDecorationManager.fromDocument(
-      this.document
+      this.document,
     )
 
     if (!this.flushed) {
@@ -177,7 +177,7 @@ export class DocumentDecoration {
 
   public clearLine(line: number): void {
     DocumentDecorationManager.fromDocument(this.document).layers.forEach(
-      (decoration) => decoration.lines.delete(line)
+      (decoration) => decoration.lines.delete(line),
     )
 
     this.render()
@@ -188,7 +188,7 @@ export class DocumentDecoration {
       new Message(
         Icons.CHECKED,
         ThemeLight.ICON_CHECKED,
-        ThemeDark.ICON_CHECKED
+        ThemeDark.ICON_CHECKED,
       ),
     ])
   }
@@ -199,7 +199,7 @@ export class DocumentDecoration {
 
   public async setUpdateMessage(
     line: number,
-    packageInfo: PackageRelatedDiagnostic
+    packageInfo: PackageRelatedDiagnostic,
   ): Promise<void> {
     const versionLatest = (await packageInfo.packageRelated.getVersionLatest())!
 
@@ -211,7 +211,7 @@ export class DocumentDecoration {
         new Message(
           Icons.PENDING,
           ThemeLight.ICON_AVAILABLE,
-          ThemeDark.ICON_AVAILABLE
+          ThemeDark.ICON_AVAILABLE,
         ),
         new Message(l10n.t("Now run your package manager install command.")),
       ])
@@ -221,19 +221,19 @@ export class DocumentDecoration {
       new Message(
         Icons.UPDATABLE,
         ThemeLight.ICON_UPDATABLE,
-        ThemeDark.ICON_UPDATABLE
+        ThemeDark.ICON_UPDATABLE,
       ),
       new Message(
         packageVersionInstalled
           ? l10n.t("Update available:")
           : l10n.t("Latest version:"),
         ThemeLight.LABEL_UPDATABLE,
-        ThemeDark.LABEL_UPDATABLE
+        ThemeDark.LABEL_UPDATABLE,
       ),
       new Message(
         versionLatest,
         ThemeLight.LABEL_VERSION,
-        ThemeDark.LABEL_VERSION
+        ThemeDark.LABEL_VERSION,
       ),
     ]
 
@@ -243,8 +243,8 @@ export class DocumentDecoration {
         new Message(
           `(${l10n.t("install pending")})`,
           ThemeLight.LABEL_PENDING,
-          ThemeDark.LABEL_PENDING
-        )
+          ThemeDark.LABEL_PENDING,
+        ),
       )
     } else if (
       await packageInfo.packageRelated.isVersionLatestAlreadyInstalled()
@@ -254,8 +254,8 @@ export class DocumentDecoration {
         new Message(
           `(${l10n.t("already installed, just formalization")})`,
           ThemeLight.LABEL_FORMALIZATION,
-          ThemeDark.LABEL_FORMALIZATION
-        )
+          ThemeDark.LABEL_FORMALIZATION,
+        ),
       )
     }
 
@@ -265,8 +265,8 @@ export class DocumentDecoration {
         new Message(
           `(${l10n.t("attention: major update!")})`,
           ThemeLight.LABEL_MAJOR,
-          ThemeDark.LABEL_MAJOR
-        )
+          ThemeDark.LABEL_MAJOR,
+        ),
       )
     }
 
@@ -277,8 +277,8 @@ export class DocumentDecoration {
         new Message(
           `<${l10n.t("pre-release")}>`,
           ThemeLight.LABEL_PRERELEASE,
-          ThemeDark.LABEL_PRERELEASE
-        )
+          ThemeDark.LABEL_PRERELEASE,
+        ),
       )
     }
 
@@ -287,25 +287,25 @@ export class DocumentDecoration {
 
   public async setAdvisoryMessage(
     packageInfo: PackageInfo,
-    packageAdvisory: PackageAdvisory
+    packageAdvisory: PackageAdvisory,
   ): Promise<void> {
     this.setLine(packageInfo.getLine(), [
       new Message(
         Icons.ADVISORY,
         ThemeLight.ICON_ADVISORY,
-        ThemeDark.ICON_ADVISORY
+        ThemeDark.ICON_ADVISORY,
       ),
       new Message(
         `${l10n.t("Security advisory")} (${l10n.t(
-          packageAdvisory.severity.toUpperCase()
+          packageAdvisory.severity.toUpperCase(),
         )}/${packageAdvisory.cvss.score.toFixed(1)}):`,
         ThemeLight.LABEL_ADVISORY,
-        ThemeDark.LABEL_ADVISORY
+        ThemeDark.LABEL_ADVISORY,
       ),
       new Message(
         `${packageAdvisory.title.replace(/\.$/, "")}.`,
         ThemeLight.LABEL_ADVISORY_TITLE,
-        ThemeDark.LABEL_ADVISORY_TITLE
+        ThemeDark.LABEL_ADVISORY_TITLE,
       ),
     ])
   }

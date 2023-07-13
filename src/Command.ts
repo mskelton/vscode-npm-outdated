@@ -7,20 +7,20 @@ export const COMMAND_INSTALL = `${packageName}.install`
 export const COMMAND_INSTALL_REQUEST = `${packageName}.installRequest`
 
 export const packageInstallRequest = async (
-  document: TextDocument
+  document: TextDocument,
 ): Promise<void> => {
   // @see https://github.com/microsoft/vscode/blob/main/extensions/npm/package.json
   const packageManager: string = await commands.executeCommand(
     "npm.packageManager",
-    document.uri
+    document.uri,
   )
 
   const action = l10n.t("Do it for me!")
   const result = await window.showInformationMessage(
     l10n.t(
-      "Save your package.json and run your package manager install command to finish updating packages."
+      "Save your package.json and run your package manager install command to finish updating packages.",
     ),
-    action
+    action,
   )
 
   if (result === action) {
@@ -29,7 +29,7 @@ export const packageInstallRequest = async (
     commands.executeCommand(
       COMMAND_INSTALL,
       `${packageManager} install`,
-      dirname(document.uri.fsPath)
+      dirname(document.uri.fsPath),
     )
   }
 }
@@ -37,7 +37,7 @@ export const packageInstallRequest = async (
 export const packageInstall = (
   outputChannel: OutputChannel,
   command: string,
-  cwd: string
+  cwd: string,
 ): void => {
   outputChannel.clear()
   outputChannel.show()
@@ -62,7 +62,7 @@ export const packageInstall = (
       window.showInformationMessage(l10n.t("Packages installed successfully!"))
     } else {
       window.showErrorMessage(
-        l10n.t("Failed to install packages. Check the output console.")
+        l10n.t("Failed to install packages. Check the output console."),
       )
     }
   })

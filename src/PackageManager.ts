@@ -27,7 +27,7 @@ const packagesCache: PackagesVersions = new Map()
 
 // Get all package versions through `npm view` command.
 export const getPackageVersions = async (
-  name: string
+  name: string,
 ): Promise<string[] | null> => {
   // If the package query is in the cache (even in the process of being executed), return it.
   // This ensures that we will not have duplicate execution process while it is within lifetime.
@@ -64,7 +64,7 @@ export const getPackageVersions = async (
 
         return resolve(null)
       })
-    })
+    }),
   )
 
   packagesCache.set(name, new Cache(execPromise))
@@ -87,7 +87,7 @@ const packageManagerExecCache = new Cache<Record<string, boolean>>({})
 // Return if asked Package Manager is installed.
 const supportsPackageManager = async (
   document: TextDocument,
-  cmd: "npm" | "pnpm"
+  cmd: "npm" | "pnpm",
 ): Promise<boolean> => {
   return new Promise((resolve) => {
     if (
@@ -119,7 +119,7 @@ export const packageManagerCaches = new Map<
 
 // Return the current Package Manager.
 export const getPackageManager = async (
-  document: TextDocument
+  document: TextDocument,
 ): Promise<PackageManager> => {
   const cwd = getWorkspacePath(document.uri)
 
@@ -165,7 +165,7 @@ export const getPackageManager = async (
 }
 
 const getPackagesInstalledEntries = (
-  packages: NPMListResponse
+  packages: NPMListResponse,
 ): PackagesInstalled | null => {
   const dependencies: NPMDependencies = {
     ...(packages.dependencies ?? {}),
@@ -176,7 +176,7 @@ const getPackagesInstalledEntries = (
     // The `npm ls` command returns a lot of information.
     // We only need the name of the installed package and its version.
     const packageEntries = Object.entries(dependencies).map(
-      ([packageName, packageInfo]) => [packageName, packageInfo.version]
+      ([packageName, packageInfo]) => [packageName, packageInfo.version],
     )
 
     return Object.fromEntries(packageEntries)
@@ -192,7 +192,7 @@ export const packagesInstalledCaches = new Map<
 
 // Returns packages installed by the user and their respective versions.
 export const getPackagesInstalled = async (
-  document: TextDocument
+  document: TextDocument,
 ): Promise<PackagesInstalled | undefined> => {
   const cwd = getWorkspacePath(document.uri)
 
@@ -215,7 +215,7 @@ export const getPackagesInstalled = async (
 
             if (Array.isArray(execResult)) {
               const packagesInstalled = getPackagesInstalledEntries(
-                execResult[0]
+                execResult[0],
               )
 
               if (packagesInstalled !== null) {
@@ -235,7 +235,7 @@ export const getPackagesInstalled = async (
       if (stdout) {
         try {
           const packagesInstalled = getPackagesInstalledEntries(
-            JSON.parse(stdout)
+            JSON.parse(stdout),
           )
 
           if (packagesInstalled !== null) {
@@ -269,7 +269,7 @@ const packagesAdvisoriesCache = new Map<string, Cache<PackageAdvisory[]>>()
 
 // Returns packages with known security advisories.
 export const getPackagesAdvisories = async (
-  packagesInfos: PackageInfo[]
+  packagesInfos: PackageInfo[],
 ): Promise<PackagesAdvisories | undefined> => {
   const packages: Record<string, string[]> = {}
 
@@ -294,7 +294,7 @@ export const getPackagesAdvisories = async (
       // Add to be requested.
       if (packageVersions) {
         packages[packageInfo.name] = packageVersions.filter(
-          (packageVersion) => prerelease(packageVersion) === null
+          (packageVersion) => prerelease(packageVersion) === null,
         )
       }
     }
@@ -314,8 +314,8 @@ export const getPackagesAdvisories = async (
         ([packageName, packageAdvisories]) =>
           packagesAdvisoriesCache.set(
             packageName,
-            new Cache(packageAdvisories as PackageAdvisory[])
-          )
+            new Cache(packageAdvisories as PackageAdvisory[]),
+          ),
       )
     }
 
@@ -329,7 +329,7 @@ export const getPackagesAdvisories = async (
 
   return new Map(
     Array.from(packagesAdvisoriesCache.entries()).map(
-      ([packageName, packageAdvisory]) => [packageName, packageAdvisory.value]
-    )
+      ([packageName, packageAdvisory]) => [packageName, packageAdvisory.value],
+    ),
   )
 }

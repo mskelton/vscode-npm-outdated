@@ -6,7 +6,7 @@ export class Range {
     startLine: number,
     startCharacter: number,
     endLine: number,
-    endCharacter: number
+    endCharacter: number,
   ) {
     this.start = { character: startCharacter, line: startLine }
     this.end = { character: endCharacter, line: endLine }
@@ -23,7 +23,7 @@ export class Diagnostic {
   constructor(
     public range: typeof Range,
     public message: string,
-    public severity?: DiagnosticSeverity
+    public severity?: DiagnosticSeverity,
   ) {}
 }
 

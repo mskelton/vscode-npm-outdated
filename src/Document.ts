@@ -6,7 +6,7 @@ import { waitUntil } from "./Utils"
 // Returns existing packages, their versions and the package range.
 const mapDependencyRange = (
   document: TextDocument,
-  documentSymbol: DocumentSymbol | undefined
+  documentSymbol: DocumentSymbol | undefined,
 ): PackageInfo[] => {
   if (!documentSymbol || documentSymbol.children.length === 0) {
     return []
@@ -23,9 +23,9 @@ const mapDependencyRange = (
           child.range.end.line,
           child.range.end.character - 1 - child.detail.length,
           child.range.end.line,
-          child.range.end.character - 1
-        )
-      )
+          child.range.end.character - 1,
+        ),
+      ),
   )
 }
 
@@ -33,30 +33,30 @@ export type DocumentsPackagesInterface = Record<string, PackageInfo>
 
 // Gets an array of packages used in the document, regardless of dependency type.
 export const getDocumentPackages = async (
-  document: TextDocument
+  document: TextDocument,
 ): Promise<DocumentsPackagesInterface> => {
   let symbols: DocumentSymbol[] | undefined
 
   await waitUntil(async () => {
     symbols = await commands.executeCommand(
       "vscode.executeDocumentSymbolProvider",
-      document.uri
+      document.uri,
     )
 
     return symbols !== undefined
   }, 33)
 
   const symbolDependencies = symbols?.find(
-      (symbol) => symbol.name === "dependencies"
+      (symbol) => symbol.name === "dependencies",
     ),
     symbolDevDependencies = symbols?.find(
-      (symbol) => symbol.name === "devDependencies"
+      (symbol) => symbol.name === "devDependencies",
     )
 
   return Object.fromEntries(
     [
       ...mapDependencyRange(document, symbolDependencies),
       ...mapDependencyRange(document, symbolDevDependencies),
-    ].map((documentPackage) => [documentPackage.name, documentPackage])
+    ].map((documentPackage) => [documentPackage.name, documentPackage]),
   )
 }
